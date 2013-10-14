@@ -1,0 +1,23 @@
+#!/bin/bash
+
+output="main"
+libs="boost_system ompl"
+
+rm -fR build
+mkdir -p build/{obj,bin}
+
+link_string=""
+for lib in $libs
+do
+    link_string="$link_string -l$lib"
+done
+
+for file in src/*.cpp
+do
+    echo Building $file...
+    g++ -c -o build/obj/$(basename $file).o -I. $file || exit 1
+done
+
+echo Linking with $libs...
+g++ -o build/bin/$output $link_string build/obj/*.o
+
