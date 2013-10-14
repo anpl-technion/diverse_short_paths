@@ -74,7 +74,7 @@ public:
      * 
      * @return          our SpaceInformationPtr
      */
-    ompl::base::SpaceInformationPtr getSpaceInformation (void)
+    ompl::base::SpaceInformationPtr getSpaceInformation (void) const
     {
         return si_;
     }
@@ -127,14 +127,14 @@ public:
     {
     }
     
-    double operator() (Vertex u)
+    double operator() (Vertex u) const
     {
         ompl::base::State *goalState = boost::get(boost::vertex_prop, g, goal).state;
         ompl::base::State *uState = boost::get(boost::vertex_prop, g, u).state;
         return g.getSpaceInformation()->distance(goalState, uState);
     }
 };
-    
+
 class edgeWeightMap
 {
     Graph &g;
@@ -142,12 +142,17 @@ class edgeWeightMap
     
 public:
     
+    typedef Edge key_type;
+    typedef double value_type;
+    typedef double reference;
+    typedef boost::readable_property_map_tag category;
+    
     edgeWeightMap (Graph &graph, std::vector<Neighborhood> avoidNeighborhoods)
     : g(graph), avoid(avoidNeighborhoods)
     {
     }
     
-    bool shouldAvoid (Edge e)
+    bool shouldAvoid (Edge e) const
     {
         ompl::base::State *u = boost::get(boost::vertex_prop, g, boost::source(e, g)).state;
         ompl::base::State *v = boost::get(boost::vertex_prop, g, boost::target(e, g)).state;
@@ -160,11 +165,22 @@ public:
         return false;
     }
     
-    base_graph &getGraph (void)
+    base_graph &getGraph (void) const
     {
         return g;
     }
 };
+
+namespace boost
+{
+    template <typename K>
+    double get (const edgeWeightMap &m, const K &e)
+    {
+        if (m.shouldAvoid(e))
+            return std::numeric_limits<double>::max();
+        return get(edge_weight, m.getGraph(), e);
+    }
+}
 
 struct foundGoalException {};
 
@@ -178,30 +194,11 @@ public:
     {
     }
     
-    void examine_vertex(Vertex u, const Graph &g)
+    void examine_vertex(Vertex u, const Graph &g) const
     {
         if (u == goal)
             throw foundGoalException();
     }
 };
-
-namespace boost
-{
-    template <>
-    struct property_traits <edgeWeightMap>
-    {
-        typedef double value_type;
-        typedef double reference;
-        typedef Edge key_type;
-        typedef readable_property_map_tag category;
-    };
-    
-    double get (edgeWeightMap m, Edge e)
-    {
-        if (m.shouldAvoid(e))
-            return std::numeric_limits<double>::max();
-        return get(edge_weight, m.getGraph(), e);
-    }
-}
 
 #endif

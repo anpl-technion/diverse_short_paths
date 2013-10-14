@@ -2,6 +2,7 @@
 /* Author: Caleb Voss */
 
 #include "Graph.h"
+
 std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, std::vector<Neighborhood> avoidNeighborhoods)
 {
     // Run the A* search

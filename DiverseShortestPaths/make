@@ -1,7 +1,7 @@
 #!/bin/bash
 
 output="main"
-libs="boost_system ompl"
+libs="ompl"
 
 rm -fR build
 mkdir -p build/{obj,bin}
