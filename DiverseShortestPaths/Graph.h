@@ -138,6 +138,8 @@ public:
 class edgeWeightMap // implements ReadablePropertyMap
 {
     const Graph &g;
+    const Vertex start;
+    const Vertex end;
     const std::vector<Neighborhood> &avoid;
     
 public:
@@ -147,20 +149,29 @@ public:
     typedef double reference;
     typedef boost::readable_property_map_tag category;
     
-    edgeWeightMap (const Graph &graph, const std::vector<Neighborhood> &avoidNeighborhoods)
-    : g(graph), avoid(avoidNeighborhoods)
+    edgeWeightMap (const Graph &graph, Vertex start, Vertex end, const std::vector<Neighborhood> &avoidNeighborhoods)
+    : g(graph), start(start), end(end), avoid(avoidNeighborhoods)
     {
     }
     
     bool shouldAvoid (Edge e) const
     {
-        ompl::base::State *u = boost::get(boost::vertex_prop, g, boost::source(e, g)).state;
-        ompl::base::State *v = boost::get(boost::vertex_prop, g, boost::target(e, g)).state;
+        Vertex u = boost::source(e, g);
+        Vertex v = boost::target(e, g);
+        ompl::base::State *uState = boost::get(boost::vertex_prop, g, u).state;
+        ompl::base::State *vState = boost::get(boost::vertex_prop, g, v).state;
         BOOST_FOREACH(Neighborhood nbh, avoid)
         {
-            if (g.getSpaceInformation()->distance(u, nbh.center) < nbh.radius ||
-                g.getSpaceInformation()->distance(v, nbh.center) < nbh.radius)
+            // Only avoid edge if one endpoint is neither start nor end, yet is inside a neighborhood
+            // OR if the edge is between start and end
+            if ((u == start && v == end) || (u == end && v == start))
                 return true;
+            if (u != start && u != end)
+                if (g.getSpaceInformation()->distance(uState, nbh.center) < nbh.radius)
+                    return true;
+            if (v != start && v != end)
+                if (g.getSpaceInformation()->distance(vState, nbh.center) < nbh.radius)
+                    return true;
         }
         return false;
     }

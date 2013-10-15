@@ -11,7 +11,7 @@ std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end,
     try
     {
         boost::astar_search(*this, start, heuristic(*this, end),
-                            boost::weight_map(edgeWeightMap(*this, avoidNeighborhoods)).
+                            boost::weight_map(edgeWeightMap(*this, start, end, avoidNeighborhoods)).
                             predecessor_map(&pred[0]).
                             visitor(visitor(end)));
     }
