@@ -11,16 +11,30 @@
 
 // Magic numbers
 #define NUM_AVOIDS_PER_PATH     5
-#define AVOID_RADIUS_FACTOR     0.01
+#define AVOID_RADIUS_FACTOR     0.1
 
+/** \brief Get a random state from the path (not equal to the start or end of the path)
+ * 
+ * @param path      path to sample from
+ * @param g         graph this path exists in
+ * 
+ * @return          pointer to a state on the path
+ */
 ompl::base::State *sampleState (const std::list<Vertex> &path, const Graph &g)
 {
     std::list<Vertex>::const_iterator vi = path.begin();
-    for (size_t i = std::rand() % path.size(); i > 0; i--)
+    for (std::size_t i = std::rand() % path.size(); i > 0; i--)
         vi++;
     return boost::get(boost::vertex_prop, g, *vi).state;
 }
 
+/** \brief Compute the length of a path by summing the distance between states
+ * 
+ * @param path      path to find the length of
+ * @param g         graph this path exists in
+ * 
+ * @return          length of path
+ */
 double pathLength (const std::list<Vertex> &path, const Graph &g)
 {
     double length = 0;
@@ -38,64 +52,61 @@ double pathLength (const std::list<Vertex> &path, const Graph &g)
     return length;
 }
 
-std::vector<std::list<Vertex> > &findDiverseShortestPaths (size_t numPaths, Vertex start, Vertex end, const Graph &g,
-                                                    const std::list<Vertex> &referencePath = std::list<Vertex>(),
-                                                    const std::vector<Neighborhood> &alreadyAvoiding = std::vector<Neighborhood>())
+/** \brief Find a number of diverse, short paths in a graph, by deviating from former short paths through
+ *         the use of an increasing set of neighborhoods in the state space that should be avoided
+ * 
+ * @param numPaths          number of paths to try to find
+ * @param start             start vertex for the path
+ * @param end               end vertex for the path
+ * @param g                 graph to search in
+ * 
+ * @return                  set of at most numPaths distinct paths from start to end
+ */
+std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, Vertex start, Vertex end, const Graph &g)
 {
-    static std::vector<std::list<Vertex> > resultPaths;
-    
-    if (resultPaths.size() == numPaths)
+    std::vector<std::list<Vertex> > resultPaths;
+    if (numPaths == 0)
+        return resultPaths;
+    std::vector<std::vector<Neighborhood> > resultAvoids;
+    std::size_t frontier = 0;
+    std::vector<Neighborhood> alreadyAvoiding = std::vector<Neighborhood>();
+    std::list<Vertex> referencePath = g.getShortestPathWithAvoidance(start, end, alreadyAvoiding);
+    if (referencePath.empty())
         return resultPaths;
     
-    if (referencePath.empty())
-    {
-        resultPaths.clear();
-        std::list<Vertex> path = g.getShortestPathWithAvoidance(start, end, alreadyAvoiding);
-        if (path.empty())
-            return resultPaths;
-        
-        resultPaths.push_back(path);
-        std::cout << "Appending path:\n";
-        BOOST_FOREACH(Vertex v, path)
-        {
-            std::cout << v << " " << boost::get(boost::vertex_prop, g, v).state << "\n";
-        }
-        std::cout << "With avoid nodes: none\n\n";
-        return findDiverseShortestPaths(numPaths, start, end, g, path, alreadyAvoiding);
-    }
+    resultPaths.push_back(referencePath);
+    resultAvoids.push_back(alreadyAvoiding);
     
-    double radius = AVOID_RADIUS_FACTOR * pathLength(referencePath, g);
-    for (int i = 0; i < NUM_AVOIDS_PER_PATH && resultPaths.size() < numPaths; i++)
+    while (frontier < resultPaths.size())
     {
-        std::vector<Neighborhood> avoid = alreadyAvoiding;
-        avoid.push_back(Neighborhood(sampleState(referencePath, g), radius));
-        std::list<Vertex> path = g.getShortestPathWithAvoidance(start, end, avoid);
-        if (path.empty())
-            continue;
+        referencePath = resultPaths[frontier];
+        alreadyAvoiding = resultAvoids[frontier];
+        frontier++;
         
-        bool alreadyHave = false;
-        BOOST_FOREACH(std::list<Vertex> p, resultPaths)
+        double radius = AVOID_RADIUS_FACTOR * pathLength(referencePath, g);
+        for (int i = 0; i < NUM_AVOIDS_PER_PATH && resultPaths.size() < numPaths; i++)
         {
-            if (path == p)
+            std::vector<Neighborhood> avoid = alreadyAvoiding;
+            avoid.push_back(Neighborhood(sampleState(referencePath, g), radius));
+            std::list<Vertex> path = g.getShortestPathWithAvoidance(start, end, avoid);
+            if (path.empty())
+                continue;
+            
+            bool alreadyHave = false;
+            BOOST_FOREACH(std::list<Vertex> p, resultPaths)
             {
-                alreadyHave = true;
-                break;
+                if (path == p)
+                {
+                    alreadyHave = true;
+                    break;
+                }
+            }
+            if (!alreadyHave)
+            {
+                resultPaths.push_back(path);
+                resultAvoids.push_back(avoid);
             }
         }
-        if (!alreadyHave)
-            resultPaths.push_back(path);
-        std::cout << "Appending path:\n";
-        BOOST_FOREACH(Vertex v, path)
-        {
-            std::cout << v << " " << boost::get(boost::vertex_prop, g, v).state << "\n";
-        }
-        std::cout << "With avoid nodes:\n";
-        BOOST_FOREACH(Neighborhood nbh, avoid)
-        {
-            std::cout << nbh.center << "\n";
-        }
-        std::cout << "\n\n";
-        findDiverseShortestPaths(numPaths, start, end, g, path, avoid);
     }
     
     return resultPaths;
