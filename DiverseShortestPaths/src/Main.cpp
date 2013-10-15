@@ -72,7 +72,18 @@ std::vector<std::list<Vertex> > &findDiverseShortestPaths (size_t numPaths, Vert
         std::list<Vertex> path = g.getShortestPathWithAvoidance(start, end, avoid);
         if (path.empty())
             continue;
-        resultPaths.push_back(path);
+        
+        bool alreadyHave = false;
+        BOOST_FOREACH(std::list<Vertex> p, resultPaths)
+        {
+            if (path == p)
+            {
+                alreadyHave = true;
+                break;
+            }
+        }
+        if (!alreadyHave)
+            resultPaths.push_back(path);
         std::cout << "Appending path:\n";
         BOOST_FOREACH(Vertex v, path)
         {
