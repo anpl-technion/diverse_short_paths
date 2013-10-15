@@ -3,7 +3,7 @@
 
 #include "Graph.h"
 
-std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, std::vector<Neighborhood> avoidNeighborhoods)
+std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<Neighborhood> &avoidNeighborhoods) const
 {
     // Run the A* search
     std::vector<Vertex> pred(boost::num_vertices(*this));
@@ -25,5 +25,7 @@ std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end,
         }
     }
     
+    if (path.size() == 1 && start != end)
+        path.clear();
     return path;
 }

@@ -110,19 +110,19 @@ public:
      * @param start     starting vertex
      * @param end       ending vertex
      * 
-     * @return          list of the vertices in the path from start to end
+     * @return          list of the vertices in the path from start to end; empty list if no path was found
      */
-    std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, std::vector<Neighborhood> avoidNeighborhoods);
+    std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<Neighborhood> &avoidNeighborhoods) const;
     
 };
 
-class heuristic
+class heuristic // implements AStarHeuristic
 {
-    Graph &g;
-    Vertex goal;
+    const Graph &g;
+    const Vertex goal;
     
 public:
-    heuristic (Graph &graph, Vertex goal)
+    heuristic (const Graph &graph, Vertex goal)
     : g(graph), goal(goal)
     {
     }
@@ -135,10 +135,10 @@ public:
     }
 };
 
-class edgeWeightMap
+class edgeWeightMap // implements ReadablePropertyMap
 {
-    Graph &g;
-    std::vector<Neighborhood> avoid;
+    const Graph &g;
+    const std::vector<Neighborhood> &avoid;
     
 public:
     
@@ -147,7 +147,7 @@ public:
     typedef double reference;
     typedef boost::readable_property_map_tag category;
     
-    edgeWeightMap (Graph &graph, std::vector<Neighborhood> avoidNeighborhoods)
+    edgeWeightMap (const Graph &graph, const std::vector<Neighborhood> &avoidNeighborhoods)
     : g(graph), avoid(avoidNeighborhoods)
     {
     }
@@ -165,12 +165,11 @@ public:
         return false;
     }
     
-    base_graph &getGraph (void) const
+    const base_graph &getGraph (void) const
     {
         return g;
     }
 };
-
 namespace boost
 {
     template <typename K>
@@ -183,8 +182,7 @@ namespace boost
 }
 
 struct foundGoalException {};
-
-class visitor : public boost::default_astar_visitor
+class visitor : public boost::default_astar_visitor // implements AStar_Visitor
 {
     Vertex goal;
     
