@@ -11,7 +11,7 @@
 
 // Magic numbers
 #define NUM_AVOIDS_PER_PATH     5
-#define AVOID_RADIUS_FACTOR     0.1
+#define AVOID_RADIUS_FACTOR     0.05
 
 /** \brief Get a random state from the path (not equal to the start or end of the path)
  * 
@@ -23,8 +23,7 @@
 ompl::base::State *sampleState (const std::list<Vertex> &path, const Graph &g)
 {
     std::list<Vertex>::const_iterator vi = path.begin();
-    // Don't allow start or end states to be sampled (waste of time)
-    for (std::size_t i = 1 + std::rand() % (path.size()-2); i > 0; i--)
+    for (std::size_t i = std::rand() % path.size(); i > 0; i--)
         vi++;
     return boost::get(boost::vertex_prop, g, *vi).state;
 }
@@ -134,33 +133,30 @@ int main (int argc, char **argv)
     ompl::base::StateSamplerPtr sampler = si->allocStateSampler();
     
     // Add 10 random states and connect them randomly
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 100; i++)
     {
         ompl::base::State *state = si->allocState();
         sampler->sampleUniform(state);
         g.addVertex(state);
     }
-    
-    // Make some edges
-    g.addEdge(boost::vertex(0, g), boost::vertex(1, g));
-    g.addEdge(boost::vertex(0, g), boost::vertex(3, g));
-    g.addEdge(boost::vertex(3, g), boost::vertex(4, g));
-    g.addEdge(boost::vertex(3, g), boost::vertex(5, g));
-    g.addEdge(boost::vertex(3, g), boost::vertex(6, g));
-    g.addEdge(boost::vertex(5, g), boost::vertex(6, g));
-    g.addEdge(boost::vertex(6, g), boost::vertex(2, g));
-    g.addEdge(boost::vertex(6, g), boost::vertex(9, g));
-    g.addEdge(boost::vertex(2, g), boost::vertex(7, g));
-    g.addEdge(boost::vertex(7, g), boost::vertex(8, g));
-    g.addEdge(boost::vertex(9, g), boost::vertex(8, g));
-    
-    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths(4, boost::vertex(0, g), boost::vertex(8, g), g);
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = std::rand() % 4; j >= 0; j--)
+        {
+            int k = std::rand() % 100;
+            if (i==k)
+                continue;
+            g.addEdge(boost::vertex(i, g), boost::vertex(k, g));
+        }
+    }
+    std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
+    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths(10, boost::vertex(0, g), boost::vertex(8, g), g);
     BOOST_FOREACH(std::list<Vertex> path, paths)
     {
-        std::cout << "Path:\n";
+        std::cout << "Path: (" << pathLength(path, g) << ")\n";
         BOOST_FOREACH(Vertex v, path)
         {
-            std::cout << v << "\n";
+            std::cout << v << " ";
         }
         std::cout << "\n\n";
     }
