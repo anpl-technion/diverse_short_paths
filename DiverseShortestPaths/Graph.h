@@ -74,10 +74,7 @@ public:
      * 
      * @return          our SpaceInformationPtr
      */
-    ompl::base::SpaceInformationPtr getSpaceInformation (void) const
-    {
-        return si_;
-    }
+    ompl::base::SpaceInformationPtr getSpaceInformation (void) const;
     
     /** \brief Add a vertex to this graph with a specified state
      * 
@@ -85,10 +82,7 @@ public:
      * 
      * @return          vertex descriptor of the new vertex
      */
-    Vertex addVertex (ompl::base::State *state)
-    {
-        return boost::add_vertex(VertexProperties(VertexPropCollection(state)), *this);
-    }
+    Vertex addVertex (ompl::base::State *state);
     
     /** \brief Add an edge to this graph between two vertices, with an edge weight
      *         equal to the StateSpace distance between the vertices' states
@@ -98,12 +92,7 @@ public:
      * 
      * @return      edge descriptor of the new edge
      */
-    Edge addEdge (Vertex u, Vertex v)
-    {
-        ompl::base::State *uState = boost::get(boost::vertex_prop, *this, u).state;
-        ompl::base::State *vState = boost::get(boost::vertex_prop, *this, v).state;
-        return boost::add_edge(u, v, EdgeProperties(si_->distance(uState, vState)), *this).first;
-    }
+    Edge addEdge (Vertex u, Vertex v);
         
     /** \brief Find the shortest path between two vertices, honoring vertex avoidance
      * 

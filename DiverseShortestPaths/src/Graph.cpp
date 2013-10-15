@@ -3,6 +3,23 @@
 
 #include "Graph.h"
 
+ompl::base::SpaceInformationPtr Graph::getSpaceInformation (void) const
+{
+    return si_;
+}
+
+Vertex Graph::addVertex (ompl::base::State *state)
+{
+    return boost::add_vertex(VertexProperties(VertexPropCollection(state)), *this);
+}
+
+Edge Graph::addEdge (Vertex u, Vertex v)
+{
+    ompl::base::State *uState = boost::get(boost::vertex_prop, *this, u).state;
+    ompl::base::State *vState = boost::get(boost::vertex_prop, *this, v).state;
+    return boost::add_edge(u, v, EdgeProperties(si_->distance(uState, vState)), *this).first;
+}
+
 std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<Neighborhood> &avoidNeighborhoods) const
 {
     // Run the A* search
