@@ -5,7 +5,9 @@
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/RealVectorBounds.h>
-#include <ompl/base/spaces/SE2StateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+
+#include <cairo/cairo.h>
 
 #include "Graph.h"
 
@@ -123,11 +125,11 @@ std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, 
 
 int main (int argc, char **argv)
 {
-    ompl::base::StateSpacePtr space(new ompl::base::SE2StateSpace());
+    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(2));
     ompl::base::RealVectorBounds bounds(2);
     bounds.setLow(-10);
-    bounds.setHigh(-10);
-    space->as<ompl::base::SE2StateSpace>()->setBounds(bounds);
+    bounds.setHigh(10);
+    space->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     Graph g(si);
     ompl::base::StateSamplerPtr sampler = si->allocStateSampler();
@@ -141,26 +143,87 @@ int main (int argc, char **argv)
     }
     for (int i = 0; i < 100; i++)
     {
-        for (int j = std::rand() % 4; j >= 0; j--)
+        for (int j = 0; j < 100; j++)
         {
-            int k = std::rand() % 100;
-            if (i==k)
+            if (i==j)
                 continue;
-            g.addEdge(boost::vertex(i, g), boost::vertex(k, g));
+            ompl::base::State *iState = boost::get(boost::vertex_prop, g, boost::vertex(i, g)).state;
+            ompl::base::State *jState = boost::get(boost::vertex_prop, g, boost::vertex(j, g)).state;
+            if (space->distance(iState, jState) < 4)
+            {
+                if (std::rand() % 4 == 0)
+                    g.addEdge(boost::vertex(i, g), boost::vertex(j, g));
+            }
         }
-    }
-    std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
-    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths(10, boost::vertex(0, g), boost::vertex(8, g), g);
-    BOOST_FOREACH(std::list<Vertex> path, paths)
-    {
-        std::cout << "Path: (" << pathLength(path, g) << ")\n";
-        BOOST_FOREACH(Vertex v, path)
-        {
-            std::cout << v << " ";
-        }
-        std::cout << "\n\n";
     }
     
+    std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
+    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths(10, boost::vertex(0, g), boost::vertex(8, g), g);
+    std::cout << "Got " << paths.size() << " paths\n";
+    
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1024, 1024);
+    cairo_t *cr = cairo_create(surface);
+    cairo_set_line_width(cr, 1);
+    
+    BOOST_FOREACH(Vertex v, boost::vertices(g))
+    {
+        ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
+        double *vcoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+        
+        BOOST_FOREACH(Vertex u, boost::adjacent_vertices(v, g))
+        {
+            state = boost::get(boost::vertex_prop, g, u).state;
+            double *ucoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+            
+            cairo_move_to(cr, 12+(vcoords[0]+10)*50, 12+(vcoords[1]+10)*50);
+            cairo_line_to(cr, 12+(ucoords[0]+10)*50, 12+(ucoords[1]+10)*50);
+            cairo_stroke(cr);
+        }
+    }
+    
+    int line_width = 21;
+    float red = 1;
+    float green = 0.8;
+    float blue = 0;
+    BOOST_FOREACH(std::list<Vertex> path, paths)
+    {
+        cairo_set_line_width(cr, line_width);
+        cairo_set_source_rgba(cr, red, green, blue, 1);
+        Vertex u = path.front();
+        BOOST_FOREACH(Vertex v, path)
+        {
+            if (u != v)
+            {
+                ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
+                double *vcoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+                state = boost::get(boost::vertex_prop, g, u).state;
+                double *ucoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+                
+                cairo_move_to(cr, 12+(vcoords[0]+10)*50, 12+(vcoords[1]+10)*50);
+                cairo_line_to(cr, 12+(ucoords[0]+10)*50, 12+(ucoords[1]+10)*50);
+                cairo_stroke(cr);
+            }
+            u = v;
+        }
+        line_width -= 2;
+        red -= 1.0/11;
+        blue += 1.0/11;
+    }
+    
+    BOOST_FOREACH(Vertex v, boost::vertices(g))
+    {
+        ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
+        double *vcoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
+        
+        if (v == boost::vertex(0, g) || v == boost::vertex(8, g))
+            cairo_set_source_rgba(cr, 1, 0, 1, 1);
+            
+        cairo_arc(cr, 12+(vcoords[0]+10)*50, 12+(vcoords[1]+10)*50, 8, 0, 2*M_PI);
+        cairo_fill(cr);
+        cairo_set_source_rgba(cr, 0, 0, 0, 1);
+    }
+    
+    cairo_surface_write_to_png(surface, "output.png");
     return 0;
 }
 

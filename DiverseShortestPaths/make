@@ -1,9 +1,9 @@
 #!/bin/bash
 
 output="main"
-libs="ompl"
+libs="ompl cairo"
 
-rm -fR build
+rm -fR build/obj
 mkdir -p build/{obj,bin}
 
 link_string=""
