@@ -20,29 +20,21 @@ Edge Graph::addEdge (Vertex u, Vertex v)
     return boost::add_edge(u, v, EdgeProperties(si_->distance(uState, vState)), *this).first;
 }
 
-std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<Neighborhood> &avoidNeighborhoods) const
+template <>
+bool edgeWeightMap<Neighborhood>::distanceCheck (Vertex u, ompl::base::State *v, double max) const
 {
-    // Run the A* search
-    std::vector<Vertex> pred(boost::num_vertices(*this));
-    std::list<Vertex> path;
-    try
-    {
-        boost::astar_search(*this, start, heuristic(*this, end),
-                            boost::weight_map(edgeWeightMap(*this, start, end, avoidNeighborhoods)).
-                            predecessor_map(&pred[0]).
-                            visitor(visitor(end)));
-    }
-    catch (foundGoalException e)
-    {
-        for (Vertex v = end;; v = pred[v])
-        {
-            path.push_front(v);
-            if (pred[v] == v)
-                break;
-        }
-    }
+    return g.getSpaceInformation()->distance(boost::get(boost::vertex_prop, g, u).state, v) <= max;
+}
+template <>
+bool edgeWeightMap<Neighborhood2>::distanceCheck (Vertex u, Vertex v, unsigned int max) const
+{
+    if (max == 0)
+        return u==v;
     
-    if (path.size() == 1 && start != end)
-        path.clear();
-    return path;
+    BOOST_FOREACH(Vertex k, boost::adjacent_vertices(u, g))
+    {
+        if (distanceCheck(k, v, max-1))
+            return true;
+    }
+    return false;
 }

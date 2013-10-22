@@ -32,10 +32,27 @@ typedef boost::property <boost::edge_weight_t,double> EdgeProperties;
 
 struct Neighborhood
 {
-    ompl::base::State *center;
-    double radius;
+    typedef ompl::base::State *center_type;
+    typedef double radius_type;
     
-    Neighborhood (ompl::base::State *c, double r)
+    center_type center;
+    radius_type radius;
+    
+    Neighborhood (center_type c, radius_type r)
+    : center(c), radius(r)
+    {
+    }
+};
+
+struct Neighborhood2
+{
+    typedef Vertex center_type;
+    typedef unsigned int radius_type;
+    
+    center_type center;
+    radius_type radius;
+    
+    Neighborhood2 (center_type c, radius_type r)
     : center(c), radius(r)
     {
     }
@@ -101,7 +118,8 @@ public:
      * 
      * @return          list of the vertices in the path from start to end; empty list if no path was found
      */
-    std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<Neighborhood> &avoidNeighborhoods) const;
+    template <class NbhType>
+    std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<NbhType> &avoidNeighborhoods) const;
     
 };
 
@@ -124,12 +142,16 @@ public:
     }
 };
 
+template <class NbhType>
 class edgeWeightMap // implements ReadablePropertyMap
 {
     const Graph &g;
     const Vertex start;
     const Vertex end;
-    const std::vector<Neighborhood> &avoid;
+    const std::vector<NbhType> &avoid;
+    
+    // Return whether distance between u and v is <= max
+    bool distanceCheck (Vertex u, typename NbhType::center_type v, typename NbhType::radius_type max) const;
     
 public:
     
@@ -138,7 +160,7 @@ public:
     typedef double reference;
     typedef boost::readable_property_map_tag category;
     
-    edgeWeightMap (const Graph &graph, Vertex start, Vertex end, const std::vector<Neighborhood> &avoidNeighborhoods)
+    edgeWeightMap (const Graph &graph, Vertex start, Vertex end, const std::vector<NbhType> &avoidNeighborhoods)
     : g(graph), start(start), end(end), avoid(avoidNeighborhoods)
     {
     }
@@ -147,19 +169,17 @@ public:
     {
         Vertex u = boost::source(e, g);
         Vertex v = boost::target(e, g);
-        ompl::base::State *uState = boost::get(boost::vertex_prop, g, u).state;
-        ompl::base::State *vState = boost::get(boost::vertex_prop, g, v).state;
-        BOOST_FOREACH(Neighborhood nbh, avoid)
+        BOOST_FOREACH(NbhType nbh, avoid)
         {
             // Only avoid edge if one endpoint is neither start nor end, yet is inside a neighborhood
             // OR if the edge is between start and end
             if ((u == start && v == end) || (u == end && v == start))
                 return true;
             if (u != start && u != end)
-                if (g.getSpaceInformation()->distance(uState, nbh.center) < nbh.radius)
+                if (distanceCheck(u, nbh.center, nbh.radius))
                     return true;
             if (v != start && v != end)
-                if (g.getSpaceInformation()->distance(vState, nbh.center) < nbh.radius)
+                if (distanceCheck(v, nbh.center, nbh.radius))
                     return true;
         }
         return false;
@@ -170,10 +190,11 @@ public:
         return g;
     }
 };
+
 namespace boost
 {
-    template <typename K>
-    double get (const edgeWeightMap &m, const K &e)
+    template <typename K, typename N>
+    double get (const edgeWeightMap<N> &m, const K &e)
     {
         if (m.shouldAvoid(e))
             return std::numeric_limits<double>::max();
@@ -198,5 +219,33 @@ public:
             throw foundGoalException();
     }
 };
+
+template <class NbhType>
+std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<NbhType> &avoidNeighborhoods) const
+{
+    // Run the A* search
+    std::vector<Vertex> pred(boost::num_vertices(*this));
+    std::list<Vertex> path;
+    try
+    {
+        boost::astar_search(*this, start, heuristic(*this, end),
+                            boost::weight_map(edgeWeightMap<NbhType>(*this, start, end, avoidNeighborhoods)).
+                            predecessor_map(&pred[0]).
+                            visitor(visitor(end)));
+    }
+    catch (foundGoalException e)
+    {
+        for (Vertex v = end;; v = pred[v])
+        {
+            path.push_front(v);
+            if (pred[v] == v)
+                break;
+        }
+    }
+    
+    if (path.size() == 1 && start != end)
+        path.clear();
+    return path;
+}
 
 #endif
