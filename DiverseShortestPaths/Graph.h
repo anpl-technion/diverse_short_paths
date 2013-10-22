@@ -30,7 +30,7 @@ typedef graph_traits::edge_descriptor Edge;
 typedef boost::property <boost::vertex_prop_t,VertexPropCollection> VertexProperties;
 typedef boost::property <boost::edge_weight_t,double> EdgeProperties;
 
-struct Neighborhood
+struct StateSpaceNeighborhood
 {
     typedef ompl::base::State *center_type;
     typedef double radius_type;
@@ -38,13 +38,13 @@ struct Neighborhood
     center_type center;
     radius_type radius;
     
-    Neighborhood (center_type c, radius_type r)
+    StateSpaceNeighborhood (center_type c, radius_type r)
     : center(c), radius(r)
     {
     }
 };
 
-struct Neighborhood2
+struct GraphDistanceNeighborhood
 {
     typedef Vertex center_type;
     typedef unsigned int radius_type;
@@ -52,7 +52,7 @@ struct Neighborhood2
     center_type center;
     radius_type radius;
     
-    Neighborhood2 (center_type c, radius_type r)
+    GraphDistanceNeighborhood (center_type c, radius_type r)
     : center(c), radius(r)
     {
     }
@@ -113,13 +113,15 @@ public:
         
     /** \brief Find the shortest path between two vertices, honoring vertex avoidance
      * 
+     * @tparam N        Neighborhood class to use
+     * 
      * @param start     starting vertex
      * @param end       ending vertex
      * 
      * @return          list of the vertices in the path from start to end; empty list if no path was found
      */
-    template <class NbhType>
-    std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<NbhType> &avoidNeighborhoods) const;
+    template <class N>
+    std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const;
     
 };
 
@@ -142,16 +144,16 @@ public:
     }
 };
 
-template <class NbhType>
+template <class N>
 class edgeWeightMap // implements ReadablePropertyMap
 {
     const Graph &g;
     const Vertex start;
     const Vertex end;
-    const std::vector<NbhType> &avoid;
+    const std::vector<N> &avoid;
     
     // Return whether distance between u and v is <= max
-    bool distanceCheck (Vertex u, typename NbhType::center_type v, typename NbhType::radius_type max) const;
+    bool distanceCheck (Vertex u, typename N::center_type v, typename N::radius_type max) const;
     
 public:
     
@@ -160,7 +162,7 @@ public:
     typedef double reference;
     typedef boost::readable_property_map_tag category;
     
-    edgeWeightMap (const Graph &graph, Vertex start, Vertex end, const std::vector<NbhType> &avoidNeighborhoods)
+    edgeWeightMap (const Graph &graph, Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods)
     : g(graph), start(start), end(end), avoid(avoidNeighborhoods)
     {
     }
@@ -169,7 +171,7 @@ public:
     {
         Vertex u = boost::source(e, g);
         Vertex v = boost::target(e, g);
-        BOOST_FOREACH(NbhType nbh, avoid)
+        BOOST_FOREACH(N nbh, avoid)
         {
             // Only avoid edge if one endpoint is neither start nor end, yet is inside a neighborhood
             // OR if the edge is between start and end
@@ -220,8 +222,8 @@ public:
     }
 };
 
-template <class NbhType>
-std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<NbhType> &avoidNeighborhoods) const
+template <class N>
+std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const
 {
     // Run the A* search
     std::vector<Vertex> pred(boost::num_vertices(*this));
@@ -229,7 +231,7 @@ std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end,
     try
     {
         boost::astar_search(*this, start, heuristic(*this, end),
-                            boost::weight_map(edgeWeightMap<NbhType>(*this, start, end, avoidNeighborhoods)).
+                            boost::weight_map(edgeWeightMap<N>(*this, start, end, avoidNeighborhoods)).
                             predecessor_map(&pred[0]).
                             visitor(visitor(end)));
     }

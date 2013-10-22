@@ -21,12 +21,12 @@ Edge Graph::addEdge (Vertex u, Vertex v)
 }
 
 template <>
-bool edgeWeightMap<Neighborhood>::distanceCheck (Vertex u, ompl::base::State *v, double max) const
+bool edgeWeightMap<StateSpaceNeighborhood>::distanceCheck (Vertex u, ompl::base::State *v, double max) const
 {
     return g.getSpaceInformation()->distance(boost::get(boost::vertex_prop, g, u).state, v) <= max;
 }
 template <>
-bool edgeWeightMap<Neighborhood2>::distanceCheck (Vertex u, Vertex v, unsigned int max) const
+bool edgeWeightMap<GraphDistanceNeighborhood>::distanceCheck (Vertex u, Vertex v, unsigned int max) const
 {
     if (max == 0)
         return u==v;

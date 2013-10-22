@@ -16,15 +16,17 @@
 
 /** \brief Get a random state from the path (not equal to the start or end of the path)
  * 
+ * @tparam N        Neighborhood class to use
+ * 
  * @param path      path to sample from
  * @param g         graph this path exists in
  * 
  * @return          pointer to a state on the path
  */
-template <class NbhType>
-typename NbhType::center_type sampleFromPath (const std::list<Vertex> &path, const Graph &g);
+template <class N>
+typename N::center_type sampleFromPath (const std::list<Vertex> &path, const Graph &g);
 template <>
-ompl::base::State *sampleFromPath <Neighborhood> (const std::list<Vertex> &path, const Graph &g)
+ompl::base::State *sampleFromPath <StateSpaceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
 {
     std::list<Vertex>::const_iterator vi = path.begin();
     for (std::size_t i = std::rand() % path.size(); i > 0; i--)
@@ -32,7 +34,7 @@ ompl::base::State *sampleFromPath <Neighborhood> (const std::list<Vertex> &path,
     return boost::get(boost::vertex_prop, g, *vi).state;
 }
 template <>
-Vertex sampleFromPath <Neighborhood2> (const std::list<Vertex> &path, const Graph &g)
+Vertex sampleFromPath <GraphDistanceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
 {
     std::list<Vertex>::const_iterator vi = path.begin();
     for (std::size_t i = std::rand() % path.size(); i > 0; i--)
@@ -42,15 +44,17 @@ Vertex sampleFromPath <Neighborhood2> (const std::list<Vertex> &path, const Grap
 
 /** \brief Compute the length of a path by summing the distance between states
  * 
+ * @tparam N        Neighborhood class to use
+ * 
  * @param path      path to find the length of
  * @param g         graph this path exists in
  * 
  * @return          length of path
  */
-template <class NbhType>
+template <class N>
 double pathLength (const std::list<Vertex> &path, const Graph &g);
 template <>
-double pathLength <Neighborhood> (const std::list<Vertex> &path, const Graph &g)
+double pathLength <StateSpaceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
 {
     double length = 0;
     std::list<Vertex>::const_iterator vi = path.begin();
@@ -67,13 +71,15 @@ double pathLength <Neighborhood> (const std::list<Vertex> &path, const Graph &g)
     return length;
 }
 template <>
-double pathLength <Neighborhood2> (const std::list<Vertex> &path, const Graph &g)
+double pathLength <GraphDistanceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
 {
     return path.size();
 }
 
 /** \brief Find a number of diverse, short paths in a graph, by deviating from former short paths through
  *         the use of an increasing set of neighborhoods in the state space that should be avoided
+ * 
+ * @tparam N                Neighborhood class to use
  * 
  * @param numPaths          number of paths to try to find
  * @param start             start vertex for the path
@@ -82,7 +88,7 @@ double pathLength <Neighborhood2> (const std::list<Vertex> &path, const Graph &g
  * 
  * @return                  set of at most numPaths distinct paths from start to end
  */
-template <class NbhType>
+template <class N>
 std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, Vertex start, Vertex end, const Graph &g, double radius_factor)
 {
     // Holds the set of paths we've found
@@ -90,12 +96,12 @@ std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, 
     if (numPaths == 0)
         return resultPaths;
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
-    std::vector<std::vector<NbhType> > resultAvoids;
+    std::vector<std::vector<N> > resultAvoids;
     // The next path to analyze
     std::size_t frontier = 0;
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
-    std::vector<NbhType> alreadyAvoiding = std::vector<NbhType>();
-    std::list<Vertex> referencePath = g.getShortestPathWithAvoidance<NbhType>(start, end, alreadyAvoiding);
+    std::vector<N> alreadyAvoiding = std::vector<N>();
+    std::list<Vertex> referencePath = g.getShortestPathWithAvoidance<N>(start, end, alreadyAvoiding);
     if (referencePath.empty())
         return resultPaths;
     
@@ -110,14 +116,14 @@ std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, 
         frontier++;
         
         // Make a pre-defined number of attempts at imposing a new neighborhood to avoid on the graph
-        // NbhType's radius is some pre-defined portion of the referencePath's length
-        typename NbhType::radius_type radius = radius_factor * pathLength<NbhType>(referencePath, g);
+        // Neighborhood's radius is some pre-defined portion of the referencePath's length
+        typename N::radius_type radius = radius_factor * pathLength<N>(referencePath, g);
         for (int i = 0; i < NUM_AVOIDS_PER_PATH && resultPaths.size() < numPaths; i++)
         {
-            std::vector<NbhType> avoid = alreadyAvoiding;
-            avoid.push_back(NbhType(sampleFromPath<NbhType>(referencePath, g), radius));
+            std::vector<N> avoid = alreadyAvoiding;
+            avoid.push_back(N(sampleFromPath<N>(referencePath, g), radius));
             // Get the shortest path under these constraints
-            std::list<Vertex> path = g.getShortestPathWithAvoidance<NbhType>(start, end, avoid);
+            std::list<Vertex> path = g.getShortestPathWithAvoidance<N>(start, end, avoid);
             if (path.empty())
                 continue;
             
@@ -179,8 +185,8 @@ int main (int argc, char **argv)
     }
     
     std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
-    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths<Neighborhood>(10, boost::vertex(0, g), boost::vertex(8, g), g, 0.05);
-    std::vector<std::list<Vertex> > paths2 = findDiverseShortestPaths<Neighborhood2>(10, boost::vertex(0, g), boost::vertex(8, g), g, 0.1);
+    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths<StateSpaceNeighborhood>(10, boost::vertex(0, g), boost::vertex(8, g), g, 0.05);
+    std::vector<std::list<Vertex> > paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(10, boost::vertex(0, g), boost::vertex(8, g), g, 0.1);
     std::cout << "Got " << paths.size() << ", " << paths2.size() << " paths\n";
     
     draw(g, paths, "output_space.png");
