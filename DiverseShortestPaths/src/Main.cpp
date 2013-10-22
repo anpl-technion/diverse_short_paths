@@ -148,7 +148,7 @@ std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, 
     return resultPaths;
 }
 
-void draw (Graph &g, std::vector<std::list<Vertex> > paths, const char *filename);
+void draw (Graph &g, Vertex start, Vertex goal, std::vector<std::list<Vertex> > paths, const char *filename);
 
 int main (int argc, char **argv)
 {
@@ -185,22 +185,28 @@ int main (int argc, char **argv)
     }
     
     std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
-    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths<StateSpaceNeighborhood>(10, boost::vertex(0, g), boost::vertex(8, g), g, 0.05);
-    std::vector<std::list<Vertex> > paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(10, boost::vertex(0, g), boost::vertex(8, g), g, 0.1);
+    Vertex start = boost::vertex(0, g);
+    Vertex goal = boost::vertex(8, g);
+    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths<StateSpaceNeighborhood>(10, start, goal, g, 0.05);
+    std::vector<std::list<Vertex> > paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(10, start, goal, g, 0.1);
     std::cout << "Got " << paths.size() << ", " << paths2.size() << " paths\n";
     
-    draw(g, paths, "output_space.png");
-    draw(g, paths2, "output_graph.png");
+    draw(g, start, goal, paths, "output_space.png");
+    draw(g, start, goal, paths2, "output_graph.png");
     
     return 0;
+    
+    // compute dispersion:
+    // print min, max, and mean difference between any two paths using Levenshtein edit distance
 }
 
-void draw (Graph &g, std::vector<std::list<Vertex> > paths, const char *filename)
+void draw (Graph &g, Vertex start, Vertex goal, std::vector<std::list<Vertex> > paths, const char *filename)
 {
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1024, 1024);
     cairo_t *cr = cairo_create(surface);
     cairo_set_line_width(cr, 1);
     
+    // Draw each edge as a black line
     BOOST_FOREACH(Vertex v, boost::vertices(g))
     {
         ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
@@ -217,6 +223,7 @@ void draw (Graph &g, std::vector<std::list<Vertex> > paths, const char *filename
         }
     }
     
+    // Draw each path edge as line with thickness and color according to how soon it was found
     int line_width = 21;
     float red = 1;
     float green = 0.8;
@@ -246,12 +253,13 @@ void draw (Graph &g, std::vector<std::list<Vertex> > paths, const char *filename
         blue += 1.0/11;
     }
     
+    // Draw each vertex as a black dot; except start and goal should be pink
     BOOST_FOREACH(Vertex v, boost::vertices(g))
     {
         ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
         double *vcoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
         
-        if (v == boost::vertex(0, g) || v == boost::vertex(8, g))
+        if (v == start || v == goal)
             cairo_set_source_rgba(cr, 1, 0, 1, 1);
             
         cairo_arc(cr, 12+(vcoords[0]+10)*50, 12+(vcoords[1]+10)*50, 8, 0, 2*M_PI);
@@ -260,8 +268,5 @@ void draw (Graph &g, std::vector<std::list<Vertex> > paths, const char *filename
     }
     
     cairo_surface_write_to_png(surface, filename);
-    
-    // compute dispersion:
-    // print min, max, and mean difference between any two paths using Levenshtein edit distance
 }
 
