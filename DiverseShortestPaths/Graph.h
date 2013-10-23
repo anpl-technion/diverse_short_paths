@@ -58,6 +58,16 @@ struct GraphDistanceNeighborhood
     }
 };
 
+struct SingleEdgeNeighborhood
+{
+    Edge edge;
+    
+    SingleEdgeNeighborhood (Edge e)
+    : edge(e)
+    {
+    }
+};
+
 struct VertexPropCollection
 {
     ompl::base::State *state;
@@ -110,19 +120,19 @@ public:
      * @return      edge descriptor of the new edge
      */
     Edge addEdge (Vertex u, Vertex v);
-        
+    
     /** \brief Find the shortest path between two vertices, honoring vertex avoidance
      * 
      * @tparam N        Neighborhood class to use
      * 
-     * @param start     starting vertex
-     * @param end       ending vertex
+     * @param start                 starting vertex
+     * @param end                   ending vertex
+     * @param avoidNeighborhoods    vector of objects of type N to avoid
      * 
      * @return          list of the vertices in the path from start to end; empty list if no path was found
      */
     template <class N>
     std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const;
-    
 };
 
 class heuristic // implements AStarHeuristic
@@ -153,7 +163,7 @@ class edgeWeightMap // implements ReadablePropertyMap
     const std::vector<N> &avoid;
     
     // Return whether distance between u and v is <= max
-    bool distanceCheck (Vertex u, typename N::center_type v, typename N::radius_type max) const;
+    bool distanceCheck (Vertex u, N nbh) const;
     
 public:
     
@@ -167,25 +177,7 @@ public:
     {
     }
     
-    bool shouldAvoid (Edge e) const
-    {
-        Vertex u = boost::source(e, g);
-        Vertex v = boost::target(e, g);
-        BOOST_FOREACH(N nbh, avoid)
-        {
-            // Only avoid edge if one endpoint is neither start nor end, yet is inside a neighborhood
-            // OR if the edge is between start and end
-            if ((u == start && v == end) || (u == end && v == start))
-                return true;
-            if (u != start && u != end)
-                if (distanceCheck(u, nbh.center, nbh.radius))
-                    return true;
-            if (v != start && v != end)
-                if (distanceCheck(v, nbh.center, nbh.radius))
-                    return true;
-        }
-        return false;
-    }
+    bool shouldAvoid (Edge e) const;
     
     const base_graph &getGraph (void) const
     {
@@ -249,5 +241,17 @@ std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end,
         path.clear();
     return path;
 }
+
+/** \brief Compute the length of a path by summing the distance between states
+ * 
+ * @tparam N        Neighborhood class to use
+ * 
+ * @param path      path to find the length of
+ * @param g         graph this path exists in
+ * 
+ * @return          length of path
+ */
+template <class N>
+double pathLength (const std::list<Vertex> &path, const Graph &g);
 
 #endif
