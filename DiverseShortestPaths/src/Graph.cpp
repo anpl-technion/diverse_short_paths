@@ -28,12 +28,15 @@ bool edgeWeightMap<StateSpaceNeighborhood>::distanceCheck (Vertex u, StateSpaceN
 template <>
 bool edgeWeightMap<GraphDistanceNeighborhood>::distanceCheck (Vertex u, GraphDistanceNeighborhood nbh) const
 {
-    if (nbh.radius == 0)
-        return u==nbh.center;
+    if (nbh.radius < 0)
+        return false;
+    if (u == nbh.center)
+        return true;
     
     BOOST_FOREACH(Vertex k, boost::adjacent_vertices(u, g))
     {
-        if (distanceCheck(k, GraphDistanceNeighborhood(nbh.center, nbh.radius-1)))
+        double edgeWeight = boost::get(boost::edge_weight, g, boost::edge(u, k, g).first);
+        if (distanceCheck(k, GraphDistanceNeighborhood(nbh.center, nbh.radius - edgeWeight)))
             return true;
     }
     return false;
@@ -94,8 +97,7 @@ bool edgeWeightMap<GraphDistanceNeighborhood>::shouldAvoid (Edge e) const
     return false;
 }
 
-template <>
-double pathLength <StateSpaceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
+double pathLength (const std::list<Vertex> &path, const Graph &g)
 {
     double length = 0;
     std::list<Vertex>::const_iterator vi = path.begin();
@@ -111,9 +113,3 @@ double pathLength <StateSpaceNeighborhood> (const std::list<Vertex> &path, const
     }
     return length;
 }
-template <>
-double pathLength <GraphDistanceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
-{
-    return path.size();
-}
-

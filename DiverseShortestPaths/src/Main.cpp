@@ -10,6 +10,7 @@
 #include <cairo/cairo.h>
 
 #include "Graph.h"
+#include "Path.h"
 #include "ActualShortest.h"
 
 // Magic numbers
@@ -53,14 +54,16 @@ Vertex sampleFromPath <GraphDistanceNeighborhood> (const std::list<Vertex> &path
  * @param start             start vertex for the path
  * @param end               end vertex for the path
  * @param g                 graph to search in
+ * @param radius_factor     neighborhood radius is radius_factor * pathLength
+ * @param minDiversity      paths are not retained if their levenshtein edit distance from any already retained path is less than this
  * 
  * @return                  set of at most numPaths distinct paths from start to end
  */
 template <class N>
-std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, Vertex start, Vertex end, const Graph &g, double radius_factor)
+std::vector<Path> findDiverseShortestPaths (std::size_t numPaths, Vertex start, Vertex end, const Graph &g, double radius_factor, unsigned int minDiversity)
 {
     // Holds the set of paths we've found
-    std::vector<std::list<Vertex> > resultPaths;
+    std::vector<Path> resultPaths;
     if (numPaths == 0)
         return resultPaths;
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
@@ -69,8 +72,8 @@ std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, 
     std::size_t frontier = 0;
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
     std::vector<N> alreadyAvoiding = std::vector<N>();
-    std::list<Vertex> referencePath = g.getShortestPathWithAvoidance<N>(start, end, alreadyAvoiding);
-    if (referencePath.empty())
+    Path referencePath = g.getShortestPathWithAvoidance<N>(start, end, alreadyAvoiding);
+    if (referencePath.getPath().empty())
         return resultPaths;
     
     resultPaths.push_back(referencePath);
@@ -85,27 +88,27 @@ std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, 
         
         // Make a pre-defined number of attempts at imposing a new neighborhood to avoid on the graph
         // Neighborhood's radius is some pre-defined portion of the referencePath's length
-        typename N::radius_type radius = radius_factor * pathLength<N>(referencePath, g);
+        double radius = radius_factor * referencePath.getLength();
         for (int i = 0; i < NUM_AVOIDS_PER_PATH && resultPaths.size() < numPaths; i++)
         {
             std::vector<N> avoid = alreadyAvoiding;
-            avoid.push_back(N(sampleFromPath<N>(referencePath, g), radius));
+            avoid.push_back(N(sampleFromPath<N>(referencePath.getPath(), g), radius));
             // Get the shortest path under these constraints
-            std::list<Vertex> path = g.getShortestPathWithAvoidance<N>(start, end, avoid);
-            if (path.empty())
+            Path path = g.getShortestPathWithAvoidance<N>(start, end, avoid);
+            if (path.getPath().empty())
                 continue;
             
-            // Don't store it if it's a duplicate
-            bool alreadyHave = false;
-            BOOST_FOREACH(std::list<Vertex> p, resultPaths)
+            // Don't store it if it's not diverse enough
+            bool tooSimilar = false;
+            BOOST_FOREACH(Path p, resultPaths)
             {
-                if (path == p)
+                if (levenshtein(path.getPath(), p.getPath()) < minDiversity)
                 {
-                    alreadyHave = true;
+                    tooSimilar = true;
                     break;
                 }
             }
-            if (!alreadyHave)
+            if (!tooSimilar)
             {
                 resultPaths.push_back(path);
                 resultAvoids.push_back(avoid);
@@ -116,8 +119,8 @@ std::vector<std::list<Vertex> > findDiverseShortestPaths (std::size_t numPaths, 
     return resultPaths;
 }
 
-void draw (Graph &g, Vertex start, Vertex goal, std::vector<std::list<Vertex> > &paths, const char *filename, bool notfance = false);
-void printStats (Graph &g, std::vector<std::list<Vertex> > &paths);
+void draw (Graph &g, Vertex start, Vertex goal, std::vector<Path> &paths, const char *filename);
+void printStats (Graph &g, std::vector<Path> &paths);
 
 int main (int argc, char **argv)
 {
@@ -130,10 +133,16 @@ int main (int argc, char **argv)
     Graph g(si);
     ompl::base::StateSamplerPtr sampler = si->allocStateSampler();
     
-    const size_t n_states = 1600;
+    // Tweakable params for graph generation
+    const size_t n_states = 100;
     const double max_edge_length = 4.0/std::sqrt(n_states/100.0);
     const double p_connected = 0.25;
+    
+    // Tweakable params for path finding
     const size_t n_paths = 10;
+    const double radius_factor = 0.05;
+    const unsigned int minDiversity = 3;
+    
     // Add n_states random states and connect them randomly
     for (size_t i = 0; i < n_states; i++)
     {
@@ -160,14 +169,17 @@ int main (int argc, char **argv)
     std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
     Vertex start = boost::vertex(0, g);
     Vertex goal = boost::vertex(8, g);
-    std::vector<std::list<Vertex> > paths = findDiverseShortestPaths<StateSpaceNeighborhood>(n_paths, start, goal, g, 0.05);
-    std::vector<std::list<Vertex> > paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(n_paths, start, goal, g, 0.1);
-    std::vector<std::list<Vertex> > paths3 = actualShortestPaths(n_paths, g, start, goal);
+    std::vector<Path> paths = findDiverseShortestPaths<StateSpaceNeighborhood>(n_paths, start, goal, g, radius_factor, minDiversity);
+    std::cout << "Completed space distance version\n";
+    std::vector<Path> paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(n_paths, start, goal, g, radius_factor, minDiversity);
+    std::cout << "Completed graph distance version\n";
+    std::vector<Path> paths3 = actualShortestPaths(n_paths, g, start, goal, minDiversity);
+    std::cout << "Completed actual shortest paths\n";
     std::cout << "Got " << paths.size() << ", " << paths2.size() << ", " << paths3.size() << " paths\n";
     
     draw(g, start, goal, paths, "output_space.png");
     draw(g, start, goal, paths2, "output_graph.png");
-    draw(g, start, goal, paths3, "output_all.png", true);
+    draw(g, start, goal, paths3, "output_actual.png");
     
     if (paths.size() > 1)
     {
@@ -188,7 +200,7 @@ int main (int argc, char **argv)
     return 0;
 }
 
-void draw (Graph &g, Vertex start, Vertex goal, std::vector<std::list<Vertex> > &paths, const char *filename, bool notfancy)
+void draw (Graph &g, Vertex start, Vertex goal, std::vector<Path> &paths, const char *filename)
 {
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1024, 1024);
     cairo_t *cr = cairo_create(surface);
@@ -213,18 +225,16 @@ void draw (Graph &g, Vertex start, Vertex goal, std::vector<std::list<Vertex> > 
     
     // Draw each path edge as line with thickness and color according to how soon it was found
     int line_width = 2*paths.size()+1;
-    if (notfancy)
-        line_width = 4;
     float red = 1;
     float green = 0.8;
     float blue = 0;
     cairo_set_line_cap  (cr, CAIRO_LINE_CAP_ROUND);
-    BOOST_FOREACH(std::list<Vertex> path, paths)
+    BOOST_FOREACH(Path path, paths)
     {
         cairo_set_line_width(cr, line_width);
         cairo_set_source_rgba(cr, red, green, blue, 1);
-        Vertex u = path.front();
-        BOOST_FOREACH(Vertex v, path)
+        Vertex u = path.getPath().front();
+        BOOST_FOREACH(Vertex v, path.getPath())
         {
             if (u != v)
             {
@@ -239,8 +249,7 @@ void draw (Graph &g, Vertex start, Vertex goal, std::vector<std::list<Vertex> > 
             }
             u = v;
         }
-        if (!notfancy)
-            line_width -= 2;
+        line_width -= 2;
         red -= 1.0/(paths.size()+1);
         blue += 1.0/(paths.size()+1);
     }
@@ -262,7 +271,51 @@ void draw (Graph &g, Vertex start, Vertex goal, std::vector<std::list<Vertex> > 
     cairo_surface_write_to_png(surface, filename);
 }
 
-unsigned int levenshtein (std::list<Vertex> &path1, std::list<Vertex> &path2)
+void printStats (Graph &g, std::vector<Path> &paths)
+{
+    // Compute Levenshtein edit distance between every pair as a diversity measure
+    unsigned int min = std::numeric_limits<unsigned int>::max();
+    unsigned int max = 0;
+    unsigned int total = 0;
+    unsigned int count = 0;
+    BOOST_FOREACH(Path path1, paths)
+    {
+        BOOST_FOREACH(Path path2, paths)
+        {
+            if (path1.getPath() == path2.getPath())
+                continue;
+            unsigned int distance = levenshtein(path1.getPath(), path2.getPath());
+            if (distance < min)
+                min = distance;
+            if (distance > max)
+                max = distance;
+            total += distance;
+            count++;
+        }
+    }
+    
+    // Report min, max, and mean
+    std::cout << "DIVERSITY: min: " << min << ", max: " << max << ", mean: " << double(total)/count << "\n";
+    
+    // Compute length of every path
+    double lmin = std::numeric_limits<double>::max();
+    double lmax = 0;
+    double ltotal = 0;
+    BOOST_FOREACH(Path path, paths)
+    {
+        double distance = pathLength(path.getPath(), g);
+        if (distance < lmin)
+            lmin = distance;
+        if (distance > max)
+            lmax = distance;
+        ltotal += distance;
+    }
+    
+    // Report min, max, and mean
+    std::cout << "LENGTH: min: " << lmin << ", max: " << lmax << ", mean: " << double(ltotal)/paths.size() << "\n";
+}
+
+unsigned int levenshtein (const std::list<Vertex> &path1, const std::list<Vertex> &path2)
 {
     const size_t rowLength = path1.size()+1;
     const size_t colLength = path2.size()+1;
@@ -273,10 +326,10 @@ unsigned int levenshtein (std::list<Vertex> &path1, std::list<Vertex> &path2)
     for (size_t i = 1; i < colLength; i++)
         distances[i*rowLength] = i;
     
-    std::list<Vertex>::iterator iIt = path1.begin();
+    std::list<Vertex>::const_iterator iIt = path1.begin();
     for (size_t i = 1; i < colLength; i++, iIt++)
     {
-        std::list<Vertex>::iterator jIt = path2.begin();
+        std::list<Vertex>::const_iterator jIt = path2.begin();
         for (size_t j = 1; j < rowLength; j++, jIt++)
         {
             const unsigned int del = distances[(i-1)*rowLength+j] + 1;
@@ -293,31 +346,4 @@ unsigned int levenshtein (std::list<Vertex> &path1, std::list<Vertex> &path2)
     return d;
 }
 
-void printStats (Graph &g, std::vector<std::list<Vertex> > &paths)
-{
-    // Compute Levenshtein edit distance between every pair
-    
-    unsigned int min = std::numeric_limits<unsigned int>::max();
-    unsigned int max = 0;
-    unsigned int total = 0;
-    unsigned int count = 0;
-    BOOST_FOREACH(std::list<Vertex> path1, paths)
-    {
-        BOOST_FOREACH(std::list<Vertex> path2, paths)
-        {
-            if (path1 == path2)
-                continue;
-            unsigned int distance = levenshtein(path1, path2);
-            if (distance < min)
-                min = distance;
-            if (distance > max)
-                max = distance;
-            total += distance;
-            count++;
-        }
-    }
-    
-    // Report min, max, and mean
-    std::cout << "min: " << min << ", max: " << max << ", mean: " << double(total)/count << "\n";
-}
-
+// Compare with via-point method

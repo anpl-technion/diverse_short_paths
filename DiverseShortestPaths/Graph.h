@@ -30,6 +30,19 @@ typedef graph_traits::edge_descriptor Edge;
 typedef boost::property <boost::vertex_prop_t,VertexPropCollection> VertexProperties;
 typedef boost::property <boost::edge_weight_t,double> EdgeProperties;
 
+class Graph;
+
+/** \brief Compute the length of a path by summing the distance between states
+ * 
+ * @param path      path to find the length of
+ * @param g         graph this path exists in
+ * 
+ * @return          length of path
+ */
+double pathLength (const std::list<Vertex> &path, const Graph &g);
+
+#include "Path.h"
+
 struct StateSpaceNeighborhood
 {
     typedef ompl::base::State *center_type;
@@ -47,7 +60,7 @@ struct StateSpaceNeighborhood
 struct GraphDistanceNeighborhood
 {
     typedef Vertex center_type;
-    typedef unsigned int radius_type;
+    typedef double radius_type;
     
     center_type center;
     radius_type radius;
@@ -132,7 +145,7 @@ public:
      * @return          list of the vertices in the path from start to end; empty list if no path was found
      */
     template <class N>
-    std::list<Vertex> getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const;
+    Path getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const;
 };
 
 class heuristic // implements AStarHeuristic
@@ -215,7 +228,7 @@ public:
 };
 
 template <class N>
-std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const
+Path Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const
 {
     // Run the A* search
     std::vector<Vertex> pred(boost::num_vertices(*this));
@@ -239,19 +252,8 @@ std::list<Vertex> Graph::getShortestPathWithAvoidance (Vertex start, Vertex end,
     
     if (path.size() == 1 && start != end)
         path.clear();
-    return path;
+    return Path(path, *this);
 }
 
-/** \brief Compute the length of a path by summing the distance between states
- * 
- * @tparam N        Neighborhood class to use
- * 
- * @param path      path to find the length of
- * @param g         graph this path exists in
- * 
- * @return          length of path
- */
-template <class N>
-double pathLength (const std::list<Vertex> &path, const Graph &g);
 
 #endif
