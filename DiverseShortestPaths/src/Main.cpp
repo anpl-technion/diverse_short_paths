@@ -141,7 +141,7 @@ int main (int argc, char **argv)
     // Tweakable params for path finding
     const size_t n_paths = 10;
     const double radius_factor = 0.05;
-    const unsigned int minDiversity = 3;
+    const unsigned int minDiversity = 4;
     
     // Add n_states random states and connect them randomly
     for (size_t i = 0; i < n_states; i++)
