@@ -7,6 +7,7 @@
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
+// If NO_DRAW is defined, no output images are produced and cairo library is not required
 #ifndef NO_DRAW
 #include <cairo/cairo.h>
 #endif
@@ -15,7 +16,7 @@
 #include "Path.h"
 #include "ActualShortest.h"
 
-// Magic numbers
+// Magic number
 #define NUM_AVOIDS_PER_PATH     5
 
 /** \brief Get a random state from the path (not equal to the start or end of the path)
