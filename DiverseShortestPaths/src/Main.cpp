@@ -124,6 +124,24 @@ void printStats (Graph &g, std::vector<Path> &paths);
 
 int main (int argc, char **argv)
 {
+    if (argc != 5)
+    {
+        std::cout << "expected 4 args: <n_states> <n_paths> <radius_factor> <minDiversity>\n";
+        return 0;
+    }
+    size_t n_states;
+    std::istringstream(argv[1]) >> n_states;
+    size_t n_paths;
+    std::istringstream(argv[2]) >> n_paths;
+    double radius_factor;
+    std::istringstream(argv[3]) >> radius_factor;
+    unsigned int minDiversity;
+    std::istringstream(argv[4]) >> minDiversity;
+    
+    // Tweakable params for graph generation
+    const double max_edge_length = 4.0/std::sqrt(n_states/100.0);
+    const double p_connected = 0.25;
+    
     ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(2));
     ompl::base::RealVectorBounds bounds(2);
     bounds.setLow(-10);
@@ -132,16 +150,6 @@ int main (int argc, char **argv)
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     Graph g(si);
     ompl::base::StateSamplerPtr sampler = si->allocStateSampler();
-    
-    // Tweakable params for graph generation
-    const size_t n_states = 100;
-    const double max_edge_length = 4.0/std::sqrt(n_states/100.0);
-    const double p_connected = 0.25;
-    
-    // Tweakable params for path finding
-    const size_t n_paths = 10;
-    const double radius_factor = 0.05;
-    const unsigned int minDiversity = 4;
     
     // Add n_states random states and connect them randomly
     for (size_t i = 0; i < n_states; i++)
@@ -295,7 +303,28 @@ void printStats (Graph &g, std::vector<Path> &paths)
     }
     
     // Report min, max, and mean
-    std::cout << "DIVERSITY: min: " << min << ", max: " << max << ", mean: " << double(total)/count << "\n";
+    std::cout << "DISTANCE BETWEEN PATHS: min: " << min << ", max: " << max << ", mean: " << double(total)/count << "\n";
+    
+    // Compute Levenshtein edit distance between every path and it's nearest neighbor
+    min = std::numeric_limits<unsigned int>::max();
+    total = 0;
+    BOOST_FOREACH(Path path1, paths)
+    {
+        Path nearest(path1);
+        unsigned int distance = 0;
+        BOOST_FOREACH(Path path2, paths)
+        {
+            if (path1.getPath() == path2.getPath())
+                continue;
+            distance = levenshtein(path1.getPath(), path2.getPath());
+            if (distance < min)
+                min = distance;
+        }
+        total += distance;
+    }
+    
+    // Report min, max, and mean
+    std::cout << "DISTANCE TO NEAREST NEIGHBOR: mean: " << double(total)/paths.size() << "\n";
     
     // Compute length of every path
     double lmin = std::numeric_limits<double>::max();
@@ -312,7 +341,7 @@ void printStats (Graph &g, std::vector<Path> &paths)
     }
     
     // Report min, max, and mean
-    std::cout << "LENGTH: min: " << lmin << ", max: " << lmax << ", mean: " << double(ltotal)/paths.size() << "\n";
+    std::cout << "LENGTH OF PATHS: min: " << lmin << ", max: " << lmax << ", mean: " << double(ltotal)/paths.size() << "\n";
 }
 
 unsigned int levenshtein (const std::list<Vertex> &path1, const std::list<Vertex> &path2)
