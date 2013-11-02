@@ -20,28 +20,28 @@ struct PathAndAvoidance
     }
 };
 
-bool comparePaths (Graph &g, Path path1, Path path2)
+bool comparePaths (const Graph &g, Path path1, Path path2)
 {
     return path1.getLength() < path2.getLength();
 }
 typedef boost::function<bool(Path, Path)> f_comparePaths;
 
-bool comparePathAndAvoidances (Graph &g, PathAndAvoidance pa1, PathAndAvoidance pa2)
+bool comparePathAndAvoidances (const Graph &g, PathAndAvoidance pa1, PathAndAvoidance pa2)
 {
     return comparePaths(g, pa1.path, pa2.path);
 }
 typedef boost::function<bool(PathAndAvoidance, PathAndAvoidance)> f_comparePathAndAvoidances;
 
-std::vector<Path> &actualShortestPaths (size_t numPaths, Graph &g, Vertex start, Vertex end, unsigned int minDiversity)
+std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph &g, Vertex start, Vertex end, const unsigned int minDiversity)
 {
     f_comparePaths comp1 = boost::bind(comparePaths, g, _1, _2);
     f_comparePathAndAvoidances comp2 = boost::bind(comparePathAndAvoidances, g, _2, _1);
     // Holds the shortest paths we've found and finished with
     std::set<Path, f_comparePaths> resultPaths(comp1);
     // How many of the paths in resultPaths are certainly the top shortest, and an iterator to the longest such path
-    size_t nCertainPaths = 0;
+    std::size_t nCertainPaths = 0;
     std::set<Path, f_comparePaths>::reverse_iterator longestCertain = resultPaths.rend();
-    size_t nThrownOutPaths = 0;
+    std::size_t nThrownOutPaths = 0;
     // Holds the shortest paths we've found, but still need to use
     std::priority_queue<PathAndAvoidance, std::vector<PathAndAvoidance>, f_comparePathAndAvoidances> frontier(comp2);
     
@@ -124,7 +124,7 @@ std::vector<Path> &actualShortestPaths (size_t numPaths, Graph &g, Vertex start,
     // Only return what we need
     std::vector<Path> *ret = new std::vector<Path>();
     std::set<Path, f_comparePaths>::iterator path = resultPaths.begin();
-    for (size_t i = 0; i < numPaths && path != resultPaths.end(); path++)
+    for (std::size_t i = 0; i < numPaths && path != resultPaths.end(); path++)
     {
         if (!path->isMarkedForDeletion())
         {

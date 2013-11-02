@@ -2,6 +2,7 @@
 /* Author: Caleb Voss */
 
 #include "Graph.h"
+#include "Path.h"
 
 ompl::base::SpaceInformationPtr Graph::getSpaceInformation (void) const
 {
@@ -10,94 +11,17 @@ ompl::base::SpaceInformationPtr Graph::getSpaceInformation (void) const
 
 Vertex Graph::addVertex (ompl::base::State *state)
 {
-    return boost::add_vertex(VertexProperties(VertexPropCollection(state)), *this);
+    return boost::add_vertex(VertexProperty(VertexAttributes(state)), *this);
 }
 
 Edge Graph::addEdge (Vertex u, Vertex v)
 {
     ompl::base::State *uState = boost::get(boost::vertex_prop, *this, u).state;
     ompl::base::State *vState = boost::get(boost::vertex_prop, *this, v).state;
-    return boost::add_edge(u, v, EdgeProperties(si_->distance(uState, vState)), *this).first;
+    return boost::add_edge(u, v, EdgeProperty(si_->distance(uState, vState)), *this).first;
 }
 
-template <>
-bool edgeWeightMap<StateSpaceNeighborhood>::distanceCheck (Vertex u, StateSpaceNeighborhood nbh) const
-{
-    return g.getSpaceInformation()->distance(boost::get(boost::vertex_prop, g, u).state, nbh.center) <= nbh.radius;
-}
-template <>
-bool edgeWeightMap<GraphDistanceNeighborhood>::distanceCheck (Vertex u, GraphDistanceNeighborhood nbh) const
-{
-    if (nbh.radius < 0)
-        return false;
-    if (u == nbh.center)
-        return true;
-    
-    BOOST_FOREACH(Vertex k, boost::adjacent_vertices(u, g))
-    {
-        double edgeWeight = boost::get(boost::edge_weight, g, boost::edge(u, k, g).first);
-        if (distanceCheck(k, GraphDistanceNeighborhood(nbh.center, nbh.radius - edgeWeight)))
-            return true;
-    }
-    return false;
-}
-
-template <>
-bool edgeWeightMap<SingleEdgeNeighborhood>::shouldAvoid (Edge e) const
-{
-    Vertex u = boost::source(e, g);
-    Vertex v = boost::target(e, g);
-    BOOST_FOREACH(SingleEdgeNeighborhood nbh, avoid)
-    {
-        if (nbh.edge == e)
-            return true;
-    }
-    return false;
-}
-
-template <>
-bool edgeWeightMap<StateSpaceNeighborhood>::shouldAvoid (Edge e) const
-{
-    Vertex u = boost::source(e, g);
-    Vertex v = boost::target(e, g);
-    BOOST_FOREACH(StateSpaceNeighborhood nbh, avoid)
-    {
-        // Only avoid edge if one endpoint is neither start nor end, yet is inside a neighborhood
-        // OR if the edge is between start and end
-        if ((u == start && v == end) || (u == end && v == start))
-            return true;
-        if (u != start && u != end)
-            if (distanceCheck(u, nbh))
-                return true;
-        if (v != start && v != end)
-            if (distanceCheck(v, nbh))
-                return true;
-    }
-    return false;
-}
-
-template <>
-bool edgeWeightMap<GraphDistanceNeighborhood>::shouldAvoid (Edge e) const
-{
-    Vertex u = boost::source(e, g);
-    Vertex v = boost::target(e, g);
-    BOOST_FOREACH(GraphDistanceNeighborhood nbh, avoid)
-    {
-        // Only avoid edge if one endpoint is neither start nor end, yet is inside a neighborhood
-        // OR if the edge is between start and end
-        if ((u == start && v == end) || (u == end && v == start))
-            return true;
-        if (u != start && u != end)
-            if (distanceCheck(u, nbh))
-                return true;
-        if (v != start && v != end)
-            if (distanceCheck(v, nbh))
-                return true;
-    }
-    return false;
-}
-
-double pathLength (const std::list<Vertex> &path, const Graph &g)
+double Graph::pathLength (const std::list<Vertex> &path) const
 {
     double length = 0;
     std::list<Vertex>::const_iterator vi = path.begin();
@@ -109,7 +33,51 @@ double pathLength (const std::list<Vertex> &path, const Graph &g)
         vi++;
         Vertex v = *vi;
         vi++;
-        length += boost::get(boost::edge_weight, g, boost::edge(u, v, g).first);
+        length += boost::get(boost::edge_weight, *this, boost::edge(u, v, *this).first);
     }
     return length;
 }
+
+template <class N>
+Path Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const
+{
+    // Run the A* search
+    std::vector<Vertex> pred(boost::num_vertices(*this));
+    std::list<Vertex> path;
+    try
+    {
+        boost::astar_search(*this, start, heuristic(*this, end),
+                            boost::weight_map(edgeWeightMap<N>(*this, start, end, avoidNeighborhoods)).
+                            predecessor_map(&pred[0]).
+                            visitor(visitor(end)));
+    }
+    catch (foundGoalException e)
+    {
+        for (Vertex v = end;; v = pred[v])
+        {
+            path.push_front(v);
+            if (pred[v] == v)
+                break;
+        }
+    }
+    
+    if (path.size() == 1 && start != end)
+        path.clear();
+    return Path(path, *this);
+}
+// Needed for linking, though this locks us in to using one of these three neighborhoods
+template Path Graph::getShortestPathWithAvoidance<StateSpaceNeighborhood> (Vertex start, Vertex end, const std::vector<StateSpaceNeighborhood> &avoidNeighborhoods) const;
+template Path Graph::getShortestPathWithAvoidance<GraphDistanceNeighborhood> (Vertex start, Vertex end, const std::vector<GraphDistanceNeighborhood> &avoidNeighborhoods) const;
+template Path Graph::getShortestPathWithAvoidance<SingleEdgeNeighborhood> (Vertex start, Vertex end, const std::vector<SingleEdgeNeighborhood> &avoidNeighborhoods) const;
+
+template <class N>
+bool edgeWeightMap<N>::shouldAvoid (Edge e) const
+{
+    BOOST_FOREACH(N nbh, avoid)
+    {
+        if (nbh.shouldAvoid(e))
+            return true;
+    }
+    return false;
+}
+

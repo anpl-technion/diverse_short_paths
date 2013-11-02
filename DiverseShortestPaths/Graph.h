@@ -12,91 +12,30 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/State.h>
 
+#include "Common.h"
+
 namespace boost {
-    enum vertex_prop_t { vertex_prop };
     BOOST_INSTALL_PROPERTY(vertex, prop);
 }
 
-struct VertexPropCollection;
-
-typedef boost::adjacency_list <
-    boost::vecS,boost::vecS,boost::undirectedS,
-    boost::property <boost::vertex_prop_t,VertexPropCollection>,
-    boost::property <boost::edge_weight_t,double> > base_graph;
-typedef boost::graph_traits<base_graph> graph_traits;
-typedef graph_traits::vertex_descriptor Vertex;
-typedef graph_traits::vertex_iterator VertexIterator;
-typedef graph_traits::edge_descriptor Edge;
-typedef boost::property <boost::vertex_prop_t,VertexPropCollection> VertexProperties;
-typedef boost::property <boost::edge_weight_t,double> EdgeProperties;
-
-class Graph;
-
-/** \brief Compute the length of a path by summing the distance between states
- * 
- * @param path      path to find the length of
- * @param g         graph this path exists in
- * 
- * @return          length of path
- */
-double pathLength (const std::list<Vertex> &path, const Graph &g);
-
-#include "Path.h"
-
-struct StateSpaceNeighborhood
+// Collection of attributes for a vertex
+struct VertexAttributes
 {
-    typedef ompl::base::State *center_type;
-    typedef double radius_type;
-    
-    center_type center;
-    radius_type radius;
-    
-    StateSpaceNeighborhood (center_type c, radius_type r)
-    : center(c), radius(r)
-    {
-    }
-};
-
-struct GraphDistanceNeighborhood
-{
-    typedef Vertex center_type;
-    typedef double radius_type;
-    
-    center_type center;
-    radius_type radius;
-    
-    GraphDistanceNeighborhood (center_type c, radius_type r)
-    : center(c), radius(r)
-    {
-    }
-};
-
-struct SingleEdgeNeighborhood
-{
-    Edge edge;
-    
-    SingleEdgeNeighborhood (Edge e)
-    : edge(e)
-    {
-    }
-};
-
-struct VertexPropCollection
-{
+    // Vertex's location in the state space in which the graph is embedded
     ompl::base::State *state;
     
-    VertexPropCollection ()
+    VertexAttributes ()
     : state(NULL)
     {
     }
     
-    VertexPropCollection (ompl::base::State *state)
+    VertexAttributes (ompl::base::State *state)
     : state(state)
     {
     }
 };
 
-class Graph : public base_graph
+class Graph : public boost_graph
 {
 private:
     
@@ -106,7 +45,7 @@ public:
     
     /** \brief Initialize an empty graph */
     Graph (const ompl::base::SpaceInformationPtr &si)
-    : base_graph(), si_(si)
+    : boost_graph(), si_(si)
     {
     }
     
@@ -134,6 +73,14 @@ public:
      */
     Edge addEdge (Vertex u, Vertex v);
     
+    /** \brief Compute the length of a path by summing the distance between states
+    * 
+    * @param path      path to find the length of\
+    * 
+    * @return          length of path
+    */
+    double pathLength (const std::list<Vertex> &path) const;
+
     /** \brief Find the shortest path between two vertices, honoring vertex avoidance
      * 
      * @tparam N        Neighborhood class to use
@@ -146,6 +93,103 @@ public:
      */
     template <class N>
     Path getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const;
+};
+
+struct StateSpaceNeighborhood
+{
+    typedef ompl::base::State *center_type;
+    typedef double radius_type;
+    
+    const Graph &g;
+    center_type center;
+    radius_type radius;
+    
+    StateSpaceNeighborhood (const Graph &g, const center_type c, const radius_type r)
+    : g(g), center(c), radius(r)
+    {
+    }
+    
+    StateSpaceNeighborhood &operator=(const StateSpaceNeighborhood &copy)
+    {
+        StateSpaceNeighborhood *nbh = new StateSpaceNeighborhood(copy.g, copy.center, copy.radius);
+        return *nbh;
+    }
+    
+    bool shouldAvoid (const Edge e) const
+    {
+        const Vertex u = boost::source(e, g);
+        const Vertex v = boost::target(e, g);
+        return isInside(u) || isInside(v);
+    }
+    
+private:
+    
+    bool isInside (const Vertex u) const
+    {
+        return g.getSpaceInformation()->distance(boost::get(boost::vertex_prop, g, u).state, center) <= radius;
+    }
+};
+
+struct GraphDistanceNeighborhood
+{
+    typedef Vertex center_type;
+    typedef double radius_type;
+    
+    const Graph &g;
+    center_type center;
+    radius_type radius;
+    
+    GraphDistanceNeighborhood (const Graph &g, const center_type c, const radius_type r)
+    : g(g), center(c), radius(r)
+    {
+    }
+    
+    GraphDistanceNeighborhood &operator=(const GraphDistanceNeighborhood &copy)
+    {
+        GraphDistanceNeighborhood *nbh = new GraphDistanceNeighborhood(copy.g, copy.center, copy.radius);
+        return *nbh;
+    }
+    
+    bool shouldAvoid (const Edge e) const
+    {
+        Vertex u = boost::source(e, g);
+        Vertex v = boost::target(e, g);
+        return isInside(u, radius) || isInside(v, radius);
+    }
+    
+private:
+    
+    // !!! This is really slow
+    bool isInside (const Vertex u, const radius_type r) const
+    {
+        if (r < 0)
+            return false;
+        if (u == center)
+            return true;
+        
+        BOOST_FOREACH(const Vertex k, boost::adjacent_vertices(u, g))
+        {
+            double edgeWeight = boost::get(boost::edge_weight, g, boost::edge(u, k, g).first);
+            if (isInside(k, r - edgeWeight))
+                return true;
+        }
+        return false;
+    }
+};
+
+struct SingleEdgeNeighborhood
+{
+    Edge edge;
+    
+    SingleEdgeNeighborhood (const Edge e)
+    : edge(e)
+    {
+    }
+    
+    bool shouldAvoid (const Edge e) const
+    {
+        return e == edge;
+    }
 };
 
 class heuristic // implements AStarHeuristic
@@ -175,9 +219,6 @@ class edgeWeightMap // implements ReadablePropertyMap
     const Vertex end;
     const std::vector<N> &avoid;
     
-    // Return whether distance between u and v is <= max
-    bool distanceCheck (Vertex u, N nbh) const;
-    
 public:
     
     typedef Edge key_type;
@@ -192,7 +233,7 @@ public:
     
     bool shouldAvoid (Edge e) const;
     
-    const base_graph &getGraph (void) const
+    const boost_graph &getGraph (void) const
     {
         return g;
     }
@@ -209,7 +250,10 @@ namespace boost
     }
 }
 
-struct foundGoalException {};
+struct foundGoalException
+{
+};
+
 class visitor : public boost::default_astar_visitor // implements AStar_Visitor
 {
     Vertex goal;
@@ -226,34 +270,5 @@ public:
             throw foundGoalException();
     }
 };
-
-template <class N>
-Path Graph::getShortestPathWithAvoidance (Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods) const
-{
-    // Run the A* search
-    std::vector<Vertex> pred(boost::num_vertices(*this));
-    std::list<Vertex> path;
-    try
-    {
-        boost::astar_search(*this, start, heuristic(*this, end),
-                            boost::weight_map(edgeWeightMap<N>(*this, start, end, avoidNeighborhoods)).
-                            predecessor_map(&pred[0]).
-                            visitor(visitor(end)));
-    }
-    catch (foundGoalException e)
-    {
-        for (Vertex v = end;; v = pred[v])
-        {
-            path.push_front(v);
-            if (pred[v] == v)
-                break;
-        }
-    }
-    
-    if (path.size() == 1 && start != end)
-        path.clear();
-    return Path(path, *this);
-}
-
 
 #endif

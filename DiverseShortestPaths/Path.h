@@ -1,10 +1,12 @@
 
+/* Author: Caleb Voss */
+
 #ifndef PATH_H
 #define PATH_H
 
 #include <list>
 
-#include "Graph.h"
+#include "Common.h"
 
 class Path
 {
@@ -19,17 +21,9 @@ public:
     {
     }
     
-    Path (std::list<Vertex> &path, Graph &g)
-    : _path(path), _delete(false)
-    {
-        _length = pathLength(path, g);
-    }
+    Path (std::list<Vertex> &path, Graph &g);
     
-    Path (std::list<Vertex> &path, const Graph &g)
-    : _path(path), _delete(false)
-    {
-        _length = pathLength(path, g);
-    }
+    Path (std::list<Vertex> &path, const Graph &g);
     
     void markForDeletion (void) const
     {

@@ -1,6 +1,8 @@
 
 /* Author: Caleb Voss */
 
+#include <boost/foreach.hpp>
+
 #include <ompl/base/StateSampler.h>
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/SpaceInformation.h>
@@ -16,9 +18,7 @@
 #include "Path.h"
 #include "ActualShortest.h"
 
-// Magic number
-#define NUM_AVOIDS_PER_PATH     5
-
+// !!! This could be improved by asking for n samples at once without replacement
 /** \brief Get a random state from the path (not equal to the start or end of the path)
  * 
  * @tparam N        Neighborhood class to use
@@ -47,7 +47,6 @@ Vertex sampleFromPath <GraphDistanceNeighborhood> (const std::list<Vertex> &path
     return *vi;
 }
 
-
 /** \brief Find a number of diverse, short paths in a graph, by deviating from former short paths through
  *         the use of an increasing set of neighborhoods in the state space that should be avoided
  * 
@@ -58,12 +57,13 @@ Vertex sampleFromPath <GraphDistanceNeighborhood> (const std::list<Vertex> &path
  * @param end               end vertex for the path
  * @param g                 graph to search in
  * @param radius_factor     neighborhood radius is radius_factor * pathLength
+ * @param samples_per_path  number of attempts to generate a new path from an existing one by sampling a neighborhood to avoid
  * @param minDiversity      paths are not retained if their levenshtein edit distance from any already retained path is less than this
  * 
  * @return                  set of at most numPaths distinct paths from start to end
  */
 template <class N>
-std::vector<Path> findDiverseShortestPaths (std::size_t numPaths, Vertex start, Vertex end, const Graph &g, double radius_factor, unsigned int minDiversity)
+std::vector<Path> findDiverseShortestPaths (const std::size_t numPaths, Vertex start, Vertex end, const Graph &g, const double radius_factor, const std::size_t samples_per_path, const unsigned int minDiversity)
 {
     // Holds the set of paths we've found
     std::vector<Path> resultPaths;
@@ -81,6 +81,7 @@ std::vector<Path> findDiverseShortestPaths (std::size_t numPaths, Vertex start, 
     
     resultPaths.push_back(referencePath);
     resultAvoids.push_back(alreadyAvoiding);
+    std::cout << "Kept: " << resultPaths.size() << "/" << numPaths << "\n";
     
     // Work through the queue until we have enough
     while (frontier < resultPaths.size() && resultPaths.size() < numPaths)
@@ -89,17 +90,20 @@ std::vector<Path> findDiverseShortestPaths (std::size_t numPaths, Vertex start, 
         alreadyAvoiding = resultAvoids[frontier];
         frontier++;
         
-        // Make a pre-defined number of attempts at imposing a new neighborhood to avoid on the graph
+        // Make attempts at imposing a new neighborhood to avoid on the graph
         // Neighborhood's radius is some pre-defined portion of the referencePath's length
         double radius = radius_factor * referencePath.getLength();
-        for (int i = 0; i < NUM_AVOIDS_PER_PATH && resultPaths.size() < numPaths; i++)
+        for (int i = 0; i < samples_per_path && resultPaths.size() < numPaths; i++)
         {
             std::vector<N> avoid = alreadyAvoiding;
-            avoid.push_back(N(sampleFromPath<N>(referencePath.getPath(), g), radius));
+            avoid.push_back(N(g, sampleFromPath<N>(referencePath.getPath(), g), radius));
             // Get the shortest path under these constraints
             Path path = g.getShortestPathWithAvoidance<N>(start, end, avoid);
             if (path.getPath().empty())
+            {
+                std::cout << "choked!\n";
                 continue;
+            }
             
             // Don't store it if it's not diverse enough
             bool tooSimilar = false;
@@ -115,6 +119,7 @@ std::vector<Path> findDiverseShortestPaths (std::size_t numPaths, Vertex start, 
             {
                 resultPaths.push_back(path);
                 resultAvoids.push_back(avoid);
+                std::cout << "Kept: " << resultPaths.size() << "/" << numPaths << "\n";
             }
         }
     }
@@ -129,19 +134,21 @@ void printStats (Graph &g, std::vector<Path> &paths);
 
 int main (int argc, char **argv)
 {
-    if (argc != 5)
+    if (argc != 6)
     {
-        std::cout << "expected 4 args: <n_states> <n_paths> <radius_factor> <minDiversity>\n";
+        std::cout << "expected 5 args: <n_states> <n_paths> <radius_factor> <samples_per_path> <minDiversity>\n";
         return 0;
     }
-    size_t n_states;
+    std::size_t n_states;
     std::istringstream(argv[1]) >> n_states;
-    size_t n_paths;
+    std::size_t n_paths;
     std::istringstream(argv[2]) >> n_paths;
     double radius_factor;
     std::istringstream(argv[3]) >> radius_factor;
+    std::size_t samples_per_path;
+    std::istringstream(argv[4]) >> samples_per_path;
     unsigned int minDiversity;
-    std::istringstream(argv[4]) >> minDiversity;
+    std::istringstream(argv[5]) >> minDiversity;
     
     // Tweakable params for graph generation
     const double max_edge_length = 4.0/std::sqrt(n_states/100.0);
@@ -157,15 +164,15 @@ int main (int argc, char **argv)
     ompl::base::StateSamplerPtr sampler = si->allocStateSampler();
     
     // Add n_states random states and connect them randomly
-    for (size_t i = 0; i < n_states; i++)
+    for (std::size_t i = 0; i < n_states; i++)
     {
         ompl::base::State *state = si->allocState();
         sampler->sampleUniform(state);
         g.addVertex(state);
     }
-    for (size_t i = 0; i < n_states; i++)
+    for (std::size_t i = 0; i < n_states; i++)
     {
-        for (size_t j = 0; j < n_states; j++)
+        for (std::size_t j = 0; j < n_states; j++)
         {
             if (i==j)
                 continue;
@@ -182,12 +189,12 @@ int main (int argc, char **argv)
     std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
     Vertex start = boost::vertex(0, g);
     Vertex goal = boost::vertex(8, g);
-    std::vector<Path> paths = findDiverseShortestPaths<StateSpaceNeighborhood>(n_paths, start, goal, g, radius_factor, minDiversity);
-    std::cout << "Completed space distance version\n";
-    std::vector<Path> paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(n_paths, start, goal, g, radius_factor, minDiversity);
-    std::cout << "Completed graph distance version\n";
+    std::vector<Path> paths = findDiverseShortestPaths<StateSpaceNeighborhood>(n_paths, start, goal, g, radius_factor, samples_per_path, minDiversity);
+    std::cout << "Completed space distance version\n\n";
+    std::vector<Path> paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(n_paths, start, goal, g, radius_factor, samples_per_path, minDiversity);
+    std::cout << "Completed graph distance version\n\n";
     std::vector<Path> paths3 = actualShortestPaths(n_paths, g, start, goal, minDiversity);
-    std::cout << "Completed actual shortest paths\n";
+    std::cout << "Completed actual shortest paths\n\n";
     std::cout << "Got " << paths.size() << ", " << paths2.size() << ", " << paths3.size() << " paths\n";
     
 #ifndef NO_DRAW
@@ -341,7 +348,7 @@ void printStats (Graph &g, std::vector<Path> &paths)
     double ltotal = 0;
     BOOST_FOREACH(Path path, paths)
     {
-        double distance = pathLength(path.getPath(), g);
+        double distance = g.pathLength(path.getPath());
         if (distance < lmin)
             lmin = distance;
         if (distance > max)
@@ -355,20 +362,20 @@ void printStats (Graph &g, std::vector<Path> &paths)
 
 unsigned int levenshtein (const std::list<Vertex> &path1, const std::list<Vertex> &path2)
 {
-    const size_t rowLength = path1.size()+1;
-    const size_t colLength = path2.size()+1;
+    const std::size_t rowLength = path1.size()+1;
+    const std::size_t colLength = path2.size()+1;
     unsigned int *const distances = new unsigned int[rowLength*colLength];
     
-    for (size_t j = 0; j < rowLength; j++)
+    for (std::size_t j = 0; j < rowLength; j++)
         distances[j] = j;
-    for (size_t i = 1; i < colLength; i++)
+    for (std::size_t i = 1; i < colLength; i++)
         distances[i*rowLength] = i;
     
     std::list<Vertex>::const_iterator iIt = path1.begin();
-    for (size_t i = 1; i < colLength; i++, iIt++)
+    for (std::size_t i = 1; i < colLength; i++, iIt++)
     {
         std::list<Vertex>::const_iterator jIt = path2.begin();
-        for (size_t j = 1; j < rowLength; j++, jIt++)
+        for (std::size_t j = 1; j < rowLength; j++, jIt++)
         {
             const unsigned int del = distances[(i-1)*rowLength+j] + 1;
             const unsigned int ins = distances[i*rowLength+j-1] + 1;
