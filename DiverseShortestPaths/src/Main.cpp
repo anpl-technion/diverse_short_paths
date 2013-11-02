@@ -7,7 +7,9 @@
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 
+#ifndef NO_DRAW
 #include <cairo/cairo.h>
+#endif
 
 #include "Graph.h"
 #include "Path.h"
@@ -119,7 +121,9 @@ std::vector<Path> findDiverseShortestPaths (std::size_t numPaths, Vertex start, 
     return resultPaths;
 }
 
+#ifndef NO_DRAW
 void draw (Graph &g, Vertex start, Vertex goal, std::vector<Path> &paths, const char *filename);
+#endif
 void printStats (Graph &g, std::vector<Path> &paths);
 
 int main (int argc, char **argv)
@@ -185,9 +189,11 @@ int main (int argc, char **argv)
     std::cout << "Completed actual shortest paths\n";
     std::cout << "Got " << paths.size() << ", " << paths2.size() << ", " << paths3.size() << " paths\n";
     
+#ifndef NO_DRAW
     draw(g, start, goal, paths, "output_space.png");
     draw(g, start, goal, paths2, "output_graph.png");
     draw(g, start, goal, paths3, "output_actual.png");
+#endif
     
     if (paths.size() > 1)
     {
@@ -208,6 +214,7 @@ int main (int argc, char **argv)
     return 0;
 }
 
+#ifndef NO_DRAW
 void draw (Graph &g, Vertex start, Vertex goal, std::vector<Path> &paths, const char *filename)
 {
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1024, 1024);
@@ -278,6 +285,7 @@ void draw (Graph &g, Vertex start, Vertex goal, std::vector<Path> &paths, const 
     
     cairo_surface_write_to_png(surface, filename);
 }
+#endif
 
 void printStats (Graph &g, std::vector<Path> &paths)
 {
