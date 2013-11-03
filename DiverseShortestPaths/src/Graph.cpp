@@ -2,7 +2,25 @@
 /* Author: Caleb Voss */
 
 #include "Graph.h"
+
+#include "Neighborhoods.h"
 #include "Path.h"
+
+VertexAttributes::VertexAttributes ()
+: state(NULL)
+{
+}
+
+VertexAttributes::VertexAttributes (ompl::base::State *state)
+: state(state)
+{
+}
+
+
+Graph::Graph (const ompl::base::SpaceInformationPtr &si)
+: boost_graph(), si_(si)
+{
+}
 
 ompl::base::SpaceInformationPtr Graph::getSpaceInformation (void) const
 {
@@ -21,10 +39,10 @@ Edge Graph::addEdge (Vertex u, Vertex v)
     return boost::add_edge(u, v, EdgeProperty(si_->distance(uState, vState)), *this).first;
 }
 
-double Graph::pathLength (const std::list<Vertex> &path) const
+double Graph::pathLength (const Path &path) const
 {
     double length = 0;
-    std::list<Vertex>::const_iterator vi = path.begin();
+    Path::const_iterator vi = path.begin();
     vi++;
     while (vi != path.end())
     {
@@ -70,6 +88,26 @@ template Path Graph::getShortestPathWithAvoidance<StateSpaceNeighborhood> (Verte
 template Path Graph::getShortestPathWithAvoidance<GraphDistanceNeighborhood> (Vertex start, Vertex end, const std::vector<GraphDistanceNeighborhood> &avoidNeighborhoods) const;
 template Path Graph::getShortestPathWithAvoidance<SingleEdgeNeighborhood> (Vertex start, Vertex end, const std::vector<SingleEdgeNeighborhood> &avoidNeighborhoods) const;
 
+
+heuristic::heuristic (const Graph &graph, Vertex goal)
+: g(graph), goal(goal)
+{
+}
+
+double heuristic::operator() (Vertex u) const
+{
+    ompl::base::State *goalState = boost::get(boost::vertex_prop, g, goal).state;
+    ompl::base::State *uState = boost::get(boost::vertex_prop, g, u).state;
+    return g.getSpaceInformation()->distance(goalState, uState);
+}
+
+
+template <class N>
+edgeWeightMap<N>::edgeWeightMap (const Graph &graph, Vertex start, Vertex end, const std::vector<N> &avoidNeighborhoods)
+: g(graph), start(start), end(end), avoid(avoidNeighborhoods)
+{
+}
+
 template <class N>
 bool edgeWeightMap<N>::shouldAvoid (Edge e) const
 {
@@ -81,3 +119,31 @@ bool edgeWeightMap<N>::shouldAvoid (Edge e) const
     return false;
 }
 
+template <class N>
+const Graph &edgeWeightMap<N>::getGraph (void) const
+{
+    return g;
+}
+
+namespace boost
+{
+    template <typename K, typename N>
+    double get (const edgeWeightMap<N> &m, const K &e)
+    {
+        if (m.shouldAvoid(e))
+            return std::numeric_limits<double>::max();
+        return get(edge_weight, m.getGraph(), e);
+    }
+}
+
+
+visitor::visitor (Vertex goal)
+: goal(goal)
+{
+}
+
+void visitor::examine_vertex (Vertex u, const Graph &g) const
+{
+    if (u == goal)
+        throw foundGoalException();
+}

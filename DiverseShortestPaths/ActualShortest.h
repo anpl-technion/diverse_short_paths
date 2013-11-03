@@ -9,46 +9,40 @@
 #include "Graph.h"
 #include "Path.h"
 
-struct PathAndAvoidance
-{
-    Path path;
-    std::vector<SingleEdgeNeighborhood> avoids;
-    
-    PathAndAvoidance (Path path, std::vector<SingleEdgeNeighborhood> avoids)
-    : path(path), avoids(avoids)
-    {
-    }
-};
+typedef std::pair<Path, std::vector<SingleEdgeNeighborhood> > PathAndAvoidance;
 
-bool comparePaths (const Graph &g, Path path1, Path path2)
+bool comparePaths (const Path &path1, const Path &path2)
 {
     return path1.getLength() < path2.getLength();
 }
-typedef boost::function<bool(Path, Path)> f_comparePaths;
 
-bool comparePathAndAvoidances (const Graph &g, PathAndAvoidance pa1, PathAndAvoidance pa2)
+bool compareMutablePaths (const MutablePath &path1, const MutablePath &path2)
 {
-    return comparePaths(g, pa1.path, pa2.path);
+    return path1.path.getLength() < path2.path.getLength();
 }
-typedef boost::function<bool(PathAndAvoidance, PathAndAvoidance)> f_comparePathAndAvoidances;
+typedef boost::function<bool(const MutablePath&, const MutablePath&)> f_compareMutablePaths;
+
+bool rcomparePathAndAvoidances (const PathAndAvoidance &pa1, const PathAndAvoidance &pa2)
+{
+    return comparePaths(pa2.first, pa1.first);
+}
+typedef boost::function<bool(const PathAndAvoidance&, const PathAndAvoidance&)> f_comparePathAndAvoidances;
 
 std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph &g, Vertex start, Vertex end, const unsigned int minDiversity)
 {
-    f_comparePaths comp1 = boost::bind(comparePaths, g, _1, _2);
-    f_comparePathAndAvoidances comp2 = boost::bind(comparePathAndAvoidances, g, _2, _1);
     // Holds the shortest paths we've found and finished with
-    std::set<Path, f_comparePaths> resultPaths(comp1);
+    std::set<MutablePath, f_compareMutablePaths> resultPaths(compareMutablePaths);
     // How many of the paths in resultPaths are certainly the top shortest, and an iterator to the longest such path
     std::size_t nCertainPaths = 0;
-    std::set<Path, f_comparePaths>::reverse_iterator longestCertain = resultPaths.rend();
+    std::set<MutablePath, f_compareMutablePaths>::iterator longestCertain = resultPaths.begin();
     std::size_t nThrownOutPaths = 0;
     // Holds the shortest paths we've found, but still need to use
-    std::priority_queue<PathAndAvoidance, std::vector<PathAndAvoidance>, f_comparePathAndAvoidances> frontier(comp2);
+    std::priority_queue<PathAndAvoidance, std::vector<PathAndAvoidance>, f_comparePathAndAvoidances> frontier(rcomparePathAndAvoidances);
     
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
     std::vector<SingleEdgeNeighborhood> alreadyAvoiding = std::vector<SingleEdgeNeighborhood>();
     Path referencePath = g.getShortestPathWithAvoidance<SingleEdgeNeighborhood>(start, end, alreadyAvoiding);
-    if (referencePath.getPath().empty())
+    if (referencePath.empty())
         return *new std::vector<Path>();
     
     // Seed the frontier
@@ -56,10 +50,9 @@ std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph 
     
     while (!frontier.empty())
     {
-        PathAndAvoidance pa = frontier.top();
+        referencePath = frontier.top().first;
+        alreadyAvoiding = frontier.top().second;
         frontier.pop();
-        referencePath = pa.path;
-        alreadyAvoiding = pa.avoids;
         
         // Make a pre-defined number of attempts at imposing a new neighborhood to avoid on the graph
         Path::iterator i = referencePath.begin();
@@ -70,14 +63,14 @@ std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph 
             avoid.push_back(SingleEdgeNeighborhood(boost::edge(*j, *i, g).first));
             // Get the shortest path under these constraints
             Path path = g.getShortestPathWithAvoidance<SingleEdgeNeighborhood>(start, end, avoid);
-            if (path.getPath().empty())
+            if (path.empty())
                 continue;
             
             // Don't store it if it's a duplicate
             bool alreadyHave = false;
-            BOOST_FOREACH(Path p, resultPaths)
+            BOOST_FOREACH(MutablePath p, resultPaths)
             {
-                if (path.getPath() == p.getPath())
+                if (path == p.path)
                 {
                     alreadyHave = true;
                     break;
@@ -87,26 +80,37 @@ std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph 
                 frontier.push(PathAndAvoidance(path, avoid));
         }
         // Save the reference path
-        resultPaths.insert(referencePath);
-        if (longestCertain != resultPaths.rend() && longestCertain->getPath() == referencePath.getPath())
-            longestCertain--;
+        resultPaths.insert(MutablePath(referencePath));
         
         // Check the path after the longest certain to see if we can stop
-        longestCertain--;
-        if (!frontier.empty() && comparePaths(g, *longestCertain, frontier.top().path))
+        if (longestCertain == resultPaths.end())
+        {
+            // This should only happen the first time when longestCertain was already pointing to the end
+            longestCertain--;
+        }
+        else
+        {
+            longestCertain++;
+            // longestcertain might end up pointing to the path we just added accidentally 
+            if (longestCertain == resultPaths.end())
+            {
+                longestCertain--;
+            }
+        }
+        if (!frontier.empty() && comparePaths(longestCertain->path, frontier.top().first))
         {
             nCertainPaths++;
             
-            // Check if longestCertain is different enough from existing paths
-            for (std::set<Path, f_comparePaths>::reverse_iterator keptPath = longestCertain; keptPath != resultPaths.rend(); keptPath++)
+            // Check if the candidate is different enough from existing paths
+            for (std::set<MutablePath, f_compareMutablePaths>::iterator keptPath = resultPaths.begin(); keptPath != longestCertain; keptPath++)
             {
-                if (keptPath == longestCertain || keptPath->isMarkedForDeletion())
+                if (keptPath->isFreed())
                     continue;
-                unsigned int distance = levenshtein(keptPath->getPath(), longestCertain->getPath());
+                unsigned int distance = Path::levenshtein(keptPath->path, longestCertain->path);
                 if (distance < minDiversity)
                 {
                     nThrownOutPaths++;
-                    longestCertain->markForDeletion();
+                    longestCertain->free();
                     break;
                 }
             }
@@ -117,18 +121,18 @@ std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph 
         }
         else
         {
-            longestCertain++;
+            longestCertain--;
         }
     }
     
     // Only return what we need
     std::vector<Path> *ret = new std::vector<Path>();
-    std::set<Path, f_comparePaths>::iterator path = resultPaths.begin();
+    std::set<MutablePath, f_compareMutablePaths>::iterator path = resultPaths.begin();
     for (std::size_t i = 0; i < numPaths && path != resultPaths.end(); path++)
     {
-        if (!path->isMarkedForDeletion())
+        if (!path->isFreed())
         {
-            ret->push_back(*path);
+            ret->push_back(path->path);
             i++;
         }
     }

@@ -11,10 +11,11 @@
 
 // If NO_DRAW is defined, no output images are produced and cairo library is not required
 #ifndef NO_DRAW
-#include <cairo/cairo.h>
+#include "Draw.h"
 #endif
 
 #include "Graph.h"
+#include "Neighborhoods.h"
 #include "Path.h"
 #include "ActualShortest.h"
 
@@ -29,19 +30,19 @@
  * @return          pointer to a state on the path
  */
 template <class N>
-typename N::center_type sampleFromPath (const std::list<Vertex> &path, const Graph &g);
+typename N::center_type sampleFromPath (const Path &path, const Graph &g);
 template <>
-ompl::base::State *sampleFromPath <StateSpaceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
+ompl::base::State *sampleFromPath <StateSpaceNeighborhood> (const Path &path, const Graph &g)
 {
-    std::list<Vertex>::const_iterator vi = path.begin();
+    Path::const_iterator vi = path.begin();
     for (std::size_t i = std::rand() % path.size(); i > 0; i--)
         vi++;
     return boost::get(boost::vertex_prop, g, *vi).state;
 }
 template <>
-Vertex sampleFromPath <GraphDistanceNeighborhood> (const std::list<Vertex> &path, const Graph &g)
+Vertex sampleFromPath <GraphDistanceNeighborhood> (const Path &path, const Graph &g)
 {
-    std::list<Vertex>::const_iterator vi = path.begin();
+    Path::const_iterator vi = path.begin();
     for (std::size_t i = std::rand() % path.size(); i > 0; i--)
         vi++;
     return *vi;
@@ -76,7 +77,7 @@ std::vector<Path> findDiverseShortestPaths (const std::size_t numPaths, Vertex s
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
     std::vector<N> alreadyAvoiding = std::vector<N>();
     Path referencePath = g.getShortestPathWithAvoidance<N>(start, end, alreadyAvoiding);
-    if (referencePath.getPath().empty())
+    if (referencePath.empty())
         return resultPaths;
     
     resultPaths.push_back(referencePath);
@@ -96,20 +97,17 @@ std::vector<Path> findDiverseShortestPaths (const std::size_t numPaths, Vertex s
         for (int i = 0; i < samples_per_path && resultPaths.size() < numPaths; i++)
         {
             std::vector<N> avoid = alreadyAvoiding;
-            avoid.push_back(N(g, sampleFromPath<N>(referencePath.getPath(), g), radius));
+            avoid.push_back(N(g, sampleFromPath<N>(referencePath, g), radius));
             // Get the shortest path under these constraints
             Path path = g.getShortestPathWithAvoidance<N>(start, end, avoid);
-            if (path.getPath().empty())
-            {
-                std::cout << "choked!\n";
+            if (path.empty())
                 continue;
-            }
             
             // Don't store it if it's not diverse enough
             bool tooSimilar = false;
             BOOST_FOREACH(Path p, resultPaths)
             {
-                if (levenshtein(path.getPath(), p.getPath()) < minDiversity)
+                if (Path::levenshtein(path, p) < minDiversity)
                 {
                     tooSimilar = true;
                     break;
@@ -186,9 +184,9 @@ int main (int argc, char **argv)
         }
     }
     
-    std::cout << "Finding at most 10 diverse short paths from node 0 to node 8\n\n";
     Vertex start = boost::vertex(0, g);
     Vertex goal = boost::vertex(8, g);
+    std::cout << "Finding at most " << n_paths << " diverse short paths from node " << start << " to node " << goal << "\n\n";
     std::vector<Path> paths = findDiverseShortestPaths<StateSpaceNeighborhood>(n_paths, start, goal, g, radius_factor, samples_per_path, minDiversity);
     std::cout << "Completed space distance version\n\n";
     std::vector<Path> paths2 = findDiverseShortestPaths<GraphDistanceNeighborhood>(n_paths, start, goal, g, radius_factor, samples_per_path, minDiversity);
@@ -222,79 +220,6 @@ int main (int argc, char **argv)
     return 0;
 }
 
-#ifndef NO_DRAW
-void draw (Graph &g, Vertex start, Vertex goal, std::vector<Path> &paths, const char *filename)
-{
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1024, 1024);
-    cairo_t *cr = cairo_create(surface);
-    cairo_set_line_width(cr, 1);
-    
-    // Draw each edge as a black line
-    BOOST_FOREACH(Vertex v, boost::vertices(g))
-    {
-        ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
-        double *vcoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-        
-        BOOST_FOREACH(Vertex u, boost::adjacent_vertices(v, g))
-        {
-            state = boost::get(boost::vertex_prop, g, u).state;
-            double *ucoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-            
-            cairo_move_to(cr, 12+(vcoords[0]+10)*50, 12+(vcoords[1]+10)*50);
-            cairo_line_to(cr, 12+(ucoords[0]+10)*50, 12+(ucoords[1]+10)*50);
-            cairo_stroke(cr);
-        }
-    }
-    
-    // Draw each path edge as line with thickness and color according to how soon it was found
-    int line_width = 2*paths.size()+1;
-    float red = 1;
-    float green = 0.8;
-    float blue = 0;
-    cairo_set_line_cap  (cr, CAIRO_LINE_CAP_ROUND);
-    BOOST_FOREACH(Path path, paths)
-    {
-        cairo_set_line_width(cr, line_width);
-        cairo_set_source_rgba(cr, red, green, blue, 1);
-        Vertex u = path.getPath().front();
-        BOOST_FOREACH(Vertex v, path.getPath())
-        {
-            if (u != v)
-            {
-                ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
-                double *vcoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-                state = boost::get(boost::vertex_prop, g, u).state;
-                double *ucoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-                
-                cairo_move_to(cr, 12+(vcoords[0]+10)*50, 12+(vcoords[1]+10)*50);
-                cairo_line_to(cr, 12+(ucoords[0]+10)*50, 12+(ucoords[1]+10)*50);
-                cairo_stroke(cr);
-            }
-            u = v;
-        }
-        line_width -= 2;
-        red -= 1.0/(paths.size()+1);
-        blue += 1.0/(paths.size()+1);
-    }
-    
-    // Draw each vertex as a black dot; except start and goal should be pink
-    BOOST_FOREACH(Vertex v, boost::vertices(g))
-    {
-        ompl::base::State *state = boost::get(boost::vertex_prop, g, v).state;
-        double *vcoords = state->as<ompl::base::RealVectorStateSpace::StateType>()->values;
-        
-        if (v == start || v == goal)
-            cairo_set_source_rgba(cr, 1, 0, 1, 1);
-            
-        cairo_arc(cr, 12+(vcoords[0]+10)*50, 12+(vcoords[1]+10)*50, 3, 0, 2*M_PI);
-        cairo_fill(cr);
-        cairo_set_source_rgba(cr, 0, 0, 0, 1);
-    }
-    
-    cairo_surface_write_to_png(surface, filename);
-}
-#endif
-
 void printStats (Graph &g, std::vector<Path> &paths)
 {
     // Compute Levenshtein edit distance between every pair as a diversity measure
@@ -306,9 +231,9 @@ void printStats (Graph &g, std::vector<Path> &paths)
     {
         BOOST_FOREACH(Path path2, paths)
         {
-            if (path1.getPath() == path2.getPath())
+            if (path1 == path2)
                 continue;
-            unsigned int distance = levenshtein(path1.getPath(), path2.getPath());
+            unsigned int distance = Path::levenshtein(path1, path2);
             if (distance < min)
                 min = distance;
             if (distance > max)
@@ -330,9 +255,9 @@ void printStats (Graph &g, std::vector<Path> &paths)
         unsigned int distance = 0;
         BOOST_FOREACH(Path path2, paths)
         {
-            if (path1.getPath() == path2.getPath())
+            if (path1 == path2)
                 continue;
-            distance = levenshtein(path1.getPath(), path2.getPath());
+            distance = Path::levenshtein(path1, path2);
             if (distance < min)
                 min = distance;
         }
@@ -348,7 +273,7 @@ void printStats (Graph &g, std::vector<Path> &paths)
     double ltotal = 0;
     BOOST_FOREACH(Path path, paths)
     {
-        double distance = g.pathLength(path.getPath());
+        double distance = g.pathLength(path);
         if (distance < lmin)
             lmin = distance;
         if (distance > max)
@@ -358,37 +283,6 @@ void printStats (Graph &g, std::vector<Path> &paths)
     
     // Report min, max, and mean
     std::cout << "LENGTH OF PATHS: min: " << lmin << ", max: " << lmax << ", mean: " << double(ltotal)/paths.size() << "\n";
-}
-
-unsigned int levenshtein (const std::list<Vertex> &path1, const std::list<Vertex> &path2)
-{
-    const std::size_t rowLength = path1.size()+1;
-    const std::size_t colLength = path2.size()+1;
-    unsigned int *const distances = new unsigned int[rowLength*colLength];
-    
-    for (std::size_t j = 0; j < rowLength; j++)
-        distances[j] = j;
-    for (std::size_t i = 1; i < colLength; i++)
-        distances[i*rowLength] = i;
-    
-    std::list<Vertex>::const_iterator iIt = path1.begin();
-    for (std::size_t i = 1; i < colLength; i++, iIt++)
-    {
-        std::list<Vertex>::const_iterator jIt = path2.begin();
-        for (std::size_t j = 1; j < rowLength; j++, jIt++)
-        {
-            const unsigned int del = distances[(i-1)*rowLength+j] + 1;
-            const unsigned int ins = distances[i*rowLength+j-1] + 1;
-            unsigned int match = distances[(i-1)*rowLength+j-1];
-            if (*iIt != *jIt)
-                match++;
-            distances[i*rowLength+j] = std::min(std::min(del, ins), match);
-        }
-    }
-    
-    const unsigned int d = distances[rowLength*colLength-1];
-    delete [] distances;
-    return d;
 }
 
 // Compare with via-point method
