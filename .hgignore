@@ -1,3 +1,5 @@
 ^DiverseShortestPaths/build
 ^DiverseShortestPaths/\.
 ^DiverseShortestPaths/callgrind.out
+^DiverseShortestPaths/test_
+

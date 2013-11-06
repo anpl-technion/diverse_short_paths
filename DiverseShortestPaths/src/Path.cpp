@@ -37,6 +37,31 @@ bool Path::operator==(Path &rhs)
     return true;
 }
 
+bool Path::sampleable (void) const
+{
+    return size() != sampled.size();
+}
+
+Vertex Path::sampleVertex (void) const
+{
+    Path::const_iterator vi = begin();
+    for (std::size_t i = std::rand() % (size()-sampled.size()); i > 0; i--)
+    {
+        // Don't allow sampling of vertices already sampled
+        if (sampled.find(*vi) != sampled.end())
+            i++;
+        vi++;
+    }
+    
+    sampled.insert(*vi);
+    return *vi;
+}
+
+ompl::base::State *Path::sampleState (const Graph &g) const
+{
+    return boost::get(boost::vertex_prop, g, sampleVertex()).state;
+}
+    
 double Path::getLength (void) const
 {
     return length;

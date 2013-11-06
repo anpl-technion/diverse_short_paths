@@ -8,11 +8,14 @@
 
 #include <boost/foreach.hpp>
 
+#include <ompl/base/State.h>
+
 #include "Common.h"
 
 class Path : public std::list<Vertex>
 {
     double length;
+    mutable std::set<Vertex> sampled;
     
 public:
     
@@ -25,6 +28,12 @@ public:
     bool operator==(Path &rhs);
     
     double getLength (void) const;
+    
+    bool sampleable (void) const;
+    
+    Vertex sampleVertex (void) const;
+    
+    ompl::base::State *sampleState (const Graph &g) const;
 
     static unsigned int levenshtein (const Path &path1, const Path &path2);
 

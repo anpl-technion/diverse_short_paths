@@ -6,7 +6,9 @@
 
 #include <queue>
 
+#include "Common.h"
 #include "Graph.h"
+#include "Neighborhoods.h"
 #include "Path.h"
 
 typedef std::pair<Path, std::vector<SingleEdgeNeighborhood> > PathAndAvoidance;
@@ -28,8 +30,9 @@ bool rcomparePathAndAvoidances (const PathAndAvoidance &pa1, const PathAndAvoida
 }
 typedef boost::function<bool(const PathAndAvoidance&, const PathAndAvoidance&)> f_comparePathAndAvoidances;
 
-std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph &g, Vertex start, Vertex end, const unsigned int minDiversity)
+std::vector<Path> actualShortestPaths (const std::size_t numPaths, const Graph &g, Vertex start, Vertex end, const unsigned int minDiversity)
 {
+    std::vector<Path> ret;;
     // Holds the shortest paths we've found and finished with
     std::set<MutablePath, f_compareMutablePaths> resultPaths(compareMutablePaths);
     // How many of the paths in resultPaths are certainly the top shortest, and an iterator to the longest such path
@@ -43,7 +46,10 @@ std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph 
     std::vector<SingleEdgeNeighborhood> alreadyAvoiding = std::vector<SingleEdgeNeighborhood>();
     Path referencePath = g.getShortestPathWithAvoidance<SingleEdgeNeighborhood>(start, end, alreadyAvoiding);
     if (referencePath.empty())
-        return *new std::vector<Path>();
+    {
+        std::cout << "done!\n";
+        return ret;
+    }
     
     // Seed the frontier
     frontier.push(PathAndAvoidance(referencePath, alreadyAvoiding));
@@ -115,7 +121,7 @@ std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph 
                 }
             }
             
-            std::cout << "Certain about " << nCertainPaths << " paths; kept " << nCertainPaths-nThrownOutPaths << "\n";
+            std::cout << "Certain: " << nCertainPaths << "; Kept: " << nCertainPaths-nThrownOutPaths << "/" << numPaths << "\n";
             if (nCertainPaths-nThrownOutPaths == numPaths)
                 break;
         }
@@ -126,17 +132,17 @@ std::vector<Path> &actualShortestPaths (const std::size_t numPaths, const Graph 
     }
     
     // Only return what we need
-    std::vector<Path> *ret = new std::vector<Path>();
     std::set<MutablePath, f_compareMutablePaths>::iterator path = resultPaths.begin();
     for (std::size_t i = 0; i < numPaths && path != resultPaths.end(); path++)
     {
         if (!path->isFreed())
         {
-            ret->push_back(path->path);
+            ret.push_back(path->path);
             i++;
         }
     }
-    return *ret;
+    std::cout << "done!\n";
+    return ret;
 }
 
 #endif
