@@ -6,6 +6,9 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#define NBH_STATESPACE false
+#define NBH_GRAPHDISTANCE true
+
 class Graph;
 struct VertexAttributes;
 
@@ -35,5 +38,6 @@ struct GraphDistanceNeighborhood;
 struct SingleEdgeNeighborhood;
 
 class Path;
+class MutablePath;
 
 #endif

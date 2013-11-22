@@ -11,7 +11,7 @@ else
     defines="-DNO_DRAW"
 fi
 
-rm -fR build/obj
+rm -fR build/{obj,bin}
 mkdir -p build/{obj,bin}
 
 link_string=""
@@ -22,11 +22,14 @@ done
 
 for file in src/*.cpp
 do
+    objfile=build/obj/$(basename $file).o
     echo Building $file...
-    g++ -c $defines -o build/obj/$(basename $file).o -I. $file || exit 1
+    g++ -c $defines -o $objfile -I. $file || exit 1
 done
 
 echo Linking with $libs...
 g++ -o build/bin/$output build/obj/*.o $link_string
+
+echo Build completed.
 
 

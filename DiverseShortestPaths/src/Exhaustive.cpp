@@ -1,17 +1,13 @@
 
 /* Author: Caleb Voss */
 
-#ifndef ACTUAL_SHORTEST_H_
-#define ACTUAL_SHORTEST_H_
+#include "Exhaustive.h"
 
 #include <queue>
 
-#include "Common.h"
 #include "Graph.h"
 #include "Neighborhoods.h"
 #include "Path.h"
-
-typedef std::pair<Path, std::vector<SingleEdgeNeighborhood> > PathAndAvoidance;
 
 bool comparePaths (const Path &path1, const Path &path2)
 {
@@ -22,15 +18,13 @@ bool compareMutablePaths (const MutablePath &path1, const MutablePath &path2)
 {
     return path1.path.getLength() < path2.path.getLength();
 }
-typedef boost::function<bool(const MutablePath&, const MutablePath&)> f_compareMutablePaths;
 
 bool rcomparePathAndAvoidances (const PathAndAvoidance &pa1, const PathAndAvoidance &pa2)
 {
     return comparePaths(pa2.first, pa1.first);
 }
-typedef boost::function<bool(const PathAndAvoidance&, const PathAndAvoidance&)> f_comparePathAndAvoidances;
 
-std::vector<Path> actualShortestPaths (const std::size_t numPaths, const Graph &g, Vertex start, Vertex end, const unsigned int minDiversity)
+std::vector<Path> exhaustiveShortestPaths (const std::size_t numPaths, const Graph &g, Vertex start, Vertex end, const unsigned int minDiversity)
 {
     std::vector<Path> ret;;
     // Holds the shortest paths we've found and finished with
@@ -54,7 +48,8 @@ std::vector<Path> actualShortestPaths (const std::size_t numPaths, const Graph &
     // Seed the frontier
     frontier.push(PathAndAvoidance(referencePath, alreadyAvoiding));
     
-    while (!frontier.empty())
+    // Unfortunately, we need to stop if the frontier gets too large
+    while (!frontier.empty() && frontier.size() < 3000000)
     {
         referencePath = frontier.top().first;
         alreadyAvoiding = frontier.top().second;
@@ -131,6 +126,9 @@ std::vector<Path> actualShortestPaths (const std::size_t numPaths, const Graph &
         }
     }
     
+    if (frontier.size() >= 3000000)
+        std::cout << "Frontier exceeded 3 million; stopping prematurely.\n";
+        
     // Only return what we need
     std::set<MutablePath, f_compareMutablePaths>::iterator path = resultPaths.begin();
     for (std::size_t i = 0; i < numPaths && path != resultPaths.end(); path++)
@@ -145,4 +143,3 @@ std::vector<Path> actualShortestPaths (const std::size_t numPaths, const Graph &
     return ret;
 }
 
-#endif

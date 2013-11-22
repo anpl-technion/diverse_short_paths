@@ -55,6 +55,7 @@ public:
 class AlgorithmSummary : public StatSummary
 {
     std::size_t successful;
+    std::size_t bad_graph;
     double failurePercentage;
     
 public:

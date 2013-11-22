@@ -1,13 +1,12 @@
 
 /* Author: Caleb Voss */
 
-#ifndef GRAPH_H_
-#define GRAPH_H_
+#ifndef GRAPH_H
+#define GRAPH_H
 
 #include <boost/foreach.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/astar_search.hpp>
-#include <boost/graph/graph_traits.hpp>
 
 #include <ompl/base/SpaceInformation.h>
 

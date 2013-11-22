@@ -17,116 +17,13 @@
 #include "Draw.h"
 #endif
 
-#include "ActualShortest.h"
+#include "Common.h"
+#include "Exhaustive.h"
 #include "Graph.h"
 #include "Neighborhoods.h"
 #include "Path.h"
 #include "Stats.h"
-
-/** \brief Get a random state from the path (not equal to the start or end of the path)
- * 
- * @tparam N        Neighborhood class to use
- * 
- * @param path      path to sample from
- * @param g         graph this path exists in
- * 
- * @return          pointer to a state on the path
- */
-template <class N>
-typename N::center_type sampleFromPath (const Path &path, const Graph &g);
-template <>
-ompl::base::State *sampleFromPath <StateSpaceNeighborhood> (const Path &path, const Graph &g)
-{
-    return path.sampleState(g);
-}
-template <>
-Vertex sampleFromPath <GraphDistanceNeighborhood> (const Path &path, const Graph &g)
-{
-    return path.sampleVertex();
-}
-
-/** \brief Find a number of diverse, short paths in a graph, by deviating from former short paths through
- *         the use of an increasing set of neighborhoods in the state space that should be avoided
- * 
- * @tparam N                Neighborhood class to use
- * 
- * @param numPaths          number of paths to try to find
- * @param start             start vertex for the path
- * @param end               end vertex for the path
- * @param g                 graph to search in
- * @param radius_factor     neighborhood radius is radius_factor * pathLength
- * @param samples_per_path  number of attempts to generate a new path from an existing one by sampling a neighborhood to avoid
- * @param minDiversity      paths are not retained if their levenshtein edit distance from any already retained path is less than this
- * 
- * @return                  set of at most numPaths distinct paths from start to end
- */
-template <class N>
-std::vector<Path> findDiverseShortestPaths (const std::size_t numPaths, Vertex start, Vertex end, const Graph &g, const double radius_factor, const std::size_t samples_per_path, const unsigned int minDiversity)
-{
-    // Holds the set of paths we've found
-    std::vector<Path> resultPaths;
-    if (numPaths == 0)
-        return resultPaths;
-    // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
-    std::vector<std::vector<N> > resultAvoids;
-    // The next path to analyze
-    std::size_t frontier = 0;
-    // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
-    std::vector<N> alreadyAvoiding = std::vector<N>();
-    Path referencePath = g.getShortestPathWithAvoidance<N>(start, end, alreadyAvoiding);
-    if (referencePath.empty())
-    {
-        std::cout << "done!\n";
-        return resultPaths;
-    }
-    
-    resultPaths.push_back(referencePath);
-    resultAvoids.push_back(alreadyAvoiding);
-    std::cout << "Kept: " << resultPaths.size() << "/" << numPaths << "\n";
-    
-    // Work through the queue until we have enough
-    while (frontier < resultPaths.size() && resultPaths.size() < numPaths)
-    {
-        referencePath = resultPaths[frontier];
-        alreadyAvoiding = resultAvoids[frontier];
-        frontier++;
-        
-        // Make attempts at imposing a new neighborhood to avoid on the graph
-        // Neighborhood's radius is some pre-defined portion of the referencePath's length
-        double radius = radius_factor * referencePath.getLength();
-        for (int i = 0; i < samples_per_path && resultPaths.size() < numPaths; i++)
-        {
-            if (!referencePath.sampleable())
-                break;
-            std::vector<N> avoid = alreadyAvoiding;
-            avoid.push_back(N(g, sampleFromPath<N>(referencePath, g), radius));
-            // Get the shortest path under these constraints
-            Path path = g.getShortestPathWithAvoidance<N>(start, end, avoid);
-            if (path.empty())
-                continue;
-            
-            // Don't store it if it's not diverse enough
-            bool tooSimilar = false;
-            BOOST_FOREACH(Path p, resultPaths)
-            {
-                if (Path::levenshtein(path, p) < minDiversity)
-                {
-                    tooSimilar = true;
-                    break;
-                }
-            }
-            if (!tooSimilar)
-            {
-                resultPaths.push_back(path);
-                resultAvoids.push_back(avoid);
-                std::cout << "Kept: " << resultPaths.size() << "/" << numPaths << "\n";
-            }
-        }
-    }
-    
-    std::cout << "done!\n";
-    return resultPaths;
-}
+#include "StochasticAvoidance.h"
 
 Graph *generateGraph(ompl::base::SpaceInformationPtr si, std::size_t n_states, double max_edge_length, double p_connected);
 
@@ -165,6 +62,22 @@ int main (int argc, char **argv)
     space->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     
+    if (n_trials == 0)
+    {
+        Graph *g = generateGraph(si, n_states, max_edge_length, p_connected);
+        Vertex start = boost::vertex(0, *g);
+        Vertex goal = boost::vertex(1, *g);
+        
+        std::vector<Path> paths = stochasticAvoidancePaths(NBH_STATESPACE, n_paths, start, goal, *g, radius_factor, samples_per_path, minDiversity);
+        
+#ifndef NO_DRAW
+        draw(*g, start, goal, paths, "output_space.png");
+#endif
+        
+        delete g;
+        return 0;
+    }
+    
     std::stringstream filename;
     filename << "test_" << n_states << "_" << n_paths << "_" << radius_factor << "_" << samples_per_path<< "_" << minDiversity << ".txt";
     std::ofstream file(filename.str().c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -181,6 +94,7 @@ int main (int argc, char **argv)
     std::vector<PathSetStats> statsExhaustive;
     std::vector<PathSetStats> statsSpace;
     std::vector<PathSetStats> statsGraph;
+    
     std::cout << "Running " << n_trials << " trials for each algorithm:\n";
     for (std::size_t i = 0; i < n_trials; i++)
     {
@@ -190,33 +104,23 @@ int main (int argc, char **argv)
         
         std::cout << "Exhaustive:\n";
         double runtime = std::clock();
-        std::vector<Path> paths = actualShortestPaths(n_paths, *g, start, goal, minDiversity);
+        std::vector<Path> paths = exhaustiveShortestPaths(n_paths, *g, start, goal, minDiversity);
         runtime = std::clock()-runtime;
         statsExhaustive.push_back(PathSetStats(paths, runtime/CLOCKS_PER_SEC));
         
         std::cout << "Space:\n";
         runtime = std::clock();
-        std::vector<Path> paths2 = findDiverseShortestPaths<StateSpaceNeighborhood>(n_paths, start, goal, *g, radius_factor, samples_per_path, minDiversity);
+        std::vector<Path> paths2 = stochasticAvoidancePaths(NBH_STATESPACE, n_paths, start, goal, *g, radius_factor, samples_per_path, minDiversity);
         runtime = std::clock()-runtime;
         statsSpace.push_back(PathSetStats(paths2, runtime/CLOCKS_PER_SEC));
         
         std::cout << "Graph:\n";
         runtime = std::clock();
-        std::vector<Path> paths3 = findDiverseShortestPaths<GraphDistanceNeighborhood>(n_paths, start, goal, *g, radius_factor, samples_per_path, minDiversity);
+        std::vector<Path> paths3 = stochasticAvoidancePaths(NBH_GRAPHDISTANCE, n_paths, start, goal, *g, radius_factor, samples_per_path, minDiversity);
         runtime = std::clock()-runtime;
         statsGraph.push_back(PathSetStats(paths3, runtime/CLOCKS_PER_SEC));
         
         std::cout << " completed trial " << i+1 << "/" << n_trials << "\n\n";
-        
-#ifndef NO_DRAW
-        if (i = n_trials-1)
-        {
-            draw(*g, start, goal, paths, "output_space.png");
-            draw(*g, start, goal, paths2, "output_graph.png");
-            draw(*g, start, goal, paths3, "output_exhaustive.png");
-        }
-#endif
-    
         delete g;
     }
     

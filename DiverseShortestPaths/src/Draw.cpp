@@ -10,6 +10,9 @@
 
 #include <cairo/cairo.h>
 
+#include "Graph.h"
+#include "Path.h"
+
 void draw (Graph &g, Vertex start, Vertex goal, std::vector<Path> &paths, const char *filename)
 {
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1024, 1024);

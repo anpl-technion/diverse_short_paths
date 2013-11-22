@@ -127,11 +127,19 @@ AlgorithmSummary::AlgorithmSummary (const std::vector<PathSetStats> &stats, cons
     
     std::vector<PathSetStats>::const_iterator respectiveTrial = withRespectTo.begin();
     successful = 0;
+    bad_graph = 0;
     BOOST_FOREACH(PathSetStats stat, stats)
     {
+        if (respectiveTrial->getNumPaths() <= 1)
+        {
+            // Throw the result out without counting failure because not even the exhaustive algorithm could do well
+            respectiveTrial++;
+            bad_graph++;
+            continue;
+        }
         if (stat.getNumPaths() <= 1)
         {
-            // Throw this result out
+            // Throw this result out as a failure
             respectiveTrial++;
             continue;
         }
@@ -155,7 +163,7 @@ AlgorithmSummary::AlgorithmSummary (const std::vector<PathSetStats> &stats, cons
     maxPathLength /= successful;
     meanPathLength /= successful;
     
-    failurePercentage = 100 * (1.0-double(successful)/stats.size());
+    failurePercentage = 100 * (1.0-double(successful+bad_graph)/stats.size());
 }
 
 void AlgorithmSummary::print (std::ofstream &file) const
