@@ -30,6 +30,8 @@ public:
     
     void print () const;
     
+    void printWithWeights () const;
+    
     void clear ();
     
     void push_back (const Vertex &vertex);

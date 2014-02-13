@@ -41,6 +41,16 @@ void Path::print () const
     std::cout << ": " << getLength() << "\n";
 }
 
+void Path::printWithWeights () const
+{
+    for (std::size_t i = 0; i < size()-1; i++)
+    {
+        const double w = g->getEdgeWeight((*this)[i], (*this)[i+1]);
+        std::cout << (*this)[i] << " (" << w << ") ";
+    }
+    std::cout << (*this)[size()-1] << " : " << getLength() << "\n";
+}
+
 void Path::computeLength () const
 {
     length = g->computePathLength(*this);

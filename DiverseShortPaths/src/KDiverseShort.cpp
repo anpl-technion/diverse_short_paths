@@ -40,7 +40,7 @@ bool KDiverseShort::considerPath(const Path &path)
     {
         double distance = testData->getGraph().levenshteinDistance(pathSet[i], path);
         if (distance < nearest_distance)
-            distance = nearest_distance;
+            nearest_distance = distance;
     }
     if (nearest_distance < testData->getMinDistance())
         return false;

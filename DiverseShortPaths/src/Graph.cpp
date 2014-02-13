@@ -79,6 +79,11 @@ double Graph::getEdgeWeight (const Edge e) const
     return boost::get(boost::edge_weight, *this, e);
 }
 
+double Graph::getEdgeWeight (const Vertex u, const Vertex v) const
+{
+    return getEdgeWeight(boost::edge(u, v, *this).first);
+}
+
 ompl::base::State *Graph::getVertexState (const Vertex v) const
 {
     return boost::get(boost::vertex_prop, *this, v).state;
@@ -118,32 +123,32 @@ double Graph::computePathLength (const Path &path) const
 
 double Graph::levenshteinDistance (const Path &path1, const Path &path2) const
 {
-    // TODO: introduce edge weights as a cost
-    const std::size_t rowLength = path1.size()+1;
-    const std::size_t colLength = path2.size()+1;
-    unsigned int *const distances = new unsigned int[rowLength*colLength];
+    const std::size_t rowLength = path1.size();
+    const std::size_t colLength = path2.size();
+    double *const distances = new double[rowLength*colLength];
     
-    for (std::size_t j = 0; j < rowLength; j++)
-        distances[j] = j;
+    distances[0] = 0;
+    for (std::size_t j = 1; j < rowLength; j++)
+        distances[j] = distances[j-1] + getEdgeWeight(path1[j-1], path1[j]);
     for (std::size_t i = 1; i < colLength; i++)
-        distances[i*rowLength] = i;
+        distances[i*rowLength] = distances[(i-1)*rowLength] + getEdgeWeight(path2[i-1], path2[i]);
     
-    Path::const_iterator iIt = path1.begin();
-    for (std::size_t i = 1; i < colLength; i++, iIt++)
+    for (std::size_t i = 1; i < colLength; i++)
     {
-        Path::const_iterator jIt = path2.begin();
-        for (std::size_t j = 1; j < rowLength; j++, jIt++)
+        for (std::size_t j = 1; j < rowLength; j++)
         {
-            const unsigned int del = distances[(i-1)*rowLength+j] + 1;
-            const unsigned int ins = distances[i*rowLength+j-1] + 1;
-            unsigned int match = distances[(i-1)*rowLength+j-1];
-            if (*iIt != *jIt)
-                match++;
+            const double iWeight = getEdgeWeight(path2[i-1], path2[i]);
+            const double jWeight = getEdgeWeight(path1[j-1], path1[j]);
+            const double del = distances[(i-1)*rowLength+j] + iWeight;
+            const double ins = distances[i*rowLength+j-1] + jWeight;
+            double match = distances[(i-1)*rowLength+j-1];
+            if (path1[j-1] != path2[i-1] || path1[j] != path2[i])
+                match += iWeight + jWeight;
             distances[i*rowLength+j] = std::min(std::min(del, ins), match);
         }
     }
-        
-            const unsigned int d = distances[rowLength*colLength-1];
-            delete [] distances;
-            return d;
+    
+    const double d = distances[rowLength*colLength-1];
+    delete [] distances;
+    return d;
 }

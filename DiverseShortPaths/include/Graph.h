@@ -42,6 +42,9 @@ public:
     // Get the length of an edge in the state space
     double getEdgeWeight (const Edge e) const;
     
+    // Get the length of an edge, specified by its vertices
+    double getEdgeWeight (const Vertex u, const Vertex v) const;
+    
     // Get the ompl state for this vertex
     ompl::base::State *getVertexState (const Vertex v) const;
     

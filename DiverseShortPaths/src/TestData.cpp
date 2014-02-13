@@ -36,7 +36,7 @@ TestData *TestData::generate ()
     std::ifstream graphmlstream(resourcesDir + graphmlFile);
     data->setGraph(new Graph(si, graphmlstream));
     data->setStartEnd(0, 1);
-    data->setK(100);
+    data->setK(10);
     
     return data;
 }
