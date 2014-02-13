@@ -1,5 +1,4 @@
-^DiverseShortestPaths/build
-^DiverseShortestPaths/\.
-^DiverseShortestPaths/callgrind.out
-^DiverseShortestPaths/tests
-
+^DiverseShortPaths/bak
+^DiverseShortPaths/build
+^DiverseShortPaths/include/pch.h.pch
+^DiverseShortPaths/\.
