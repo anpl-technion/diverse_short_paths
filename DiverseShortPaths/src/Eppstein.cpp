@@ -11,6 +11,8 @@
 #include "TestData.h"
 #include "Results.h"
 
+const char *Eppstein::EPP_NAME = "Eppstein's K shortest paths";
+
 Eppstein::Eppstein (const TestData *data)
   : KDiverseShort(data)
 {
@@ -47,7 +49,7 @@ const Results *Eppstein::run ()
         path.print();
     }
     std::cout << "\n\n";
-    return getResults();
+    return getResults(EPP_NAME);
 }
 
 std::stringstream *Eppstein::makeGraehlGraph (const Graph &g)

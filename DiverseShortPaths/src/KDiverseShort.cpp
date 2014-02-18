@@ -50,7 +50,7 @@ bool KDiverseShort::considerPath(const Path &path)
     return true;
 }
 
-const Results *KDiverseShort::getResults ()
+const Results *KDiverseShort::getResults (const char *alg_name)
 {
-    return new Results(testData, pathSet);
+    return new Results(alg_name, testData, pathSet);
 }

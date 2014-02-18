@@ -10,6 +10,8 @@
 #include "Results.h"
 #include "TestData.h"
 
+const char *Voss::VOSS_NAME = "Random avoidance";
+
 Voss::Voss (const TestData *data)
   : KDiverseShort(data)
 { }
@@ -22,7 +24,7 @@ const Results *Voss::run ()
     const Graph &g = testData->getGraph();
     
     if (!needMore())
-        return getResults();
+        return getResults(VOSS_NAME);
     
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
     std::vector<std::vector<Neighborhood> > resultAvoids;
@@ -34,11 +36,11 @@ const Results *Voss::run ()
     std::vector<Neighborhood> alreadyAvoiding;
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
-        return getResults();
+        return getResults(VOSS_NAME);
 
     considerPath(referencePath);
     if (tooLong())
-        return getResults();
+        return getResults(VOSS_NAME);
     resultAvoids.push_back(alreadyAvoiding);
     std::cout << "Kept: " << 1 << "/" << testData->getK() << "\n";
     
@@ -75,7 +77,7 @@ const Results *Voss::run ()
         path.print();
     }
     std::cout << "\n\n";
-    return getResults();
+    return getResults(VOSS_NAME);
 }
 
 Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid) const

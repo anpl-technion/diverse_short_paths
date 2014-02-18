@@ -37,7 +37,7 @@ protected:
     bool considerPath(const Path &path);
     
     // Compose a Results object from the pathSet
-    const Results *getResults ();
+    const Results *getResults (const char *alg_name);
     
 public:
     // Construct the algorithm to use the given data

@@ -23,6 +23,8 @@ private:
     // Kernel of Graehl code
     graehl::Graehl *graehl_kernel;
     
+    static const char *EPP_NAME;
+    
 public:
     // Construct the algorithm to use the given data
     Eppstein (const TestData *data);

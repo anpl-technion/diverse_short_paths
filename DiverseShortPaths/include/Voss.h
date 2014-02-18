@@ -18,6 +18,9 @@ class TestData;
  */
 class Voss : public KDiverseShort
 {
+private:
+    static const char *VOSS_NAME;
+    
 public:
     // Construct the algorithm to use the given data
     Voss (const TestData *data);
