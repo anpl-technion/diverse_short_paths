@@ -4,14 +4,22 @@
 
 #include "Results.h"
 
-Results::Results ()
-{ }
+#include "Path.h"
 
-void Results::addPath (const std::vector<Vertex> path)
+Results::Results (const TestData *const testData, std::vector<Path> &pathSet)
+  : data(testData)
 {
-    paths.push_back(path);
+    for (std::size_t i = 0; i < pathSet.size(); i++)
+    {
+        paths.push_back(&pathSet[i]);
+    }
 }
 
 void Results::collate (const Results *, const Results *)
 {
+}
+
+const TestData *Results::getData () const
+{
+    return data;
 }

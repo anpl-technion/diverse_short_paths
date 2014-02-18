@@ -47,7 +47,7 @@ const Results *Eppstein::run ()
         path.print();
     }
     std::cout << "\n\n";
-    return new Results();
+    return getResults();
 }
 
 std::stringstream *Eppstein::makeGraehlGraph (const Graph &g)

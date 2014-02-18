@@ -9,6 +9,8 @@
 
 #include "_graph_detail.h"
 
+class Path;
+
 /*
  * Wrapper for a boost graph, with helper functions
  */

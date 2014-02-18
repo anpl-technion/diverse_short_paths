@@ -36,6 +36,9 @@ protected:
     // Evaluate a path against the set of paths found so far; return true if it is accepted
     bool considerPath(const Path &path);
     
+    // Compose a Results object from the pathSet
+    const Results *getResults ();
+    
 public:
     // Construct the algorithm to use the given data
     KDiverseShort (const TestData *data);

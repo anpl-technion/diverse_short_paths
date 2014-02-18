@@ -6,6 +6,7 @@
 
 #include "Graph.h"
 #include "Path.h"
+#include "Results.h"
 #include "TestData.h"
 
 KDiverseShort::KDiverseShort (const TestData *data)
@@ -47,4 +48,9 @@ bool KDiverseShort::considerPath(const Path &path)
         
     pathSet.push_back(path);
     return true;
+}
+
+const Results *KDiverseShort::getResults ()
+{
+    return new Results(testData, pathSet);
 }

@@ -7,7 +7,8 @@
 
 #include "pch.h"
 
-#include "_graph_detail.h"
+class Path;
+class TestData;
 
 /*
  * Representation of experiment results for an algorithm.
@@ -15,18 +16,19 @@
 class Results
 {
 private:
-    std::vector<std::vector<Vertex>> paths;
+    const TestData *const data;
+    std::vector<Path *> paths;
     
 public:
     
     // Constructor
-    Results ();
-    
-    // Add path to the set
-    void addPath (const std::vector<Vertex> path);
+    Results (const TestData *const testData, std::vector<Path> &pathSet);
     
     // Combine sets of results into pretty format
     static void collate (const Results *r1, const Results *r2);
+    
+    // Get test data
+    const TestData *getData () const;
 };
 
 #endif

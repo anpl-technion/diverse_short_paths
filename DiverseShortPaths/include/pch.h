@@ -22,6 +22,4 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 
-class Path;
-
 #endif

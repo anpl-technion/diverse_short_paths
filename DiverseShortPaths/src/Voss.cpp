@@ -22,7 +22,7 @@ const Results *Voss::run ()
     const Graph &g = testData->getGraph();
     
     if (!needMore())
-        return new Results();
+        return getResults();
     
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
     std::vector<std::vector<Neighborhood> > resultAvoids;
@@ -34,11 +34,11 @@ const Results *Voss::run ()
     std::vector<Neighborhood> alreadyAvoiding;
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
-        return new Results();
+        return getResults();
 
     considerPath(referencePath);
     if (tooLong())
-        return new Results();
+        return getResults();
     resultAvoids.push_back(alreadyAvoiding);
     std::cout << "Kept: " << 1 << "/" << testData->getK() << "\n";
     
@@ -75,7 +75,7 @@ const Results *Voss::run ()
         path.print();
     }
     std::cout << "\n\n";
-    return new Results();
+    return getResults();
 }
 
 Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid) const
