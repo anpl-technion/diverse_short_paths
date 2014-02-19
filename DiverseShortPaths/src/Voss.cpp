@@ -26,6 +26,9 @@ const Results *Voss::run ()
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
     std::vector<std::vector<Neighborhood> > resultAvoids;
     
+    // Unfiltered set of paths found
+    std::vector<Path> unfilteredPathSet;
+    
     // The next path to analyze
     std::size_t frontier = 0;
     
@@ -39,12 +42,13 @@ const Results *Voss::run ()
     if (tooLong())
         return getResults(VOSS_NAME);
     resultAvoids.push_back(alreadyAvoiding);
+    unfilteredPathSet.push_back(referencePath);
     //std::cout << "Kept: " << 1 << "/" << testData->getK() << "\n";
     
     // Work through the queue until we have enough
-    while (frontier < pathSet.size() && !tooLong() && needMore())
+    while (frontier < unfilteredPathSet.size() && !tooLong() && needMore())
     {
-        referencePath = pathSet[frontier];
+        referencePath = unfilteredPathSet[frontier];
         alreadyAvoiding = resultAvoids[frontier];
         frontier++;
         
@@ -63,16 +67,15 @@ const Results *Voss::run ()
             // Don't store it if it's not diverse enough
             if (considerPath(path))
             {
-                resultAvoids.push_back(avoid);
                 //std::cout << "Kept: " << pathSet.size() << "/" << testData->getK() << "\n";
             }
+            
+            // But we'll need it regardless for later iterations
+            unfilteredPathSet.push_back(path);
+            resultAvoids.push_back(avoid);
         }
     }
     
-    BOOST_FOREACH(Path path, pathSet)
-    {
-        path.print();
-    }
     std::cout << "\n\n";
     return getResults(VOSS_NAME);
 }

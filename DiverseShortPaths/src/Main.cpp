@@ -11,12 +11,12 @@
 #include "Voss.h"
 
 /* Magic parameters for filtering the path set. */
-extern const double maxPathLength = 1000;
-extern const double minPathPairwiseDistance = 200;
+extern const double maxPathLength = 1200;
+extern const double minPathPairwiseDistance = 150;
 
 /* Magic parameters for my algorithm. */
 const double radiusFactor = 0.05;
-const std::size_t samplesPerPath = 5;
+const std::size_t samplesPerPath = 20;
 
 
 /*
@@ -25,7 +25,7 @@ const std::size_t samplesPerPath = 5;
 int main (int, char *[])
 {
     // Build graphs for testing
-    const TestData *const data = TestData::generate("resources/abstract.graphml", 100);
+    const TestData *const data = TestData::generate("resources/pianoHard.graphml", 10);
     
     // Run Eppstein's algorithm on the data
     Eppstein *epp = new Eppstein(data);

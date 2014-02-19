@@ -44,10 +44,7 @@ const Results *Eppstein::run ()
         path.push_back(edge->dest);
         considerPath(path);
     }
-    BOOST_FOREACH(Path path, pathSet)
-    {
-        path.print();
-    }
+    
     std::cout << "\n\n";
     return getResults(EPP_NAME);
 }
