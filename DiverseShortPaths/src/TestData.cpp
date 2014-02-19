@@ -6,8 +6,11 @@
 
 #include "Graph.h"
 
+extern const double maxPathLength;
+extern const double minPathPairwiseDistance;
+
 TestData::TestData ()
- :  graph(NULL), start(0), end(0), maxLength(std::numeric_limits<double>::infinity()), minDistance(0), k(0)
+ :  graph(NULL), start(0), end(0), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), k(0)
 { }
 
 TestData::~TestData ()
@@ -15,7 +18,7 @@ TestData::~TestData ()
     delete graph;
 }
 
-TestData *TestData::generate ()
+TestData *TestData::generate (const char *graphFileName, const std::size_t k)
 {
     TestData *data = new TestData();
     
@@ -31,12 +34,10 @@ TestData *TestData::generate ()
         si->setup();
     }
     
-    const std::string resourcesDir("resources/");
-    const std::string graphmlFile("abstract.graphml");
-    std::ifstream graphmlstream(resourcesDir + graphmlFile);
+    std::ifstream graphmlstream(graphFileName);
     data->setGraph(new Graph(si, graphmlstream));
     data->setStartEnd(0, 1);
-    data->setK(10);
+    data->setK(k);
     
     return data;
 }

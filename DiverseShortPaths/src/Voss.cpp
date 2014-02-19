@@ -10,14 +10,11 @@
 #include "Results.h"
 #include "TestData.h"
 
-const char *Voss::VOSS_NAME = "Random avoidance";
+const char *Voss::VOSS_NAME = "Random Neighborhood Avoidance";
 
-Voss::Voss (const TestData *data)
-  : KDiverseShort(data)
+Voss::Voss (const TestData *data, double radiusFactor, std::size_t samplesPerPath)
+  : KDiverseShort(data), radius_factor(radiusFactor), samples_per_path(samplesPerPath)
 { }
-
-const double radius_factor = 0.05;
-const std::size_t samples_per_path = 5;
 
 const Results *Voss::run ()
 {
@@ -42,7 +39,7 @@ const Results *Voss::run ()
     if (tooLong())
         return getResults(VOSS_NAME);
     resultAvoids.push_back(alreadyAvoiding);
-    std::cout << "Kept: " << 1 << "/" << testData->getK() << "\n";
+    //std::cout << "Kept: " << 1 << "/" << testData->getK() << "\n";
     
     // Work through the queue until we have enough
     while (frontier < pathSet.size() && !tooLong() && needMore())
@@ -67,7 +64,7 @@ const Results *Voss::run ()
             if (considerPath(path))
             {
                 resultAvoids.push_back(avoid);
-                std::cout << "Kept: " << pathSet.size() << "/" << testData->getK() << "\n";
+                //std::cout << "Kept: " << pathSet.size() << "/" << testData->getK() << "\n";
             }
         }
     }

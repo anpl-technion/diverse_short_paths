@@ -68,3 +68,10 @@ void Path::push_back (const Vertex &vertex)
     dirty = true;
     std::vector<Vertex>::push_back(vertex);
 }
+
+double Path::distance (const Path &p1, const Path &p2)
+{
+    if (p1.getGraph() != p2.getGraph())
+        return std::numeric_limits<double>::quiet_NaN();
+    return p1.getGraph()->levenshteinDistance(p1, p2);
+}

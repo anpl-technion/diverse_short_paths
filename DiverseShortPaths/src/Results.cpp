@@ -5,6 +5,7 @@
 #include "Results.h"
 
 #include "Path.h"
+#include "TestData.h"
 
 Results::Results (const char *alg_name, const TestData *const testData, std::vector<Path> &pathSet)
   : algorithm(alg_name), data(testData)
@@ -20,8 +21,58 @@ void Results::print (std::size_t i) const
 {
     std::cout << "DATA SET " << i << "\n";
     std::cout << "Algorithm: " << algorithm << "\n";
+    std::cout << " Found " << paths.size() << " of " << data->getK() << " requested paths.\n";
+    const double shortest = findShortestLength();
+    std::cout << "\tshortest path length is " << shortest << "\n";
+    const double longest = findLongestLength();
+    std::cout << "\tlongest path length is " << longest << " (" << longest/shortest << " times as long)\n";
+    std::cout << "\tmean distance to nearest neighbor is " << meanNearestPathDistance() << "\n";
     
     std::cout << "\n\n";
+}
+
+double Results::findShortestLength () const
+{
+    // Assume it's the first one
+    if (paths.size() > 0)
+        return paths[0]->getLength();
+    else
+        return std::numeric_limits<double>::quiet_NaN();
+}
+
+double Results::findLongestLength () const
+{
+    double longest = 0;
+    for (std::size_t i = 0; i < paths.size(); i++)
+    {
+        if (paths[i]->getLength() > longest)
+            longest = paths[i]->getLength();
+    }
+    return longest;
+}
+
+double Results::meanNearestPathDistance () const
+{
+    double sum = 0;
+    for (std::size_t i = 0; i < paths.size(); i++)
+    {
+        sum += nearestPathDistance(i);
+    }
+    return sum/paths.size();
+}
+
+double Results::nearestPathDistance (const std::size_t which) const
+{
+    double nearest = std::numeric_limits<double>::infinity();
+    for (std::size_t i = 0; i < paths.size(); i++)
+    {
+        if (i == which)
+            continue;
+        const double distance = Path::distance(*paths[i], *paths[which]);
+        if (distance < nearest)
+            nearest = distance;
+    }
+    return nearest;
 }
 
 void Results::collate (const Results *r1, const Results *r2)

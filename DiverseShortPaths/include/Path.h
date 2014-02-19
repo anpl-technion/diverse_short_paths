@@ -36,6 +36,8 @@ public:
     
     void push_back (const Vertex &vertex);
     
+    static double distance (const Path &p1, const Path &p2);
+    
 private:
     
     void computeLength () const;

@@ -31,6 +31,14 @@ public:
     // Combine sets of results into pretty format
     static void collate (const Results *r1, const Results *r2);
     
+    double findShortestLength () const;
+    
+    double findLongestLength () const;
+    
+    double meanNearestPathDistance () const;
+    
+    double nearestPathDistance (const std::size_t which) const;
+    
     // Get test data
     const TestData *getData () const;
     

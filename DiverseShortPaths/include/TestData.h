@@ -27,7 +27,7 @@ public:
     ~TestData ();
     
     // Generate a set of data from OMPL SPARS problem
-    static TestData *generate ();
+    static TestData *generate (const char *graphFileName, const std::size_t k);
     
     // Set the graph to run on
     void setGraph (const Graph *g);
