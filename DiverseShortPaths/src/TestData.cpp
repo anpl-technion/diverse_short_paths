@@ -6,22 +6,10 @@
 
 #include "Graph.h"
 
-extern const double maxPathLength;
-extern const double minPathPairwiseDistance;
-
-TestData::TestData ()
- :  graph(NULL), start(0), end(0), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), k(0)
-{ }
-
-TestData::~TestData ()
+TestData::TestData (const char *graphFileName, const std::size_t numPaths,
+                    const double maxPathLength, const double minPathPairwiseDistance)
+ :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), mode(Mode::UNSET)
 {
-    delete graph;
-}
-
-TestData *TestData::generate (const char *graphFileName, const std::size_t k)
-{
-    TestData *data = new TestData();
-    
     // Initialize the space
     ompl::base::SpaceInformationPtr si;
     {
@@ -35,27 +23,22 @@ TestData *TestData::generate (const char *graphFileName, const std::size_t k)
     }
     
     std::ifstream graphmlstream(graphFileName);
-    data->setGraph(new Graph(si, graphmlstream));
-    data->setStartEnd(0, 1);
-    data->setK(k);
-    
-    return data;
+    graph = new Graph(si, graphmlstream);
 }
 
-void TestData::setGraph (const Graph *g)
+TestData::~TestData ()
 {
-    graph = g;
+    delete graph;
+}
+
+void TestData::setMode (Mode m)
+{
+    mode = m;
 }
 
 const Graph &TestData::getGraph () const
 {
     return *graph;
-}
-
-void TestData::setStartEnd (const Vertex s, const Vertex e)
-{
-    start = s;
-    end = e;
 }
 
 Vertex TestData::getStart () const
@@ -70,17 +53,28 @@ Vertex TestData::getEnd () const
 
 double TestData::getMaxLength () const
 {
-    return maxLength;
+    switch (mode)
+    {
+    case FIX_MAX_PATH_LENGTH:
+        return maxLength;
+    case FIX_MIN_PATH_DISTANCE:
+        return std::numeric_limits<double>::infinity();
+    default:
+        throw std::runtime_error("Test mode not set!");
+    }
 }
 
 double TestData::getMinDistance () const
 {
-    return minDistance;
-}
-
-void TestData::setK (const std::size_t newK)
-{
-    k = newK;
+    switch (mode)
+    {
+    case FIX_MAX_PATH_LENGTH:
+        return 1e-12;
+    case FIX_MIN_PATH_DISTANCE:
+        return minDistance;
+    default:
+        throw std::runtime_error("Test mode not set!");
+    }
 }
 
 double TestData::getK () const

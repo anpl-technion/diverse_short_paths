@@ -14,29 +14,30 @@
  */
 class TestData
 {
+public:
+    enum Mode {UNSET, FIX_MAX_PATH_LENGTH, FIX_MIN_PATH_DISTANCE};
+    
 private:
-    const Graph *graph;
     Vertex start;
     Vertex end;
+    std::size_t k;
     double maxLength;
     double minDistance;
-    std::size_t k;
+    Mode mode;
+    const Graph *graph;
     
 public:
+    // Constructor
+    TestData (const char *graphFileName, const std::size_t numPaths,
+              const double maxPathLength, const double minPathPairwiseDistance);
     // Destructor
     ~TestData ();
-    
-    // Generate a set of data from OMPL SPARS problem
-    static TestData *generate (const char *graphFileName, const std::size_t k);
-    
-    // Set the graph to run on
-    void setGraph (const Graph *g);
     
     // Get the graph
     const Graph &getGraph () const;
     
-    // Set the start and end nodes
-    void setStartEnd (const Vertex s, const Vertex e);
+    // Set the test mode
+    void setMode (Mode m);
     
     // Get the start node
     Vertex getStart () const;
@@ -49,9 +50,6 @@ public:
     
     // Get the minimum allowable path closeness
     double getMinDistance () const;
-    
-    // Set the number of paths to find
-    void setK (const std::size_t newK);
     
     // Get the number of paths to find
     double getK () const;

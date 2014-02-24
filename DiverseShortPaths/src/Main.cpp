@@ -11,22 +11,19 @@
 #include "Voss.h"
 
 /* Magic parameters for filtering the path set. */
-extern const double maxPathLength = 1200;
+extern const double maxPathLength = 800;
 extern const double minPathPairwiseDistance = 150;
 
 /* Magic parameters for my algorithm. */
 const double radiusFactor = 0.05;
 const std::size_t samplesPerPath = 20;
 
-
 /*
- * Run tests on k diverse short path algorithms.
+ * Run two algorithms on the data.
+ * Print results.
  */
-int main (int, char *[])
+void runTests (const TestData *data)
 {
-    // Build graphs for testing
-    const TestData *const data = TestData::generate("resources/pianoHard.graphml", 10);
-    
     // Run Eppstein's algorithm on the data
     Eppstein *epp = new Eppstein(data);
     const Results *eppstein_r = epp->run();
@@ -37,12 +34,29 @@ int main (int, char *[])
     
     // Put results into a nice format
     Results::collate(eppstein_r, voss_r);
-    
-    delete eppstein_r;
-    delete voss_r;
     delete epp;
+    delete eppstein_r;
     delete voss;
-    delete data;
+    delete voss_r;
+}
+
+/*
+ * Run tests on k diverse short path algorithms.
+ */
+int main (int, char *[])
+{
+    // Build graph to test on
+    TestData data("resources/pianoHard.graphml", 10, maxPathLength, minPathPairwiseDistance);
+    
+    // Fix an upper limit for path length and test it
+    data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
+    std::cout << "Fixing maximum path length at " << maxPathLength << "...\n\n";
+    runTests(&data);
+    
+    // Fix a lower limit for distance between pairs of paths and test it
+    data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
+    std::cout << "Fixing minimum distance between paths at " << minPathPairwiseDistance << "...\n\n";
+    runTests(&data);
     
     return 0;
 }

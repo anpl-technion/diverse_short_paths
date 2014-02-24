@@ -26,7 +26,7 @@ public:
     Results (const char *alg_name, const TestData *const testData, std::vector<Path> &pathSet);
     
     // Print self
-    void print (std::size_t i) const;
+    void print () const;
     
     // Combine sets of results into pretty format
     static void collate (const Results *r1, const Results *r2);

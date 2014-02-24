@@ -17,9 +17,8 @@ Results::Results (const char *alg_name, const TestData *const testData, std::vec
     }
 }
 
-void Results::print (std::size_t i) const
+void Results::print () const
 {
-    std::cout << "DATA SET " << i << "\n";
     std::cout << "Algorithm: " << algorithm << "\n";
     std::cout << " Found " << paths.size() << " of " << data->getK() << " requested paths.\n";
     const double shortest = findShortestLength();
@@ -77,8 +76,8 @@ double Results::nearestPathDistance (const std::size_t which) const
 
 void Results::collate (const Results *r1, const Results *r2)
 {
-    r1->print(1);
-    r2->print(2);
+    r1->print();
+    r2->print();
 }
 
 const TestData *Results::getData () const
