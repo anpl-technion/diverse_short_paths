@@ -152,3 +152,8 @@ double Graph::levenshteinDistance (const Path &path1, const Path &path2) const
     delete [] distances;
     return d;
 }
+
+void Graph::midpoint (const ompl::base::State *s1, const ompl::base::State *s2, ompl::base::State *mid) const
+{
+    si->getStateSpace()->interpolate(s1, s2, 0.5, mid);
+}

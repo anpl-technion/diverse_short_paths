@@ -19,6 +19,7 @@ Voss::Voss (const TestData *data, double radiusFactor, std::size_t samplesPerPat
 const Results *Voss::run ()
 {
     const Graph &g = testData->getGraph();
+    ompl::base::State **statePool = Neighborhood::allocStatePool(g);
     
     if (!needMore())
         return getResults(VOSS_NAME);
@@ -58,7 +59,7 @@ const Results *Voss::run ()
         for (std::size_t i = 0; i < samples_per_path && needMore(); i++)
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
-            avoid.push_back(Neighborhood(g, sampleFromPath(referencePath), radius));
+            avoid.push_back(Neighborhood(g, statePool, sampleFromPath(referencePath), radius));
             // Get the shortest path under these constraints
             Path path = getShortestPathUnderAvoidance(avoid);
             if (path.empty())
@@ -75,6 +76,8 @@ const Results *Voss::run ()
             resultAvoids.push_back(avoid);
         }
     }
+    
+    Neighborhood::destroyStatePool(g, statePool);
     
     std::cout << "\n\n";
     return getResults(VOSS_NAME);

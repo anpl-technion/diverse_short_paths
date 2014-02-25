@@ -7,7 +7,9 @@
 
 #include <algorithm>
 #include <climits>
+#include <cstdlib>
 #include <cstdio>
+#include <ctime>
 #include <limits>
 #include <sstream>
 #include <stdexcept>

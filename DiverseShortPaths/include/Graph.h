@@ -64,6 +64,9 @@ public:
     
     // Compute the Levenshtein edit distance between two paths
     double levenshteinDistance (const Path &path1, const Path &path2) const;
+    
+    // Compute the midpoint state of two states
+    void midpoint (const ompl::base::State *s1, const ompl::base::State *s2, ompl::base::State *mid) const;
 };
 
 #endif
