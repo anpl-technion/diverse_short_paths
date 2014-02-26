@@ -6,9 +6,9 @@
 
 #include "Graph.h"
 
-TestData::TestData (const char *graphFileName, const std::size_t numPaths,
+TestData::TestData (const std::string &graphFileName, const std::size_t numPaths,
                     const double maxPathLength, const double minPathPairwiseDistance)
- :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), mode(Mode::UNSET)
+ :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), mode(Mode::UNSET), graphName(graphFileName)
 {
     // Initialize the space
     ompl::base::SpaceInformationPtr si;
@@ -22,7 +22,7 @@ TestData::TestData (const char *graphFileName, const std::size_t numPaths,
         si->setup();
     }
     
-    std::ifstream graphmlstream(graphFileName);
+    std::ifstream graphmlstream("resources/" + graphFileName);
     graph = new Graph(si, graphmlstream);
     
     // TODO: Remove connected components not containing start state
@@ -31,6 +31,11 @@ TestData::TestData (const char *graphFileName, const std::size_t numPaths,
 TestData::~TestData ()
 {
     delete graph;
+}
+
+const std::string TestData::getName () const
+{
+    return graphName;
 }
 
 void TestData::setMode (Mode m)

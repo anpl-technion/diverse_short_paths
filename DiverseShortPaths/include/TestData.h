@@ -25,13 +25,16 @@ private:
     double minDistance;
     Mode mode;
     const Graph *graph;
+    const std::string graphName;
     
 public:
     // Constructor
-    TestData (const char *graphFileName, const std::size_t numPaths,
+    TestData (const std::string &graphFileName, const std::size_t numPaths,
               const double maxPathLength, const double minPathPairwiseDistance);
     // Destructor
     ~TestData ();
+    
+    const std::string getName () const;
     
     // Get the graph
     const Graph &getGraph () const;
