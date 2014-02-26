@@ -7,24 +7,27 @@
 #include "Graph.h"
 
 Path::Path (const Path &path)
- :  std::vector<Vertex>(path), g(path.getGraph()), length(path.getLength()), dirty(false)
+ :  std::vector<Vertex>(path), g(path.getGraph()), parametrization(path.getPartialEdgeSums())
 { }
 
 Path::Path (std::vector<Vertex> &path, Graph *graph)
  :  std::vector<Vertex>(path), g(graph)
 {
-    computeLength();
+    parametrization.reserve(size());
+    parametrization.push_back(0);
+    for (std::size_t i = 1; i < size(); i++)
+    {
+        parametrization.push_back(parametrization[i-1] + g->getEdgeWeight((*this)[i-1], (*this)[i]));
+    }
 }
 
 Path::Path (Graph *graph)
- :  std::vector<Vertex>(), g(graph), length(0), dirty(false)
+ :  std::vector<Vertex>(), g(graph)
 { }
 
 double Path::getLength () const
 {
-    if (dirty)
-        computeLength();
-    return length;
+    return parametrization[size()-1];
 }
 
 Graph *Path::getGraph () const
@@ -51,22 +54,39 @@ void Path::printWithWeights () const
     std::cout << (*this)[size()-1] << " : " << getLength() << "\n";
 }
 
-void Path::computeLength () const
-{
-    length = g->computePathLength(*this);
-    dirty = false;
-}
-
-void Path::clear ()
-{
-    dirty = true;
-    std::vector<Vertex>::clear();
-}
-
 void Path::push_back (const Vertex &vertex)
 {
-    dirty = true;
     std::vector<Vertex>::push_back(vertex);
+    if (size() == 1)
+        parametrization.push_back(0);
+    else
+        parametrization.push_back(parametrization[size()-2]
+            + g->getEdgeWeight((*this)[size()-2], (*this)[size()-1]));
+}
+
+std::vector<double> Path::getPartialEdgeSums () const
+{
+    return parametrization;
+}
+
+ompl::base::State *Path::sampleUniform () const
+{
+    // Sample between [0,length]
+    double par = getLength() * ((double)rand() / (double)RAND_MAX);
+    
+    // Find vertices to interpolate between
+    std::size_t i = 0;
+    while (!(parametrization[i] <= par && par <= parametrization[i+1]))
+    {
+        i++;
+    }
+    
+    par = (par-parametrization[i]) / getLength();
+    
+    // Interpolate
+    ompl::base::State *sample = g->getSpaceInfo()->allocState();
+    g->getSpaceInfo()->getStateSpace()->interpolate(g->getVertexState((*this)[i]), g->getVertexState((*this)[i+1]), par, sample);
+    return sample;
 }
 
 double Path::distance (const Path &p1, const Path &p2)

@@ -6,15 +6,25 @@
 
 #include "Graph.h"
 
-Neighborhood::Neighborhood (const Graph &g, ompl::base::State **state_pool, const ompl::base::State *c, const double r)
-: g(g), statePool(state_pool), center(c), radius(r)
+Neighborhood::Neighborhood (const Graph &g, ompl::base::State **state_pool, ompl::base::State *c, const double r)
+ :  g(g), statePool(state_pool), center(c), radius(r)
+{
+}
+
+Neighborhood::Neighborhood (const Neighborhood &copy)
+ :  g(copy.g), statePool(copy.statePool), center(copy.g.getSpaceInfo()->cloneState(copy.center)), radius(copy.radius)
 {
 }
 
 Neighborhood &Neighborhood::operator=(const Neighborhood &copy)
 {
-    Neighborhood *nbh = new Neighborhood(copy.g, copy.statePool, copy.center, copy.radius);
+    Neighborhood *nbh = new Neighborhood(copy.g, copy.statePool, copy.g.getSpaceInfo()->cloneState(copy.center), copy.radius);
     return *nbh;
+}
+
+Neighborhood::~Neighborhood ()
+{
+    g.getSpaceInfo()->freeState(center);
 }
 
 bool Neighborhood::shouldAvoid (const Edge e) const

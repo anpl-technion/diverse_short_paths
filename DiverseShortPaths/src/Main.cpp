@@ -12,8 +12,8 @@
 #include "Voss.h"
 
 /* Magic parameters for filtering the path set. */
-extern const double maxPathLength = 4000;
-extern const double minPathPairwiseDistance = 0;
+extern const double maxPathLength = 800;
+extern const double minPathPairwiseDistance = 220;
 
 /* Magic parameters for my algorithm. */
 const double radiusFactor = 0.05;
@@ -50,7 +50,7 @@ int main (int, char *[])
     srand(time(NULL));
     
     // Build graph to test on
-    TestData data("resources/cubiclePRM.graphml", 10, maxPathLength, minPathPairwiseDistance);
+    TestData data("resources/pianoHard.graphml", 10, maxPathLength, minPathPairwiseDistance);
     
     // Fix an upper limit for path length and test it
     data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);

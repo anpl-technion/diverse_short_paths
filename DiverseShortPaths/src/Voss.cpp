@@ -59,7 +59,7 @@ const Results *Voss::run ()
         for (std::size_t i = 0; i < samples_per_path && needMore(); i++)
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
-            avoid.push_back(Neighborhood(g, statePool, sampleFromPath(referencePath), radius));
+            avoid.push_back(Neighborhood(g, statePool, referencePath.sampleUniform(), radius));
             // Get the shortest path under these constraints
             Path path = getShortestPathUnderAvoidance(avoid);
             if (path.empty())

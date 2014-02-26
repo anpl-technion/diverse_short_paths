@@ -13,12 +13,16 @@ struct Neighborhood
 {
     const Graph &g;
     ompl::base::State **statePool;
-    const ompl::base::State *center;
+    ompl::base::State *center;
     double radius;
     
-    Neighborhood (const Graph &g, ompl::base::State **statePool, const ompl::base::State *c, const double r);
+    Neighborhood (const Graph &g, ompl::base::State **statePool, ompl::base::State *c, const double r);
+    
+    Neighborhood (const Neighborhood &copy);
     
     Neighborhood &operator=(const Neighborhood &copy);
+    
+    ~Neighborhood ();
     
     bool shouldAvoid (const Edge e) const;
     

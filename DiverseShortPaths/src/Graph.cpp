@@ -27,6 +27,7 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphm
         boost::put(boost::edge_weight, *this, e, weight_map[e]);
     });
     
+    // Populate state information
     foreachVertex([&] (const Vertex v) -> void
     {
         ompl::base::State *state = si->allocState();
@@ -109,16 +110,6 @@ void Graph::foreachVertex (std::function<void (const Vertex)> applyMe) const
     {
         applyMe(v);
     }
-}
-
-double Graph::computePathLength (const Path &path) const
-{
-    double length = 0;
-    for (std::size_t i = 0; i < path.size() - 1; i++)
-    {
-        length += getEdgeWeight(boost::edge(path[i], path[i+1], *this).first);
-    }
-    return length;
 }
 
 double Graph::levenshteinDistance (const Path &path1, const Path &path2) const

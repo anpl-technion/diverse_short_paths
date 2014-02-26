@@ -59,9 +59,6 @@ public:
     // Apply a function to every vertex in this graph
     void foreachVertex (std::function<void (const Vertex)> applyMe) const;
     
-    // Compute the length of a path of vertices in this graph
-    double computePathLength (const Path &path) const;
-    
     // Compute the Levenshtein edit distance between two paths
     double levenshteinDistance (const Path &path1, const Path &path2) const;
     

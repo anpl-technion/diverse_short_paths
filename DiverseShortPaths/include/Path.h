@@ -13,8 +13,7 @@ class Path : public std::vector<Vertex>
 {
 private:
     Graph *g;
-    mutable double length;
-    mutable bool dirty;
+    std::vector<double> parametrization;
     
 public:
     
@@ -32,15 +31,14 @@ public:
     
     void printWithWeights () const;
     
-    void clear ();
-    
     void push_back (const Vertex &vertex);
     
+    std::vector<double> getPartialEdgeSums () const;
+    
+    // Allocates a state that should be freed later
+    ompl::base::State *sampleUniform () const;
+    
     static double distance (const Path &p1, const Path &p2);
-    
-private:
-    
-    void computeLength () const;
 };
 
 
