@@ -24,6 +24,8 @@ TestData::TestData (const char *graphFileName, const std::size_t numPaths,
     
     std::ifstream graphmlstream(graphFileName);
     graph = new Graph(si, graphmlstream);
+    
+    // TODO: Remove connected components not containing start state
 }
 
 TestData::~TestData ()
