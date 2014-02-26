@@ -51,6 +51,8 @@ public:
     // Get the minimum allowable path closeness
     double getMinDistance () const;
     
+    std::string getParameter () const;
+    
     // Get the number of paths to find
     double getK () const;
     

@@ -7,8 +7,8 @@
 #include "Path.h"
 #include "TestData.h"
 
-Results::Results (const char *alg_name, const TestData *const testData, std::vector<Path> &pathSet)
-  : algorithm(alg_name), data(testData)
+Results::Results (std::string name, const TestData *const testData, std::vector<Path> &pathSet)
+  : description(name), data(testData)
 {
     paths.reserve(pathSet.size());
     for (std::size_t i = 0; i < pathSet.size(); i++)
@@ -19,7 +19,7 @@ Results::Results (const char *alg_name, const TestData *const testData, std::vec
 
 void Results::print () const
 {
-    std::cout << "Algorithm: " << algorithm << "\n";
+    std::cout << "Description: " << description << "\n";
     std::cout << " Found " << paths.size() << " of " << data->getK() << " requested paths.\n";
     const double shortest = findShortestLength();
     std::cout << "\tshortest path length is " << shortest << "\n";
@@ -28,6 +28,15 @@ void Results::print () const
     std::cout << "\tmean distance to nearest neighbor is " << meanNearestPathDistance() << "\n";
     
     std::cout << "\n\n";
+}
+
+void Results::saveSet () const
+{
+    std::ofstream fout(description + ".txt");
+    for (std::size_t i = 0; i < paths.size(); i++)
+    {
+        paths[i]->saveOMPLFormat(fout);
+    }
 }
 
 double Results::findShortestLength () const

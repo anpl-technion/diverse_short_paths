@@ -79,6 +79,24 @@ double TestData::getMinDistance () const
     }
 }
 
+std::string TestData::getParameter () const
+{
+    std::stringstream param;
+    switch (mode)
+    {
+        case FIX_MAX_PATH_LENGTH:
+            param << "length_" << maxLength;
+            break;
+        case FIX_MIN_PATH_DISTANCE:
+            param << "dist_" << minDistance;
+            break;
+        default:
+            throw std::runtime_error("Test mode not set!");
+    }
+    
+    return param.str();
+}
+
 double TestData::getK () const
 {
     return k;

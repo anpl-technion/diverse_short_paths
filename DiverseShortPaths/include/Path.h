@@ -23,6 +23,8 @@ public:
     
     Path (Graph *g);
     
+    void saveOMPLFormat(std::ostream &out) const;
+    
     double getLength () const;
     
     Graph *getGraph () const;

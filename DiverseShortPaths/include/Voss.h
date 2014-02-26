@@ -22,11 +22,10 @@ private:
     static const char *VOSS_NAME;
     
     const double radius_factor;
-    const std::size_t samples_per_path;
     
 public:
     // Construct the algorithm to use the given data
-    Voss (const TestData *data, double radiusFactor, std::size_t samplesPerPath);
+    Voss (const TestData *data, double radiusFactor);
     
     // Evaluate the algorithm
     const Results *run ();

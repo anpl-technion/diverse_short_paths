@@ -53,5 +53,7 @@ bool KDiverseShort::considerPath(const Path &path)
 
 const Results *KDiverseShort::getResults (const char *alg_name)
 {
-    return new Results(alg_name, testData, pathSet);
+    std::stringstream ss;
+    ss << "algorithm_" << alg_name << ":" << testData->getParameter();
+    return new Results(ss.str(), testData, pathSet);
 }

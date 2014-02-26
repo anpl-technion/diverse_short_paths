@@ -12,8 +12,8 @@
 
 const char *Voss::VOSS_NAME = "Random Neighborhood Avoidance";
 
-Voss::Voss (const TestData *data, double radiusFactor, std::size_t samplesPerPath)
-  : KDiverseShort(data), radius_factor(radiusFactor), samples_per_path(samplesPerPath)
+Voss::Voss (const TestData *data, double radiusFactor)
+  : KDiverseShort(data), radius_factor(radiusFactor)
 { }
 
 const Results *Voss::run ()
@@ -54,9 +54,10 @@ const Results *Voss::run ()
         frontier++;
         
         // Make attempts at imposing a new neighborhood to avoid on the graph
-        // Neighborhood's radius is some pre-defined portion of the referencePath's length
+        // Neighborhood's radius is some pre-defined fraction of the referencePath's length
+        // Number of Neighborhoods is twice the number of edges in the path
         double radius = radius_factor * referencePath.getLength();
-        for (std::size_t i = 0; i < samples_per_path && needMore(); i++)
+        for (std::size_t i = 0; i < 2*referencePath.size() && needMore(); i++)
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
             avoid.push_back(Neighborhood(g, statePool, referencePath.sampleUniform(), radius));
