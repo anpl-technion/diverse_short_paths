@@ -11,18 +11,11 @@
 #include "TestData.h"
 #include "Voss.h"
 
-/* Magic parameters for filtering the path set. */
-extern const double maxPathLength = 1100;
-extern const double minPathPairwiseDistance = 400;
-
-/* Magic parameters for my algorithm. */
-const double radiusFactor = 0.05;
-
 /*
  * Run two algorithms on the data.
  * Print results.
  */
-void runTests (const TestData *data)
+void runTests (const TestData *data, double radiusFactor)
 {
     // Run Eppstein's algorithm on the data
     Eppstein *epp = new Eppstein(data);
@@ -46,20 +39,31 @@ void runTests (const TestData *data)
 /*
  * Run tests on k diverse short path algorithms.
  */
-int main (int, char *[])
+int main (int argc, char *argv[])
 {
     srand(1000);
     
+    // Parse command line args
+    if (argc != 5)
+    {
+        std::cout << "Usage: diverse <graph> <maxLength> <minDist> <radiusFactor>\n";
+        return -1;
+    }
+    const char *graphFile = argv[1];
+    const double maxPathLength = std::atof(argv[2]);
+    const double minPathPairwiseDistance = std::atof(argv[3]);
+    const double radiusFactor = std::atof(argv[4]);
+    
     // Build graph to test on
-    TestData data("abstract.graphml", 10, maxPathLength, minPathPairwiseDistance);
+    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
     
     // Fix an upper limit for path length and test it
     data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
-    runTests(&data);
+    runTests(&data, radiusFactor);
     
     // Fix a lower limit for distance between pairs of paths and test it
     data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
-    runTests(&data);
+    runTests(&data, radiusFactor);
     
     return 0;
 }

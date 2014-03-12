@@ -5,7 +5,7 @@ CXX		= clang++
 CXXFLAGS	= -Wall -Wextra -Werror -Wpedantic -std=c++11 \
 		    -Qunused-arguments -fcolor-diagnostics \
 		    -fdiagnostics-show-template-tree -ggdb -march=native
-LDFLAGS		= -lompl -lboost_graph -lcairo
+LDFLAGS		= -lompl -lboost_graph
 
 PROG		= diverse
 EXEC		= build/bin/$(PROG)

@@ -22,7 +22,7 @@ TestData::TestData (const std::string &graphFileName, const std::size_t numPaths
         si->setup();
     }
     
-    std::ifstream graphmlstream("resources/" + graphFileName);
+    std::ifstream graphmlstream(graphFileName);
     graph = new Graph(si, graphmlstream);
     
     // TODO: Remove connected components not containing start state
