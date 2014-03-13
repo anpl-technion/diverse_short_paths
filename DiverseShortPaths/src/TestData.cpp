@@ -25,11 +25,14 @@ TestData::TestData (const std::string &graphFileName, const std::size_t numPaths
     std::ifstream graphmlstream(graphFileName);
     graph = new Graph(si, graphmlstream);
     
+    buf = new char[graphName.length() + 1];
+    
     // TODO: Remove connected components not containing start state
 }
 
 TestData::~TestData ()
 {
+    delete [] buf;
     delete graph;
 }
 
@@ -41,6 +44,13 @@ void TestData::setMode (Mode m)
 const Graph &TestData::getGraph () const
 {
     return *graph;
+}
+
+char *TestData::getName () const
+{
+    graphName.copy(buf, graphName.length());
+    buf[graphName.length()] = '\0';
+    return basename(buf);
 }
 
 Vertex TestData::getStart () const

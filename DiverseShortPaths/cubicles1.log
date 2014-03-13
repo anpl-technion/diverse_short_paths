@@ -1,0 +1,310 @@
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 33 49 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2964.92
+0 51 54 55 57 34 33 49 38 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2965.35
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 33 49 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2970.88
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 36 26 43 31 1 : 2970.98
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2971.12
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 25 36 26 43 31 1 : 2972.43
+
+
+Description: env_cubicles1.graphml:alg_Eppstein's K shortest paths:length_3000
+ Found 10 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2972.43 (1.0049 times as long)
+	mean distance to nearest neighbor is 554.929
+ Completed in 0.02 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 33 49 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2964.92
+0 51 54 55 57 34 33 49 38 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2965.35
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 33 49 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2970.88
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 36 26 43 31 1 : 2970.98
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2971.12
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 25 36 26 43 31 1 : 2972.43
+
+
+Description: env_cubicles1.graphml:alg_Eppstein's K shortest paths:dist_300
+ Found 10 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2972.43 (1.0049 times as long)
+	mean distance to nearest neighbor is 554.929
+ Completed in 0.02 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 42 1 : 2998.81
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 41 31 1 : 2982.96
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.005:length_3000
+ Found 6 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2998.81 (1.01382 times as long)
+	mean distance to nearest neighbor is 709.843
+ Completed in 0.1 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 41 31 1 : 2982.96
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 30 11 10 12 36 26 43 31 1 : 3152.55
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 42 1 : 2998.81
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 26 43 31 1 : 3009.33
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 25 26 43 31 1 : 2975.63
+0 51 54 55 57 34 33 49 38 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2965.35
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.005:dist_300
+ Found 10 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 3152.55 (1.0658 times as long)
+	mean distance to nearest neighbor is 692.398
+ Completed in 0.12 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 41 31 1 : 2982.96
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 42 1 : 2998.81
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.01:length_3000
+ Found 6 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2998.81 (1.01382 times as long)
+	mean distance to nearest neighbor is 709.843
+ Completed in 0.09 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 26 43 31 1 : 3009.33
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 41 31 1 : 2982.96
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 7 17 10 12 36 26 43 31 1 : 3010.78
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 41 31 1 : 3034.35
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 25 26 43 31 1 : 3021.06
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 26 43 42 1 : 3050.21
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.01:dist_300
+ Found 10 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 3050.21 (1.0312 times as long)
+	mean distance to nearest neighbor is 627.596
+ Completed in 0.36 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 41 31 1 : 2982.96
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.015:length_3000
+ Found 4 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2982.96 (1.00846 times as long)
+	mean distance to nearest neighbor is 812.173
+ Completed in 0.08 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2959.38
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 41 31 1 : 2982.96
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 26 43 31 1 : 3009.33
+0 51 54 55 57 34 45 44 28 14 15 27 19 18 17 10 12 36 26 43 31 1 : 2963.9
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2971.12
+0 51 54 55 57 34 33 49 38 14 15 27 20 8 18 17 10 12 36 41 31 1 : 2984.41
+0 51 54 55 57 34 45 48 35 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 3078.96
+0 51 54 55 57 34 33 49 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2964.92
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.015:dist_300
+ Found 10 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 3078.96 (1.04092 times as long)
+	mean distance to nearest neighbor is 654.53
+ Completed in 0.1 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.02:length_3000
+ Found 2 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2969.66 (1.00397 times as long)
+	mean distance to nearest neighbor is 845.484
+ Completed in 0.07 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 26 43 31 1 : 3009.33
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 26 43 42 1 : 3050.21
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 25 26 43 31 1 : 3021.06
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 25 26 43 42 1 : 3061.94
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.02:dist_300
+ Found 6 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 3061.94 (1.03516 times as long)
+	mean distance to nearest neighbor is 490.555
+ Completed in 29.23 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.025:length_3000
+ Found 2 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2969.66 (1.00397 times as long)
+	mean distance to nearest neighbor is 845.484
+ Completed in 0.09 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 25 26 43 31 1 : 2969.66
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 12 36 26 43 31 1 : 3009.33
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 7 17 10 25 26 43 31 1 : 3021.06
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.025:dist_300
+ Found 4 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 3021.06 (1.02134 times as long)
+	mean distance to nearest neighbor is 722.14
+ Completed in 4.87 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.03:length_3000
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.08 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.03:dist_300
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.09 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.035:length_3000
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.08 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.035:dist_300
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.08 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.04:length_3000
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.09 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.04:dist_300
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.08 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.045:length_3000
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.08 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.045:dist_300
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.09 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.05:length_3000
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.08 seconds
+
+
+0 51 54 55 57 34 45 44 28 14 15 27 20 8 18 17 10 12 36 26 43 31 1 : 2957.93
+
+
+Description: env_cubicles1.graphml:alg_Random Neighborhood Avoidance:radius_0.05:dist_300
+ Found 1 of 10 requested paths.
+	shortest path length is 2957.93
+	longest path length is 2957.93 (1 times as long)
+	mean distance to nearest neighbor is inf
+ Completed in 0.09 seconds
+
+

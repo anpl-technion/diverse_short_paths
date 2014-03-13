@@ -12,10 +12,10 @@
 #include "Voss.h"
 
 /*
- * Run two algorithms on the data.
+ * Run my algorithm on the data.
  * Print results.
  */
-void runTests (const TestData *data, double radiusFactor)
+void runEppsteinTests (const TestData *data)
 {
     double time;
     
@@ -24,16 +24,27 @@ void runTests (const TestData *data, double radiusFactor)
     const Results *eppstein_r = epp->timedRun(time);
     eppstein_r->saveSet();
     
+    // Put results into a nice format
+    eppstein_r->print(time);
+    delete epp;
+    delete eppstein_r;
+}
+
+/*
+ * Run my algorithm on the data.
+ * Print results.
+ */
+void runVossTests (const TestData *data, double radiusFactor)
+{
+    double time;
+    
     // Run my algorithm on the data
     Voss *voss = new Voss(data, radiusFactor);
     const Results *voss_r = voss->timedRun(time);
     voss_r->saveSet();
     
     // Put results into a nice format
-    eppstein_r->print(time);
     voss_r->print(time);
-    delete epp;
-    delete eppstein_r;
     delete voss;
     delete voss_r;
 }
@@ -58,16 +69,26 @@ int main (int argc, char *argv[])
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
     
+    // Eppstein
+    // Fix an upper limit for path length and test it
+    data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
+    runEppsteinTests(&data);
+    
+    // Fix a lower limit for distance between pairs of paths and test it
+    data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
+    runEppsteinTests(&data);
+    
+    // Voss
     // Parameter sweep on the radiusFactor
     for (double rf = 0.005; rf <= 0.05; rf += 0.005)
     {
         // Fix an upper limit for path length and test it
         data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
-        runTests(&data, rf);
+        runVossTests(&data, rf);
         
         // Fix a lower limit for distance between pairs of paths and test it
         data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
-        runTests(&data, rf);
+        runVossTests(&data, rf);
     }
     
     return 0;

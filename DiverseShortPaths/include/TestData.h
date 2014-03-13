@@ -26,6 +26,7 @@ private:
     Mode mode;
     const Graph *graph;
     const std::string graphName;
+    mutable char *buf;
     
 public:
     // Constructor
@@ -36,6 +37,9 @@ public:
     
     // Get the graph
     const Graph &getGraph () const;
+    
+    // Get the basename of the graphml file
+    char *getName () const;
     
     // Set the test mode
     void setMode (Mode m);

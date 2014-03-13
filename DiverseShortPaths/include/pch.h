@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include <libgen.h>
+
 #include <boost/foreach.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/astar_search.hpp>
