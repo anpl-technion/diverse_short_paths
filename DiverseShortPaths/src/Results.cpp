@@ -17,7 +17,7 @@ Results::Results (std::string name, const TestData *const testData, std::vector<
     }
 }
 
-void Results::print () const
+void Results::print (double runtime) const
 {
     std::cout << "Description: " << description << "\n";
     std::cout << " Found " << paths.size() << " of " << data->getK() << " requested paths.\n";
@@ -26,8 +26,9 @@ void Results::print () const
     const double longest = findLongestLength();
     std::cout << "\tlongest path length is " << longest << " (" << longest/shortest << " times as long)\n";
     std::cout << "\tmean distance to nearest neighbor is " << meanNearestPathDistance() << "\n";
+    std::cout << " Completed in " << runtime << " seconds\n";
     
-    std::cout << "\n\n";
+    std::cout << "\n\n" << std::flush;
 }
 
 void Results::saveSet () const
@@ -81,12 +82,6 @@ double Results::nearestPathDistance (const std::size_t which) const
             nearest = distance;
     }
     return nearest;
-}
-
-void Results::collate (const Results *r1, const Results *r2)
-{
-    r1->print();
-    r2->print();
 }
 
 const TestData *Results::getData () const

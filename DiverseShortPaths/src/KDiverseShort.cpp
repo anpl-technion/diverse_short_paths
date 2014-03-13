@@ -45,7 +45,7 @@ bool KDiverseShort::considerPath(const Path &path)
     }
     if (nearest_distance < testData->getMinDistance())
         return false;
-        
+    
     pathSet.push_back(path);
     path.print();
     return true;
@@ -54,6 +54,18 @@ bool KDiverseShort::considerPath(const Path &path)
 const Results *KDiverseShort::getResults (const char *alg_name)
 {
     std::stringstream ss;
-    ss << "env_" << testData->getName() << ":alg_" << alg_name << ":" << testData->getParameter();
+    ss << "alg_" << alg_name << ":" << testData->getParameter();
     return new Results(ss.str(), testData, pathSet);
 }
+
+const Results *KDiverseShort::timedRun (double &seconds)
+{
+    // Time the execution
+    clock_t start = clock();
+    const Results *res = run();
+    clock_t end = clock();
+    
+    seconds = ((double)(end-start))/CLOCKS_PER_SEC;
+    return res;
+}
+

@@ -39,6 +39,9 @@ protected:
     // Compose a Results object from the pathSet
     const Results *getResults (const char *alg_name);
     
+    // Evaluate the algorithm
+    virtual const Results *run () = 0;
+    
 public:
     // Construct the algorithm to use the given data
     KDiverseShort (const TestData *data);
@@ -46,8 +49,9 @@ public:
     // Clean up and destroy
     virtual ~KDiverseShort ();
     
-    // Evaluate the algorithm
-    virtual const Results *run () = 0;
+    // Time a run of the algorithm
+    const Results *timedRun (double &seconds);
+    
 };
 
 #endif

@@ -18,11 +18,13 @@ Voss::Voss (const TestData *data, double radiusFactor)
 
 const Results *Voss::run ()
 {
+    std::stringstream desc;
+    desc << VOSS_NAME << ":radius_" << radius_factor;
     const Graph &g = testData->getGraph();
     ompl::base::State **statePool = Neighborhood::allocStatePool(g);
     
     if (!needMore())
-        return getResults(VOSS_NAME);
+        return getResults(desc.str().c_str());
     
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
     std::vector<std::vector<Neighborhood> > resultAvoids;
@@ -37,11 +39,11 @@ const Results *Voss::run ()
     std::vector<Neighborhood> alreadyAvoiding;
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
-        return getResults(VOSS_NAME);
+        return getResults(desc.str().c_str());
 
     considerPath(referencePath);
     if (tooLong())
-        return getResults(VOSS_NAME);
+        return getResults(desc.str().c_str());
     resultAvoids.push_back(alreadyAvoiding);
     unfilteredPathSet.push_back(referencePath);
     //std::cout << "Kept: " << 1 << "/" << testData->getK() << "\n";
@@ -81,7 +83,7 @@ const Results *Voss::run ()
     Neighborhood::destroyStatePool(g, statePool);
     
     std::cout << "\n\n";
-    return getResults(VOSS_NAME);
+    return getResults(desc.str().c_str());
 }
 
 Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid) const

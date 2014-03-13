@@ -33,11 +33,6 @@ TestData::~TestData ()
     delete graph;
 }
 
-const std::string TestData::getName () const
-{
-    return graphName;
-}
-
 void TestData::setMode (Mode m)
 {
     mode = m;

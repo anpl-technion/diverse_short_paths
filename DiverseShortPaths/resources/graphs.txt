@@ -1,0 +1,7 @@
+These graphs were generated in the "cubicles" environment by SPARS2 in 60 seconds.
+
+Name		Dense delta	Sparse delta	Stretch
+cubicles1	0.001		0.25		3
+cubicles2	0.0005		0.12		2
+cubicles3	0.0002		0.04		1.1
+

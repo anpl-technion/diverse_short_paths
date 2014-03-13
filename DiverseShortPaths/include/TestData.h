@@ -34,8 +34,6 @@ public:
     // Destructor
     ~TestData ();
     
-    const std::string getName () const;
-    
     // Get the graph
     const Graph &getGraph () const;
     

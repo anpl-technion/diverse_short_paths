@@ -29,10 +29,7 @@ public:
     void saveSet () const;
     
     // Print self
-    void print () const;
-    
-    // Combine sets of results into pretty format
-    static void collate (const Results *r1, const Results *r2);
+    void print (double runtime) const;
     
     double findShortestLength () const;
     
