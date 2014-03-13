@@ -2,3 +2,4 @@
 ^DiverseShortPaths/build
 ^DiverseShortPaths/include/pch.h.pch
 ^DiverseShortPaths/\.
+^DiverseShortPaths/out
