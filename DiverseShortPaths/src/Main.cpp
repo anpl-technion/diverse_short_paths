@@ -80,7 +80,7 @@ int main (int argc, char *argv[])
     
     // Voss
     // Parameter sweep on the radiusFactor
-    for (double rf = 0.005; rf <= 0.05; rf += 0.005)
+    for (double rf = 0.0025; rf <= 0.050001; rf += 0.0025)
     {
         // Fix an upper limit for path length and test it
         data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
