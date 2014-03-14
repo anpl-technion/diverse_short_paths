@@ -23,4 +23,4 @@ plot = ListLinePlot[
   LegendShadow->None,
   PlotLabel->name
 ];
-Export["plot.pdf", plot];
+Export[name + ".pdf", plot];
