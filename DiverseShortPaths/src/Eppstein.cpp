@@ -33,7 +33,7 @@ const Results *Eppstein::run ()
             break;
         Path path((Graph *)&testData->getGraph());
         double length = 0;
-        graehl::GraphArc *edge;
+        graehl::GraphArc *edge = NULL;
         while (raw->notEmpty())
         {
             edge = raw->top();
