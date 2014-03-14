@@ -2,9 +2,10 @@
 
 graph=$1
 maxLength=$2
-plotName="Environment: $graph; Maximum path length: $maxLength"
+plotName=$3
 
-mcode=$(build/bin/diverse resources/$graph $maxLength "$plotName")
-echo $mcode
+ssh dione "repos/research/*/build/bin/diverse \"resources/$graph\" $maxLength \"$plotName\"" \
+    | ssh clear -Y "bash -l -c \"sleep 1; math\""
 
-ssh clear -Y "echo $mcode | math"
+rsync clear:plot.pdf .
+ssh clear "rm plot.pdf"

@@ -87,6 +87,7 @@ int main (int argc, char *argv[])
     if (argc != 4)
     {
         std::cerr << "Usage: diverse <graph> <maxLength> <plotName>\n";
+        std::cerr << argc;
         return -1;
     }
     const char *graphFile = argv[1];
