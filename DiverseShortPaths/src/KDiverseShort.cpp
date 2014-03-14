@@ -47,7 +47,7 @@ bool KDiverseShort::considerPath(const Path &path)
         return false;
     
     pathSet.push_back(path);
-    path.print();
+    //path.print();
     return true;
 }
 

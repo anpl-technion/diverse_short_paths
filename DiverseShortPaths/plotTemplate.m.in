@@ -1,0 +1,26 @@
+Unprotect[D];
+inf=Infinity;
+Max2[list_] := Max[Select[list,#!=inf&]];
+Needs["PlotLegends`"];
+X = {%s};
+T = {%s};
+P = {%s};
+D = {%s};
+name = "%s";
+data = {T, P/Max2[P], D/Max2[D]};
+plot = ListLinePlot[
+  Table[
+    Table[
+      {X[[j]],data[[i,j]]}, {j,1,Length[X]}
+    ], {i,1,Length[data]}
+  ],
+  PlotRange->{{0,X[[Length[X]]]},{0,2}},
+  PlotStyle->Thick,
+  PlotMarkers->Automatic,
+  PlotLegend->{"Time (s)","Paths Found","Diversity"},
+  LegendPosition->{0.9,-0.4},
+  LegendSize->1,
+  LegendShadow->None,
+  PlotLabel->name
+];
+Export[name + ".pdf", plot];

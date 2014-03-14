@@ -35,6 +35,10 @@ public:
     
     double findLongestLength () const;
     
+    double diversity () const;
+    
+    double minNearestPathDistance () const;
+    
     double meanNearestPathDistance () const;
     
     double nearestPathDistance (const std::size_t which) const;

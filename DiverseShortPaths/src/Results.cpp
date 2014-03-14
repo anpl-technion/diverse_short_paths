@@ -19,16 +19,16 @@ Results::Results (std::string name, const TestData *const testData, std::vector<
 
 void Results::print (double runtime) const
 {
-    std::cout << "Description: " << description << "\n";
-    std::cout << " Found " << paths.size() << " of " << data->getK() << " requested paths.\n";
+    std::clog << "Description: " << description << "\n";
+    std::clog << " Found " << paths.size() << " of " << data->getK() << " requested paths.\n";
     const double shortest = findShortestLength();
-    std::cout << "\tshortest path length is " << shortest << "\n";
+    std::clog << "\tshortest path length is " << shortest << "\n";
     const double longest = findLongestLength();
-    std::cout << "\tlongest path length is " << longest << " (" << longest/shortest << " times as long)\n";
-    std::cout << "\tmean distance to nearest neighbor is " << meanNearestPathDistance() << "\n";
-    std::cout << " Completed in " << runtime << " seconds\n";
+    std::clog << "\tlongest path length is " << longest << " (" << longest/shortest << " times as long)\n";
+    std::clog << "\tmean distance to nearest neighbor is " << meanNearestPathDistance() << "\n";
+    std::clog << " Completed in " << runtime << " seconds\n";
     
-    std::cout << "\n\n" << std::flush;
+    std::clog << "\n\n" << std::flush;
 }
 
 void Results::saveSet () const
@@ -58,6 +58,24 @@ double Results::findLongestLength () const
             longest = paths[i]->getLength();
     }
     return longest;
+}
+
+double Results::diversity () const
+{
+//     return meanNearestPathDistance();
+    return minNearestPathDistance();
+}
+
+double Results::minNearestPathDistance () const
+{
+    double min = std::numeric_limits<double>::infinity();
+    for (std::size_t i = 0; i < paths.size(); i++)
+    {
+        double d = nearestPathDistance(i);
+        if (d < min)
+            min = d;
+    }
+    return min;
 }
 
 double Results::meanNearestPathDistance () const

@@ -82,7 +82,6 @@ const Results *Voss::run ()
     
     Neighborhood::destroyStatePool(g, statePool);
     
-    std::cout << "\n\n";
     return getResults(desc.str().c_str());
 }
 

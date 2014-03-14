@@ -45,7 +45,6 @@ const Results *Eppstein::run ()
         considerPath(path);
     }
     
-    std::cout << "\n\n";
     return getResults(EPP_NAME);
 }
 

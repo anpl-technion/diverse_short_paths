@@ -1,0 +1,10 @@
+#!/bin/bash
+
+graph=$1
+maxLength=$2
+plotName="Environment: $graph; Maximum path length: $maxLength"
+
+mcode=$(build/bin/diverse resources/$graph $maxLength "$plotName")
+echo $mcode
+
+ssh clear -Y "echo $mcode | math"
