@@ -4,8 +4,8 @@ graph=$1
 maxLength=$2
 plotName=$3
 
-ssh dione "bash -i -c \"cd repos/research/*; build/bin/diverse \"resources/$graph\" $maxLength \"$plotName\"\"" \
-    | ssh clear -Y "bash -li -c \"sleep 1; math\""
+ssh dione "bash -i -c \"cd repos/research/*; build/bin/diverse resources/$graph $maxLength $plotName\"" \
+    | ssh clear -Y "bash -l -c \"sleep 1; math\""
 
 rsync "clear:$plotName.pdf" .
-ssh clear "rm \"$plotName.pdf\""
+ssh clear "rm $plotName.pdf"
