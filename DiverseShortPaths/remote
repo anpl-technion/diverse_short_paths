@@ -1,0 +1,15 @@
+#!/bin/bash
+
+graph=$1
+maxLength=$2
+plotName=$3
+
+ssh dione -t "bash -i -c \" \
+    cd repos/research/*; \
+    hg pull; \
+    hg update; \
+    make;\""
+
+ssh dione -t "base -i -c \" \
+    build/bin/diverse $graph $maxLength $plotName\""
+    > $plotName.m
