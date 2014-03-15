@@ -2,6 +2,8 @@
 
 plotName=$1
 
+rsync dione:repos/research/*/$plotName.m .
+
 cat $plotName.m | ssh clear -Y "bash -l -c \"sleep 1; math\""
 
 rsync clear:$plotName.pdf .
