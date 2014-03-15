@@ -11,5 +11,6 @@ ssh dione -t "bash -i -c \" \
     make;\""
 
 ssh dione -t "bash -i -c \" \
+    cd repos/research/*; \
     build/bin/diverse $graph $maxLength $plotName\""
     > $plotName.m
