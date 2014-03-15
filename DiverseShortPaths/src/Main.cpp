@@ -106,7 +106,7 @@ int main (int argc, char *argv[])
     T << "{";
     P << "{";
     D << "{";
-    for (size_t run = 0; run < 10; run++)
+    for (size_t run = 0; run < 100; run++)
     {
         if (run != 0)
         {
@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
         P << "{";
         D << "{";
         // Parameter sweep on the radiusFactor
-        for (double rf = 0.0025; rf <= 0.050001; rf += 0.0025)
+        for (double rf = 0.0025; rf <= 0.070001; rf += 0.0025)
         {
             // Fix an upper limit for path length and test it
             data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
