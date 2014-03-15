@@ -18,7 +18,7 @@ plot = ListLinePlot[
       {X[[j]], data[[i,j]]}, {j, 1, Length[X]}
     ], {i, 1, Length[data]}
   ],
-  PlotRange->{{0,X[[1, Length[X[[1]]]]]}, {0,2}},
+  PlotRange->{{0, X[[Length[X]]]}, {0, 2}},
   PlotStyle->Thick,
   PlotMarkers->Automatic,
   PlotLegend->{"Time (s)", "Paths Found", "Diversity"},
