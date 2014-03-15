@@ -106,7 +106,7 @@ int main (int argc, char *argv[])
     T << "{";
     P << "{";
     D << "{";
-    for (size_t run = 0; run < 2; run++)
+    for (size_t run = 0; run < 10; run++)
     {
         if (run != 0)
         {
