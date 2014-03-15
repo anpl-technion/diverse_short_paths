@@ -10,6 +10,6 @@ ssh dione -t "bash -i -c \" \
     hg update; \
     make;\""
 
-ssh dione -t "base -i -c \" \
+ssh dione -t "bash -i -c \" \
     build/bin/diverse $graph $maxLength $plotName\""
     > $plotName.m
