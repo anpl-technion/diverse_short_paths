@@ -1,7 +1,10 @@
 Unprotect[D];
 inf=Infinity;
-Max2[list_] := Max[Select[list, # != inf &]];
-Avg[list_] := Sum[#[[i]], {i, 1, Length[#]}] / Length[#] &[Select[list, # != inf &]];
+NonInf[list_] := Select[list, # != inf &];
+Max2[list_] := Max[NonInf[list]];
+Avg[matrix_] := Table[
+  Total[NonInf[#[[i]]]] / Length[NonInf[#[[i]]]], {i, 1, Length[#]}
+  ] &[Transpose[matrix]];
 Needs["PlotLegends`"];
 X = %s;
 T = Avg[%s];
