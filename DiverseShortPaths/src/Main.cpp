@@ -35,7 +35,7 @@ void runEppsteinTests (const TestData *data)
  * Print results.
  */
 void runVossTests (const TestData *data, double radiusFactor,
-  std::ostream &X, std::ostream &T, std::ostream &P, std::ostream &D)
+  std::ostream &T, std::ostream &P, std::ostream &D)
 {
     double time;
     
@@ -44,7 +44,6 @@ void runVossTests (const TestData *data, double radiusFactor,
     const Results *voss_r = voss->timedRun(time);
     
     // Put results into nice tables
-    X << radiusFactor << ",";
     T << time << ",";
     P << voss_r->numPaths() << ",";
     D << voss_r->diversity() << ",";
@@ -59,12 +58,6 @@ void runVossTests (const TestData *data, double radiusFactor,
 void mathematicate (const char *plotName, std::string X,  std::string T,
   std::string P, std::string D)
 {
-    // Remove trailing commas
-    X = X.substr(0, X.length()-1);
-    T = T.substr(0, T.length()-1);
-    P = P.substr(0, P.length()-1);
-    D = D.substr(0, D.length()-1);
-    
     // Insert data into plot template
     std::ifstream in("plotTemplate.m.in");
     std::string format((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
@@ -109,17 +102,36 @@ int main (int argc, char *argv[])
     
     // Voss
     std::stringstream X, T, P, D;
-    // Parameter sweep on the radiusFactor
-    for (double rf = 0.0025; rf <= 0.050001; rf += 0.0025)
+    X << "{";
+    T << "{";
+    P << "{";
+    D << "{";
+    for (size_t run = 0; run < 10; run++)
     {
-        // Fix an upper limit for path length and test it
-        data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
-        runVossTests(&data, rf, X, T, P, D);
-        
-//         // Fix a lower limit for distance between pairs of paths and test it
-//         data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
-//         runVossTests(&data, rf);
+        T << "{";
+        P << "{";
+        D << "{";
+        // Parameter sweep on the radiusFactor
+        for (double rf = 0.0025; rf <= 0.050001; rf += 0.0025)
+        {
+            // Fix an upper limit for path length and test it
+            data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
+            if (run == 0)
+                X << rf << ",";
+            runVossTests(&data, rf, T, P, D);
+            
+//             // Fix a lower limit for distance between pairs of paths and test it
+//             data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
+//             runVossTests(&data, rf);
+        }
+        T << "\b},";
+        P << "\b},";
+        D << "\b},";
     }
+    X << "\b}";
+    T << "\b}";
+    P << "\b}";
+    D << "\b}";
     mathematicate(plotName, X.str(), T.str(), P.str(), D.str());
     
     return 0;
