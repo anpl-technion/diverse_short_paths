@@ -8,8 +8,14 @@ ssh dione -t "bash -i -c \" \
     cd repos/research/*; \
     hg pull; \
     hg update; \
-    make;\""
+    make; \
+    \""
+
+echo Press any key to disown
 
 ssh dione -t "bash -i -c \" \
     cd repos/research/*; \
-    build/bin/diverse $graph $maxLength $plotName > $plotName.m\""
+    build/bin/diverse $graph $maxLength $plotName > $plotName.m &; \
+    read; \
+    disown; \
+    \""
