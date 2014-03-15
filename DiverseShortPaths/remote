@@ -11,7 +11,7 @@ ssh dione -t "bash -i -c \" \
     make; \
     \""
 
-echo Press any key to disown
+echo Press [Enter] to disown
 
 ssh dione -t "bash -i -c \" \
     cd repos/research/*; \
