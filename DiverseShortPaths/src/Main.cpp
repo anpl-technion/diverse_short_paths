@@ -44,9 +44,9 @@ void runVossTests (const TestData *data, double radiusFactor,
     const Results *voss_r = voss->timedRun(time);
     
     // Put results into nice tables
-    T << time << ",";
-    P << voss_r->numPaths() << ",";
-    D << voss_r->diversity() << ",";
+    T << time;
+    P << voss_r->numPaths();
+    D << voss_r->diversity();
     voss_r->print(time);
     delete voss;
     delete voss_r;
@@ -106,8 +106,14 @@ int main (int argc, char *argv[])
     T << "{";
     P << "{";
     D << "{";
-    for (size_t run = 0; run < 10; run++)
+    for (size_t run = 0; run < 2; run++)
     {
+        if (run != 0)
+        {
+            T << ",";
+            P << ",";
+            D << ",";
+        }
         T << "{";
         P << "{";
         D << "{";
@@ -117,21 +123,31 @@ int main (int argc, char *argv[])
             // Fix an upper limit for path length and test it
             data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
             if (run == 0)
-                X << rf << ",";
+            {
+                if (rf != 0.0025)
+                    X << ",";
+                X << rf;
+            }
+            if (rf != 0.0025)
+            {
+                T << ",";
+                P << ",";
+                D << ",";
+            }
             runVossTests(&data, rf, T, P, D);
             
 //             // Fix a lower limit for distance between pairs of paths and test it
 //             data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
 //             runVossTests(&data, rf);
         }
-        T << "\b},";
-        P << "\b},";
-        D << "\b},";
+        T << "}";
+        P << "}";
+        D << "}";
     }
-    X << "\b}";
-    T << "\b}";
-    P << "\b}";
-    D << "\b}";
+    X << "}";
+    T << "}";
+    P << "}";
+    D << "}";
     mathematicate(plotName, X.str(), T.str(), P.str(), D.str());
     
     return 0;
