@@ -132,9 +132,8 @@ double Graph::levenshteinDistance (const Path &path1, const Path &path2) const
             const double jWeight = getEdgeWeight(path1[j-1], path1[j]);
             const double del = distances[(i-1)*rowLength+j] + iWeight;
             const double ins = distances[i*rowLength+j-1] + jWeight;
-            double match = distances[(i-1)*rowLength+j-1];
-            if (path1[j-1] != path2[i-1] || path1[j] != path2[i])
-                match += iWeight + jWeight;
+            const double match = distances[(i-1)*rowLength+j-1] + getSpaceInfo()->distance(
+                getVertexState(path1[j]), getVertexState(path2[i]));
             distances[i*rowLength+j] = std::min(std::min(del, ins), match);
         }
     }
