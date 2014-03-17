@@ -2,6 +2,7 @@ Unprotect[D];
 inf=Infinity;
 NonInf[list_] := Select[list, # != inf &];
 Max2[list_] := Max[NonInf[list]];
+Max3[list_, i_] := Max[NonInf[list][;;i]];
 Avg[matrix_] := Table[
   Total[NonInf[#[[i]]]] / Length[NonInf[#[[i]]]], {i, 1, Length[#]}
   ] &[Transpose[matrix]];
@@ -11,7 +12,10 @@ T = Avg[%s];
 P = Avg[%s];
 D = Avg[%s];
 name = "%s";
-data = {T, P/Max2[P], D/Max2[D]};
+last = Last[Select[Table[
+  i, {i,1,Length[P]}
+  ], P[[#]] == P[[1]] &]]
+data = {T, P/Max2[P], D/Max3[D, last]};
 plot = ListLinePlot[
   Table[
     Table[

@@ -77,9 +77,9 @@ int main (int argc, char *argv[])
     srand(1000);
     
     // Parse command line args
-    if (argc != 4)
+    if (argc != 5)
     {
-        std::cerr << "Usage: diverse <graph> <maxLength> <plotName>\n";
+        std::cerr << "Usage: diverse <graph> <maxLength> <plotName> <runs>\n";
         std::cerr << argc;
         return -1;
     }
@@ -87,6 +87,7 @@ int main (int argc, char *argv[])
     const double maxPathLength = std::atof(argv[2]);
     const double minPathPairwiseDistance = 0;//std::atof(argv[3]);
     const char *plotName = argv[3];
+    const size_t runs = std::atoi(argv[4]);
     
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
@@ -106,7 +107,7 @@ int main (int argc, char *argv[])
     T << "{";
     P << "{";
     D << "{";
-    for (size_t run = 0; run < 100; run++)
+    for (size_t run = 0; run < runs; run++)
     {
         if (run != 0)
         {
