@@ -13,8 +13,8 @@ P = Avg[%s];
 D = Avg[%s];
 name = "%s";
 last = Last[Select[Table[
-  i, {i,1,Length[P]}
-  ], P[[#]] == P[[1]] &]]
+  i, {i, 1, Length[P]}
+  ], P[[#]] == P[[1]] &]];
 data = {T, P/Max2[P], D/Max3[D, last]};
 plot = ListLinePlot[
   Table[
