@@ -17,7 +17,7 @@ echo Press [Enter] to disown
 
 ssh dione -t "bash -i -c \" \
     cd repos/research/*; \
-    build/bin/diverse $graph $constraint $plotName $runs > $plotName.m & \
+    build/bin/diverse $graph $flag $constraint $plotName $runs > $plotName.m & \
     read; \
     disown; \
     \""
