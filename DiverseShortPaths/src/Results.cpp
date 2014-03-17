@@ -25,7 +25,7 @@ void Results::print (double runtime) const
     std::clog << "\tshortest path length is " << shortest << "\n";
     const double longest = findLongestLength();
     std::clog << "\tlongest path length is " << longest << " (" << longest/shortest << " times as long)\n";
-    std::clog << "\tmean distance to nearest neighbor is " << meanNearestPathDistance() << "\n";
+    std::clog << "\tmin distance to nearest neighbor is " << minNearestPathDistance() << "\n";
     std::clog << " Completed in " << runtime << " seconds\n";
     
     std::clog << "\n\n" << std::flush;

@@ -14,16 +14,12 @@
  */
 class TestData
 {
-public:
-    enum Mode {UNSET, FIX_MAX_PATH_LENGTH, FIX_MIN_PATH_DISTANCE};
-    
 private:
     Vertex start;
     Vertex end;
     std::size_t k;
     double maxLength;
     double minDistance;
-    Mode mode;
     const Graph *graph;
     const std::string graphName;
     mutable char *buf;
@@ -41,9 +37,6 @@ public:
     // Get the basename of the graphml file
     char *getName () const;
     
-    // Set the test mode
-    void setMode (Mode m);
-    
     // Get the start node
     Vertex getStart () const;
     
@@ -55,8 +48,6 @@ public:
     
     // Get the minimum allowable path closeness
     double getMinDistance () const;
-    
-    std::string getParameter () const;
     
     // Get the number of paths to find
     double getK () const;

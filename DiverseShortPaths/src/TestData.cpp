@@ -8,7 +8,7 @@
 
 TestData::TestData (const std::string &graphFileName, const std::size_t numPaths,
                     const double maxPathLength, const double minPathPairwiseDistance)
- :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), mode(Mode::UNSET), graphName(graphFileName)
+ :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), graphName(graphFileName)
 {
     // Initialize the space
     ompl::base::SpaceInformationPtr si;
@@ -36,11 +36,6 @@ TestData::~TestData ()
     delete graph;
 }
 
-void TestData::setMode (Mode m)
-{
-    mode = m;
-}
-
 const Graph &TestData::getGraph () const
 {
     return *graph;
@@ -65,46 +60,12 @@ Vertex TestData::getEnd () const
 
 double TestData::getMaxLength () const
 {
-    switch (mode)
-    {
-    case FIX_MAX_PATH_LENGTH:
-        return maxLength;
-    case FIX_MIN_PATH_DISTANCE:
-        return std::numeric_limits<double>::infinity();
-    default:
-        throw std::runtime_error("Test mode not set!");
-    }
+    return maxLength;
 }
 
 double TestData::getMinDistance () const
 {
-    switch (mode)
-    {
-    case FIX_MAX_PATH_LENGTH:
-        return 1e-12;
-    case FIX_MIN_PATH_DISTANCE:
-        return minDistance;
-    default:
-        throw std::runtime_error("Test mode not set!");
-    }
-}
-
-std::string TestData::getParameter () const
-{
-    std::stringstream param;
-    switch (mode)
-    {
-        case FIX_MAX_PATH_LENGTH:
-            param << "length_" << maxLength;
-            break;
-        case FIX_MIN_PATH_DISTANCE:
-            param << "dist_" << minDistance;
-            break;
-        default:
-            throw std::runtime_error("Test mode not set!");
-    }
-    
-    return param.str();
+    return minDistance;
 }
 
 double TestData::getK () const

@@ -77,29 +77,26 @@ int main (int argc, char *argv[])
     srand(1000);
     
     // Parse command line args
-    if (argc != 5)
+    if (argc != 6)
     {
-        std::cerr << "Usage: diverse <graph> <maxLength> <plotName> <runs>\n";
+        std::cerr << "Usage: diverse <graph> -l|-d <maxLength|minDistance> <plotName> <runs>\n";
         std::cerr << argc;
         return -1;
     }
-    const char *graphFile = argv[1];
-    const double maxPathLength = std::atof(argv[2]);
-    const double minPathPairwiseDistance = 0;//std::atof(argv[3]);
-    const char *plotName = argv[3];
-    const size_t runs = std::atoi(argv[4]);
+    int arg = 1;
+    const char *graphFile = argv[arg++];
+    double maxPathLength = std::numeric_limits<double>::infinity();
+    double minPathPairwiseDistance = 1e-12;
+    if (std::strcmp("-l", argv[arg]) == 0)
+        maxPathLength = std::atof(argv[arg+1]);
+    else if (std::strcmp("-d", argv[arg]) == 0)
+        minPathPairwiseDistance = std::atof(argv[arg+1]);
+    arg += 2;
+    const char *plotName = argv[arg++];
+    const size_t runs = std::atoi(argv[arg++]);
     
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
-    
-//     // Eppstein
-//     // Fix an upper limit for path length and test it
-//     data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
-//     runEppsteinTests(&data);
-//     
-//     // Fix a lower limit for distance between pairs of paths and test it
-//     data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
-//     runEppsteinTests(&data);
     
     // Voss
     std::stringstream X, T, P, D;
@@ -121,8 +118,6 @@ int main (int argc, char *argv[])
         // Parameter sweep on the radiusFactor
         for (double rf = 0.0025; rf <= 0.070001; rf += 0.0025)
         {
-            // Fix an upper limit for path length and test it
-            data.setMode(TestData::Mode::FIX_MAX_PATH_LENGTH);
             if (run == 0)
             {
                 if (rf != 0.0025)
@@ -136,10 +131,6 @@ int main (int argc, char *argv[])
                 D << ",";
             }
             runVossTests(&data, rf, T, P, D);
-            
-//             // Fix a lower limit for distance between pairs of paths and test it
-//             data.setMode(TestData::Mode::FIX_MIN_PATH_DISTANCE);
-//             runVossTests(&data, rf);
         }
         T << "}";
         P << "}";
