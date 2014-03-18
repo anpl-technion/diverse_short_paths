@@ -11,7 +11,8 @@ class Graph;
 struct Neighborhood;
 
 // Will allow us to associate an object to each vertex representing all its attributes
-namespace boost {
+namespace boost
+{
     enum vertex_prop_t { vertex_prop };
 }
 
@@ -41,7 +42,8 @@ typedef graph_traits::vertex_descriptor Vertex;
 // Edge type
 typedef graph_traits::edge_descriptor Edge;
 
-namespace boost {
+namespace boost
+{
     BOOST_INSTALL_PROPERTY(vertex, prop);
 }
 
@@ -82,7 +84,8 @@ namespace boost
 }
 
 struct foundGoalException
-{ };
+{
+};
 
 class visitor : public boost::default_astar_visitor // implements AStar_Visitor
 {

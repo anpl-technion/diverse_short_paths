@@ -8,9 +8,10 @@
 
 Path::Path (const Path &path)
  :  std::vector<Vertex>(path), g(path.getGraph()), parametrization(path.getPartialEdgeSums())
-{ }
+{
+}
 
-Path::Path (std::vector<Vertex> &path, Graph *graph)
+Path::Path (std::vector<Vertex> &path, const Graph *graph)
  :  std::vector<Vertex>(path), g(graph)
 {
     parametrization.reserve(size());
@@ -21,9 +22,10 @@ Path::Path (std::vector<Vertex> &path, Graph *graph)
     }
 }
 
-Path::Path (Graph *graph)
+Path::Path (const Graph *graph)
  :  std::vector<Vertex>(), g(graph)
-{ }
+{
+}
 
 void Path::saveOMPLFormat(std::ostream &out) const
 {
@@ -54,7 +56,7 @@ double Path::getLength () const
     return parametrization[size()-1];
 }
 
-Graph *Path::getGraph () const
+const Graph *Path::getGraph () const
 {
     return g;
 }
@@ -65,7 +67,7 @@ void Path::print () const
     {
         std::cout << (*this)[i] << " ";
     }
-    std::cout << ": " << getLength() << "\n";
+    std::cout << ": " << (empty() ? 0 : getLength()) << "\n";
 }
 
 void Path::printWithWeights () const
@@ -113,9 +115,53 @@ ompl::base::State *Path::sampleUniform () const
     return sample;
 }
 
+const std::vector<double> &Path::getWeights () const
+{
+    if (!isWeightCached())
+        cacheWeights();
+    
+    return weights;
+}
+
+bool Path::isWeightCached () const
+{
+    return weights.size() > 0;
+}
+
+void Path::cacheWeights () const
+{
+    Vertex prev = (*this)[0];
+    BOOST_FOREACH(Vertex v, *this)
+    {
+        if (prev == v)
+            continue;
+        weights.push_back(g->getEdgeWeight(prev, v));
+        prev = v;
+    }
+}
+
+const std::vector<ompl::base::State *> &Path::getStates () const
+{
+    if (!isStateCached())
+        cacheStates();
+    
+    return states;
+}
+
+bool Path::isStateCached () const
+{
+    return states.size() > 0;
+}
+
+void Path::cacheStates () const
+{
+    BOOST_FOREACH(Vertex v, *this)
+    {
+        states.push_back(g->getVertexState(v));
+    }
+}
+
 double Path::distance (const Path &p1, const Path &p2)
 {
-    if (p1.getGraph() != p2.getGraph())
-        return std::numeric_limits<double>::quiet_NaN();
     return p1.getGraph()->levenshteinDistance(p1, p2);
 }

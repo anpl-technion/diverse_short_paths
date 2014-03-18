@@ -4,6 +4,7 @@
 
 #include "Voss.h"
 
+#include "DStar.h"
 #include "Graph.h"
 #include "Neighborhood.h"
 #include "Path.h"
@@ -14,7 +15,8 @@ const char *Voss::VOSS_NAME = "Random Neighborhood Avoidance";
 
 Voss::Voss (const TestData *data, double radiusFactor)
   : KDiverseShort(data), radius_factor(radiusFactor)
-{ }
+{
+}
 
 const Results *Voss::run ()
 {
@@ -28,6 +30,7 @@ const Results *Voss::run ()
     
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
     std::vector<std::vector<Neighborhood> > resultAvoids;
+//     std::vector<DStar *> dstars;
     
     // Unfiltered set of paths found
     std::vector<Path> unfilteredPathSet;
@@ -37,22 +40,33 @@ const Results *Voss::run ()
     
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
     std::vector<Neighborhood> alreadyAvoiding;
+//     DStar *current_dstar = new DStar(g, testData->getStart(), testData->getEnd());
+//     Path referencePath = current_dstar->getPath();
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
+    {
+        Neighborhood::destroyStatePool(g, statePool);
+//         delete current_dstar;
         return getResults(desc.str().c_str());
+    }
 
     considerPath(referencePath);
     if (tooLong())
+    {
+        Neighborhood::destroyStatePool(g, statePool);
+//         delete current_dstar;
         return getResults(desc.str().c_str());
+    }
     resultAvoids.push_back(alreadyAvoiding);
+//     dstars.push_back(current_dstar);
     unfilteredPathSet.push_back(referencePath);
-    //std::cout << "Kept: " << 1 << "/" << testData->getK() << "\n";
     
     // Work through the queue until we have enough
     while (frontier < unfilteredPathSet.size() && !tooLong() && needMore())
     {
         referencePath = unfilteredPathSet[frontier];
         alreadyAvoiding = resultAvoids[frontier];
+//         current_dstar = dstars[frontier];
         frontier++;
         
         // Make attempts at imposing a new neighborhood to avoid on the graph
@@ -64,24 +78,29 @@ const Results *Voss::run ()
             std::vector<Neighborhood> avoid = alreadyAvoiding;
             avoid.push_back(Neighborhood(g, statePool, referencePath.sampleUniform(), radius));
             // Get the shortest path under these constraints
+//             DStar *dstar = new DStar(current_dstar,
+//                 Neighborhood(g, statePool, referencePath.sampleUniform(), radius));
+//             Path path = dstar->getPath();
             Path path = getShortestPathUnderAvoidance(avoid);
+            
             if (path.empty())
                 continue;
             
             // Don't store it if it's not diverse enough
-            if (considerPath(path))
-            {
-                //std::cout << "Kept: " << pathSet.size() << "/" << testData->getK() << "\n";
-            }
+            considerPath(path);
             
             // But we'll need it regardless for later iterations
             unfilteredPathSet.push_back(path);
             resultAvoids.push_back(avoid);
+//             dstars.push_back(dstar);
         }
     }
     
     Neighborhood::destroyStatePool(g, statePool);
-    
+//     for (std::size_t i = 0; i < dstars.size(); i++)
+//     {
+//         delete dstars[i];
+//     }
     return getResults(desc.str().c_str());
 }
 

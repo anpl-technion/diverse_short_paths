@@ -12,22 +12,34 @@
 class Path : public std::vector<Vertex>
 {
 private:
-    Graph *g;
+    const Graph *g;
     std::vector<double> parametrization;
+    
+    mutable std::vector<double> weights;
+    
+    mutable std::vector<ompl::base::State *> states;
+    
+    bool isWeightCached () const;
+
+    void cacheWeights () const;
+    
+    bool isStateCached () const;
+
+    void cacheStates () const;
     
 public:
     
     Path (const Path &path);
     
-    Path (std::vector<Vertex> &path, Graph *g);
+    Path (std::vector<Vertex> &path, const Graph *g);
     
-    Path (Graph *g);
+    Path (const Graph *g);
     
     void saveOMPLFormat(std::ostream &out) const;
     
     double getLength () const;
     
-    Graph *getGraph () const;
+    const Graph *getGraph () const;
     
     void print () const;
     
@@ -39,6 +51,10 @@ public:
     
     // Allocates a state that should be freed later
     ompl::base::State *sampleUniform () const;
+    
+    const std::vector<double> &getWeights () const;
+    
+    const std::vector<ompl::base::State *> &getStates () const;
     
     static double distance (const Path &p1, const Path &p2);
 };

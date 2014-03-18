@@ -8,7 +8,9 @@
 #include "Neighborhood.h"
 
 Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo)
-: boost_graph(), si(sinfo) { }
+: boost_graph(), si(sinfo)
+{
+}
 
 Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphml)
 : boost_graph(), si(sinfo)
@@ -117,23 +119,27 @@ double Graph::levenshteinDistance (const Path &path1, const Path &path2) const
     const std::size_t rowLength = path1.size();
     const std::size_t colLength = path2.size();
     double *const distances = new double[rowLength*colLength];
+    const std::vector<double> weights1 = path1.getWeights();
+    const std::vector<double> weights2 = path2.getWeights();
+    const std::vector<ompl::base::State *> states1 = path1.getStates();
+    const std::vector<ompl::base::State *> states2 = path2.getStates();
     
     distances[0] = 0;
     for (std::size_t j = 1; j < rowLength; j++)
-        distances[j] = distances[j-1] + getEdgeWeight(path1[j-1], path1[j]);
+        distances[j] = distances[j-1] + weights1[j-1];
     for (std::size_t i = 1; i < colLength; i++)
-        distances[i*rowLength] = distances[(i-1)*rowLength] + getEdgeWeight(path2[i-1], path2[i]);
+        distances[i*rowLength] = distances[(i-1)*rowLength] + weights2[i-1];
     
     for (std::size_t i = 1; i < colLength; i++)
     {
         for (std::size_t j = 1; j < rowLength; j++)
         {
-            const double iWeight = getEdgeWeight(path2[i-1], path2[i]);
-            const double jWeight = getEdgeWeight(path1[j-1], path1[j]);
+            const double iWeight = weights2[i-1];
+            const double jWeight = weights1[j-1];
             const double del = distances[(i-1)*rowLength+j] + iWeight;
             const double ins = distances[i*rowLength+j-1] + jWeight;
-            const double match = distances[(i-1)*rowLength+j-1] + getSpaceInfo()->distance(
-                getVertexState(path1[j]), getVertexState(path2[i]));
+            const double match = distances[(i-1)*rowLength+j-1] + 
+                si->distance(states1[j], states2[i]);
             distances[i*rowLength+j] = std::min(std::min(del, ins), match);
         }
     }

@@ -84,7 +84,7 @@ bool Neighborhood::shouldAvoid (const Edge e) const
             midright = tmp;  // So we don't lose track of the 5 allocated states
             
             // If there's no chance of hitting the neighborhood, stop now
-            if (right_dist > radius + h)
+            if (right_dist > radius + h/2)
             {
                 inside = false;
                 break;

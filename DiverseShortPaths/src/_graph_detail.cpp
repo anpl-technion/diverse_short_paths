@@ -8,14 +8,19 @@
 #include "Neighborhood.h"
 
 VertexAttributes::VertexAttributes ()
-: state(NULL) { }
+: state(NULL)
+{
+}
 
 VertexAttributes::VertexAttributes (ompl::base::State *state)
-: state(state) { }
+: state(state)
+{
+}
 
 heuristic::heuristic (const Graph &graph, Vertex goal)
 :  g(graph), goal(goal)
-{ }
+{
+}
 
 double heuristic::operator() (Vertex u) const
 {
@@ -26,7 +31,8 @@ double heuristic::operator() (Vertex u) const
 
 edgeWeightMap::edgeWeightMap (const Graph &graph, const std::vector<Neighborhood> &avoidThese)
 :  g(graph), avoid(avoidThese)
-{ }
+{
+}
 
 bool edgeWeightMap::shouldAvoid (Edge e) const
 {
@@ -35,7 +41,7 @@ bool edgeWeightMap::shouldAvoid (Edge e) const
         if (avoid[i].shouldAvoid(e))
             return true;
     }
-        return false;
+    return false;
 }
 
 const Graph &edgeWeightMap::getGraph () const
@@ -48,7 +54,7 @@ namespace boost
     double get (const edgeWeightMap &m, const Edge &e)
     {
         if (m.shouldAvoid(e))
-            return std::numeric_limits<double>::max();
+            return std::numeric_limits<double>::infinity();
         return m.getGraph().getEdgeWeight(e);
     }
 }
@@ -56,10 +62,13 @@ namespace boost
 
 visitor::visitor (Vertex goal)
 : goal(goal)
-{ }
+{
+}
 
 void visitor::examine_vertex (Vertex u, const Graph &) const
 {
     if (u == goal)
         throw foundGoalException();
 }
+
+
