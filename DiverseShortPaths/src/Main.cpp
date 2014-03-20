@@ -21,8 +21,7 @@ void runEppsteinTests (const TestData *data, double &Te, double &De)
     
     // Run Eppstein's algorithm on the data
     Eppstein *epp = new Eppstein(data);
-    const Results *res = epp->timedRun(time);
-    res->saveSet();
+    const Results *res = epp->timedRun(time);\
     
     // Put results into a nice format
     Te = time;
