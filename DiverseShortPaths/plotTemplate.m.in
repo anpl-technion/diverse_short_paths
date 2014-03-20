@@ -30,8 +30,8 @@ plot = ListLinePlot[
   PlotMarkers->Automatic,
   ClippingStyle->False,
   PlotLegend->{"Time (s)", "Paths Found", "Diversity", "Epp. Time", "Epp. Diversity"},
-  LegendPosition->{0.9, -0.4},
-  LegendSize->1,
+  LegendPosition->{0.9, -0.8},
+  LegendSize->1.5,
   LegendShadow->None,
   PlotLabel->name
 ];
