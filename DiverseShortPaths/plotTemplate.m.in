@@ -11,11 +11,13 @@ X = %s;
 T = Avg[%s];
 P = Avg[%s];
 D = Avg[%s];
+Te = SparseArray[{}, Length[X], %s];
+De = SparseArray[{}, Length[X], %s];
 name = "%s";
 last = Last[Select[Table[
   i, {i, 1, Length[P]}
   ], P[[#]] == P[[1]] &]];
-data = {T, P/Max2[P], D/Max3[D, last]};
+data = {T, P/Max2[P], D/Max3[D, last], Te, De/Max3[D, last]};
 plot = ListLinePlot[
   Table[
     Table[
@@ -25,7 +27,7 @@ plot = ListLinePlot[
   PlotRange->{{0, X[[Length[X]]]}, {0, 2}},
   PlotStyle->Thick,
   PlotMarkers->Automatic,
-  PlotLegend->{"Time (s)", "Paths Found", "Diversity"},
+  PlotLegend->{"Time (s)", "Paths Found", "Diversity", "Epp. Time", "Epp. Diversity"},
   LegendPosition->{0.9, -0.4},
   LegendSize->1,
   LegendShadow->None,

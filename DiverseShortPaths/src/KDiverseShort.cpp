@@ -10,12 +10,17 @@
 #include "TestData.h"
 
 KDiverseShort::KDiverseShort (const TestData *data)
-: too_long(false), testData(data)
+  : too_long(false), pathNN(new ompl::NearestNeighborsGNAT<Path>()), testData(data)
 {
+    pathArray = new Path[testData->getK()];
+    _i = 0;
+    pathNN->setDistanceFunction(&Path::distance);
 }
 
 KDiverseShort::~KDiverseShort ()
 {
+    delete [] pathArray;
+    delete pathNN;
 }
 
 bool KDiverseShort::tooLong () const
@@ -25,7 +30,7 @@ bool KDiverseShort::tooLong () const
 
 bool KDiverseShort::needMore () const
 {
-    return pathSet.size() < testData->getK();
+    return _i < testData->getK();
 }
 
 bool KDiverseShort::considerPath(const Path &path)
@@ -36,26 +41,23 @@ bool KDiverseShort::considerPath(const Path &path)
         return false;
     }
     
-    double nearest_distance = testData->getMinDistance();
-    for (std::size_t i = 0; i < pathSet.size(); i++)
+    if (_i > 0)
     {
-        double distance = testData->getGraph().levenshteinDistance(pathSet[i], path);
-        if (distance < nearest_distance)
-            nearest_distance = distance;
+        const Path &nearest = pathNN->nearest(path);
+        const double d = (pathNN->getDistanceFunction())(path, nearest);
+        if (d < testData->getMinDistance())
+            return false;
     }
-    if (nearest_distance < testData->getMinDistance())
-        return false;
     
-    pathSet.push_back(path);
+    pathArray[_i++] = path;
+    pathNN->add(pathArray[_i-1]);
     //path.print();
     return true;
 }
 
 const Results *KDiverseShort::getResults (const char *alg_name)
 {
-    std::stringstream ss;
-    ss << "env_" << testData->getName() << ":alg_" << alg_name;
-    return new Results(ss.str(), testData, pathSet);
+    return new Results(alg_name, testData, pathArray, _i);
 }
 
 const Results *KDiverseShort::timedRun (double &seconds)

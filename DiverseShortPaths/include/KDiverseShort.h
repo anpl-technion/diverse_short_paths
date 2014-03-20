@@ -20,9 +20,15 @@ private:
     // Whether the last considered path was too long
     bool too_long;
     
+    // Storage for paths
+    Path *pathArray;
+    
+    // Next index to store a path
+    std::size_t _i;
+    
 protected:
     // Set of paths found
-    std::vector<Path> pathSet;
+    ompl::NearestNeighbors<Path> *pathNN;
     
     // Data to use when running the algorithm
     const TestData *testData;
@@ -36,7 +42,7 @@ protected:
     // Evaluate a path against the set of paths found so far; return true if it is accepted
     bool considerPath(const Path &path);
     
-    // Compose a Results object from the pathSet
+    // Compose a Results object from the pathNN
     const Results *getResults (const char *alg_name);
     
     // Evaluate the algorithm

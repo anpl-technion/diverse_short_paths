@@ -29,6 +29,8 @@ private:
     
 public:
     
+    Path ();
+    
     Path (const Path &path);
     
     Path (std::vector<Vertex> &path, const Graph *g);

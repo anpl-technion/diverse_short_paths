@@ -16,14 +16,16 @@ class TestData;
 class Results
 {
 private:
-    std::string description;
+    const std::string description;
     const TestData *const data;
-    std::vector<Path *> paths;
+    const Path *paths;
+    const std::size_t n;
     
 public:
     
     // Constructor
-    Results (std::string name, const TestData *const testData, std::vector<Path> &pathSet);
+    Results (const std::string name, const TestData *const testData,
+             const Path *pathSet, const std::size_t nPaths);
     
     // Write set in OMPL format
     void saveSet () const;

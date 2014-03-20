@@ -68,7 +68,7 @@ double TestData::getMinDistance () const
     return minDistance;
 }
 
-double TestData::getK () const
+std::size_t TestData::getK () const
 {
     return k;
 }

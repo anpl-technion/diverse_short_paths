@@ -7,20 +7,16 @@
 #include "Path.h"
 #include "TestData.h"
 
-Results::Results (std::string name, const TestData *const testData, std::vector<Path> &pathSet)
-  : description(name), data(testData)
+Results::Results (const std::string name, const TestData *const testData,
+                  const Path *pathSet, const std::size_t nPaths)
+  : description(name), data(testData), paths(pathSet), n(nPaths)
 {
-    paths.reserve(pathSet.size());
-    for (std::size_t i = 0; i < pathSet.size(); i++)
-    {
-        paths.push_back(&pathSet[i]);
-    }
 }
 
 void Results::print (double runtime) const
 {
     std::clog << "Description: " << description << "\n";
-    std::clog << " Found " << paths.size() << " of " << data->getK() << " requested paths.\n";
+    std::clog << " Found " << n << " of " << data->getK() << " requested paths.\n";
     const double shortest = findShortestLength();
     std::clog << "\tshortest path length is " << shortest << "\n";
     const double longest = findLongestLength();
@@ -34,17 +30,17 @@ void Results::print (double runtime) const
 void Results::saveSet () const
 {
     std::ofstream fout(description + ".txt");
-    for (std::size_t i = 0; i < paths.size(); i++)
+    for (std::size_t i = 0; i < n; i++)
     {
-        paths[i]->saveOMPLFormat(fout);
+        paths[i].saveOMPLFormat(fout);
     }
 }
 
 double Results::findShortestLength () const
 {
     // Assume it's the first one
-    if (paths.size() > 0)
-        return paths[0]->getLength();
+    if (n > 0)
+        return paths[0].getLength();
     else
         return std::numeric_limits<double>::quiet_NaN();
 }
@@ -52,10 +48,10 @@ double Results::findShortestLength () const
 double Results::findLongestLength () const
 {
     double longest = 0;
-    for (std::size_t i = 0; i < paths.size(); i++)
+    for (std::size_t i = 0; i < n; i++)
     {
-        if (paths[i]->getLength() > longest)
-            longest = paths[i]->getLength();
+        if (paths[i].getLength() > longest)
+            longest = paths[i].getLength();
     }
     return longest;
 }
@@ -69,7 +65,7 @@ double Results::diversity () const
 double Results::minNearestPathDistance () const
 {
     double min = std::numeric_limits<double>::infinity();
-    for (std::size_t i = 0; i < paths.size(); i++)
+    for (std::size_t i = 0; i < n; i++)
     {
         double d = nearestPathDistance(i);
         if (d < min)
@@ -81,21 +77,21 @@ double Results::minNearestPathDistance () const
 double Results::meanNearestPathDistance () const
 {
     double sum = 0;
-    for (std::size_t i = 0; i < paths.size(); i++)
+    for (std::size_t i = 0; i < n; i++)
     {
         sum += nearestPathDistance(i);
     }
-    return sum/paths.size();
+    return sum/n;
 }
 
 double Results::nearestPathDistance (const std::size_t which) const
 {
     double nearest = std::numeric_limits<double>::infinity();
-    for (std::size_t i = 0; i < paths.size(); i++)
+    for (std::size_t i = 0; i < n; i++)
     {
         if (i == which)
             continue;
-        const double distance = Path::distance(*paths[i], *paths[which]);
+        const double distance = Path::distance(paths[i], paths[which]);
         if (distance < nearest)
             nearest = distance;
     }
@@ -109,10 +105,10 @@ const TestData *Results::getData () const
 
 std::size_t Results::numPaths () const
 {
-    return paths.size();
+    return n;
 }
 
 const Path *Results::getPath (std::size_t i) const
 {
-    return paths[i];
+    return &paths[i];
 }

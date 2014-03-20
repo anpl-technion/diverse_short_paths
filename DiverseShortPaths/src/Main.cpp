@@ -15,19 +15,21 @@
  * Run my algorithm on the data.
  * Print results.
  */
-void runEppsteinTests (const TestData *data)
+void runEppsteinTests (const TestData *data, double &Te, double &De)
 {
     double time;
     
     // Run Eppstein's algorithm on the data
     Eppstein *epp = new Eppstein(data);
-    const Results *eppstein_r = epp->timedRun(time);
-    eppstein_r->saveSet();
+    const Results *res = epp->timedRun(time);
+    res->saveSet();
     
     // Put results into a nice format
-    eppstein_r->print(time);
+    Te = time;
+    De = res->diversity();
+    res->print(time);
     delete epp;
-    delete eppstein_r;
+    delete res;
 }
 
 /*
@@ -41,30 +43,34 @@ void runVossTests (const TestData *data, double radiusFactor,
     
     // Run my algorithm on the data
     Voss *voss = new Voss(data, radiusFactor);
-    const Results *voss_r = voss->timedRun(time);
+    const Results *res = voss->timedRun(time);
     
     // Put results into nice tables
     T << time;
-    P << voss_r->numPaths();
-    D << voss_r->diversity();
-    voss_r->print(time);
+    P << res->numPaths();
+    D << res->diversity();
+    res->print(time);
     delete voss;
-    delete voss_r;
+    delete res;
 }
 
 /*
  * Write out data as Mathematica code.
  */
 void mathematicate (const char *plotName, std::string X,  std::string T,
-  std::string P, std::string D)
+  std::string P, std::string D, double Te, double De)
 {
+    std::stringstream ss_Te, ss_De;
+    ss_Te << Te;
+    ss_De << De;
     // Insert data into plot template
     std::ifstream in("plotTemplate.m.in");
     std::string format((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     std::size_t length = format.length() + std::strlen(plotName) + X.length() + T.length()
-      + P.length() + D.length() + 1;
+      + P.length() + D.length() + ss_Te.str().length() + ss_De.str().length() + 1;
     char *buf = new char[length];
-    std::sprintf(buf, format.c_str(), X.c_str(), T.c_str(), P.c_str(), D.c_str(), plotName);
+    std::sprintf(buf, format.c_str(), X.c_str(), T.c_str(), P.c_str(), D.c_str(),
+                 ss_Te.str().c_str(), ss_De.str().c_str(), plotName);
     std::cout << buf;
     delete buf;
 }
@@ -98,6 +104,10 @@ int main (int argc, char *argv[])
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
     
+    // Eppstein
+    double Te, De;
+    runEppsteinTests(&data, Te, De);
+    
     // Voss
     std::stringstream X, T, P, D;
     X << "{";
@@ -112,10 +122,11 @@ int main (int argc, char *argv[])
             P << ",";
             D << ",";
         }
+        
+        // Parameter sweep on the radiusFactor
         T << "{";
         P << "{";
         D << "{";
-        // Parameter sweep on the radiusFactor
         for (double rf = 0.0025; rf <= 0.070001; rf += 0.0025)
         {
             if (run == 0)
@@ -140,7 +151,7 @@ int main (int argc, char *argv[])
     T << "}";
     P << "}";
     D << "}";
-    mathematicate(plotName, X.str(), T.str(), P.str(), D.str());
+    mathematicate(plotName, X.str(), T.str(), P.str(), D.str(), Te, De);
     
     return 0;
 }

@@ -6,6 +6,11 @@
 
 #include "Graph.h"
 
+Path::Path ()
+ :  std::vector<Vertex>(), g(NULL)
+{
+}
+
 Path::Path (const Path &path)
  :  std::vector<Vertex>(path), g(path.getGraph()), parametrization(path.getPartialEdgeSums())
 {

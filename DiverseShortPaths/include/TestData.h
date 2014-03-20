@@ -50,7 +50,7 @@ public:
     double getMinDistance () const;
     
     // Get the number of paths to find
-    double getK () const;
+    std::size_t getK () const;
     
 private:
     // Constructor an empty data set
