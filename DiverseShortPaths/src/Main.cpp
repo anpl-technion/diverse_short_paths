@@ -85,7 +85,7 @@ int main (int argc, char *argv[])
     // Parse command line args
     if (argc != 6)
     {
-        std::cerr << "Usage: diverse <graph> -l|-d <maxLength|minDistance> <plotName> <runs>\n";
+        std::cerr << "Usage: diverse <graph> <-u | -l maxLength | -d minDistance> <plotName> <runs>\n";
         std::cerr << argc;
         return -1;
     }
@@ -97,6 +97,8 @@ int main (int argc, char *argv[])
         maxPathLength = std::atof(argv[arg+1]);
     else if (std::strcmp("-d", argv[arg]) == 0)
         minPathPairwiseDistance = std::atof(argv[arg+1]);
+    else
+        arg--;
     arg += 2;
     const char *plotName = argv[arg++];
     const size_t runs = std::atoi(argv[arg++]);
