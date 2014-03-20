@@ -17,7 +17,8 @@ name = "%s";
 last = Last[Select[Table[
   i, {i, 1, Length[P]}
   ], P[[#]] == P[[1]] &]];
-data = {T, P/Max2[P], D/Max3[D, last], Te, De/Max3[D, last]};
+D_scale = Max3[D, last];
+data = {T, P/Max2[P], D/D_scale, Te, De/D_scale};
 plot = ListLinePlot[
   Table[
     Table[
