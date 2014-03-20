@@ -2,9 +2,15 @@
 
 graph=$1
 flag=$2
-constraint=$3
-plotName=$4
-runs=$5
+if [ "$flag" == "-u" ]
+then
+    plotName=$3
+    runs=$4
+else
+    constraint=$3
+    plotName=$4
+    runs=$5
+fi
 
 ssh dione -t "bash -i -c \" \
     cd repos/research/*; \
