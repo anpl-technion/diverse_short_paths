@@ -75,6 +75,11 @@ void mathematicate (const char *plotName, std::string X,  std::string T,
     delete buf;
 }
 
+int usage ()
+{
+    std::cerr << "Usage: diverse <graph> <-u | -l maxLength | -d minDistance> <plotName> <runs>\n";
+    return -1;
+}
 /*
  * Run tests on k diverse short path algorithms.
  */
@@ -83,12 +88,8 @@ int main (int argc, char *argv[])
     srand(1000);
     
     // Parse command line args
-    if (argc != 6)
-    {
-        std::cerr << "Usage: diverse <graph> <-u | -l maxLength | -d minDistance> <plotName> <runs>\n";
-        std::cerr << argc;
-        return -1;
-    }
+    if (argc != 6 && argc != 5)
+        return usage();
     int arg = 1;
     const char *graphFile = argv[arg++];
     double maxPathLength = std::numeric_limits<double>::infinity();
@@ -98,7 +99,11 @@ int main (int argc, char *argv[])
     else if (std::strcmp("-d", argv[arg]) == 0)
         minPathPairwiseDistance = std::atof(argv[arg+1]);
     else
+    {
+        if (argc != 5)
+            return usage();
         arg--;
+    }
     arg += 2;
     const char *plotName = argv[arg++];
     const size_t runs = std::atoi(argv[arg++]);
