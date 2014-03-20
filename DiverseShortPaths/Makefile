@@ -4,7 +4,7 @@ SHELL		= /bin/bash
 CXX		= clang++
 CXXFLAGS	= -Wall -Wextra -Werror -Wpedantic -std=c++11 \
 		    -g -Qunused-arguments -fcolor-diagnostics \
-		    -fdiagnostics-show-template-tree -ggdb -march=native
+		    -fdiagnostics-show-template-tree -march=native
 LDFLAGS		= -lompl -lboost_graph
 
 PROG		= diverse
