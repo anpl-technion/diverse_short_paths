@@ -1,8 +1,12 @@
 #!/bin/bash
 
-plotName=$1
-
-rsync dione:repos/research/*/$plotName.m .
+if [ "$1" == "-l" ]
+then
+    plotName=$2
+else
+    plotName=$1
+    rsync dione:repos/research/*/$plotName.m .
+fi
 
 cat $plotName.m | ssh clear -Y "bash -l -c \"sleep 1; math\"" > /dev/null 2> /dev/null
 
