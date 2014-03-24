@@ -133,7 +133,8 @@ int main (int argc, char *argv[])
         T << "{";
         P << "{";
         D << "{";
-        for (double rf = 0.0025; rf <= 0.040001; rf += 0.0025)
+        //for (double rf = 0.0025; rf <= 0.040001; rf += 0.0025)
+        for (double rf = 0.001; rf <= 0.015001; rf += 0.001)
         {
             if (run == 0)
             {
