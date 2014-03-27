@@ -106,16 +106,16 @@ int main (int argc, char *argv[])
         arg--;
     }
     arg += 2;
-    const char *plotName = argv[arg++];
-    const size_t runs = std::atoi(argv[arg++]);
-    
+//     const char *plotName = argv[arg++];
+//     const size_t runs = std::atoi(argv[arg++]);
+//     
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
     
     // Eppstein
     double Te, De;
     runEppsteinTests(&data, Te, De);
-    
+    /*
     // Voss
     std::stringstream X, T, P, D;
     X << "{";
@@ -162,6 +162,6 @@ int main (int argc, char *argv[])
     P << "}";
     D << "}";
     mathematicate(plotName, X.str(), T.str(), P.str(), D.str(), Te, De);
-    
+    */
     return 0;
 }

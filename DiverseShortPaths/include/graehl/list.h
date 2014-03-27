@@ -55,7 +55,7 @@ public:
     Node<T> *next;
     while (head) {
       next = head->next;
-      delete head;
+      //delete head;
       head = next;
     }
   }
@@ -84,7 +84,7 @@ public:
   }
   void pop() {
     Node<T> *n = head->next;
-    delete head;
+    //delete head;
     head = n;
   }
   friend class ListIter<T>;
@@ -109,7 +109,7 @@ public:
     return ret;
   }
   void remove() {
-    delete cut();
+    //delete cut();
   }
   T & insert(const T& t) {
     Node<T> *n = new Node<T> (t, current);

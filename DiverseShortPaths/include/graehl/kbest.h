@@ -164,7 +164,7 @@ public:
     
     ~Graehl ()
     {
-        if (retired)
+        /*if (retired)
             delete [] retired;
         if (pathQueue)
             delete [] pathQueue;
@@ -182,7 +182,7 @@ public:
         delete [] dist;
         delete insertHere;
         delete paths;
-        delete [] graph.states;
+        delete [] graph.states;*/
     }
 
     List<GraphArc *> *getNextPath()

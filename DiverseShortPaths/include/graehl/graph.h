@@ -86,7 +86,7 @@ List<int> *topologicalSort(Graph g) {
     dfsVis[i] = 0;
   for ( i = 0 ; i < g.nStates ; ++i )
     dfsRec(i, -1);
-  delete[] dfsVis;
+  //delete[] dfsVis;
   return topSort;
 }
 
@@ -190,10 +190,10 @@ Graph shortestPathTree(Graph g, int dest, float *dist)
       pathTree[i].arcs.top().data = best[i];
     }
   
-  delete[] stateLocations;
-  delete[] distQueue;
-  delete[] rev;
-  delete[] best;
+//   delete[] stateLocations;
+//   delete[] distQueue;
+//   delete[] rev;
+//   delete[] best;
 
   Graph ret;
   ret.nStates = nStates;
