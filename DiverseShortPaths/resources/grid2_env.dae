@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.70.0 commit date:2014-03-20, commit time:17:45, hash:dfa5ced</authoring_tool>
     </contributor>
-    <created>2014-03-24T15:14:16</created>
-    <modified>2014-03-24T15:14:16</modified>
+    <created>2014-03-24T16:44:07</created>
+    <modified>2014-03-24T16:44:07</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -23,7 +23,7 @@
               <color sid="ambient">0 0 0 1</color>
             </ambient>
             <diffuse>
-              <color sid="diffuse">0.64 0.64 0.64 1</color>
+              <color sid="diffuse">0.64 0.328299 0.08857685 1</color>
             </diffuse>
             <specular>
               <color sid="specular">0.5 0.5 0.5 1</color>
@@ -44,10 +44,39 @@
       </profile_COMMON>
       <extra><technique profile="MAX3D"><double_sided>1</double_sided></technique></extra>
     </effect>
+    <effect id="Material_001-effect">
+      <profile_COMMON>
+        <technique sid="common">
+          <phong>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <ambient>
+              <color sid="ambient">0 0 0 1</color>
+            </ambient>
+            <diffuse>
+              <color sid="diffuse">0.4628192 0.64 0.6216865 1</color>
+            </diffuse>
+            <specular>
+              <color sid="specular">0.5 0.5 0.5 1</color>
+            </specular>
+            <shininess>
+              <float sid="shininess">50</float>
+            </shininess>
+            <index_of_refraction>
+              <float sid="index_of_refraction">1</float>
+            </index_of_refraction>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
   </library_effects>
   <library_materials>
     <material id="Material-material" name="Material">
       <instance_effect url="#Material-effect"/>
+    </material>
+    <material id="Material_001-material" name="Material_001">
+      <instance_effect url="#Material_001-effect"/>
     </material>
   </library_materials>
   <library_geometries>
@@ -241,7 +270,7 @@
         <vertices id="Plane-mesh-vertices">
           <input semantic="POSITION" source="#Plane-mesh-positions"/>
         </vertices>
-        <polylist count="2">
+        <polylist material="Material_001-material" count="2">
           <input semantic="VERTEX" source="#Plane-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#Plane-mesh-normals" offset="1"/>
           <vcount>3 3 </vcount>
@@ -964,7 +993,13 @@
       </node>
       <node id="Plane" name="Plane" type="NODE">
         <matrix sid="transform">15 0 0 0 0 15 0 0 0 0 15 -1 0 0 0 1</matrix>
-        <instance_geometry url="#Plane-mesh"/>
+        <instance_geometry url="#Plane-mesh">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material_001-material" target="#Material_001-material"/>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
       <node id="Cube_005" name="Cube_005" type="NODE">
         <matrix sid="transform">1 0 0 5 0 1 0 -10 0 0 1 0 0 0 0 1</matrix>

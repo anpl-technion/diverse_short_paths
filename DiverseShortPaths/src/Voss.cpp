@@ -73,7 +73,7 @@ const Results *Voss::run ()
         // Neighborhood's radius is some pre-defined fraction of the referencePath's length
         // Number of Neighborhoods is twice the number of edges in the path
         double radius = radius_factor * referencePath.getLength();
-        for (std::size_t i = 0; i < 2*referencePath.size() && needMore(); i++)
+        for (std::size_t i = 0; i < 2/*2*referencePath.size()*/ && needMore(); i++)
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
             avoid.push_back(Neighborhood(g, statePool, referencePath.sampleUniform(), radius));

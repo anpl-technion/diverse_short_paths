@@ -27,6 +27,7 @@ void runEppsteinTests (const TestData *data, double &Te, double &De)
     Te = time;
     De = res->diversity();
     res->print(time);
+    res->saveSet();
     delete epp;
     delete res;
 }
@@ -49,6 +50,7 @@ void runVossTests (const TestData *data, double radiusFactor,
     P << res->numPaths();
     D << res->diversity();
     res->print(time);
+    res->saveSet();
     delete voss;
     delete res;
 }
@@ -134,7 +136,8 @@ int main (int argc, char *argv[])
         P << "{";
         D << "{";
         //for (double rf = 0.0025; rf <= 0.040001; rf += 0.0025)
-        for (double rf = 0.0025; rf <= 0.020001; rf += 0.0025)
+        //for (double rf = 0.0025; rf <= 0.020001; rf += 0.0025)
+        double rf = 0.10;
         {
             if (run == 0)
             {
