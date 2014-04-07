@@ -16,7 +16,7 @@ template <class T> struct Node {
   Node(const T &it, Node<T> *ne) : data(it), next(ne) { }
   static Node<T> *freeList;
   static const int newBlocksize;
-#ifdef CUSTOMNEW
+#ifdef CUSTOMNEW/*
   void *operator new(size_t)
   {
     Node<T> *ret, *max;
@@ -37,7 +37,7 @@ template <class T> struct Node {
     Node<T> *e = (Node<T> *)p;
     e->next = freeList;
     freeList = e;
-  }
+  }*/
 #endif
 };
 

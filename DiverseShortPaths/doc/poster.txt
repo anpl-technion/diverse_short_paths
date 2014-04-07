@@ -1,0 +1,29 @@
+TITLE:
+
+
+ABSTRACT:
+Motion planning for robots is expensive, and there are well-known strategies for constructing a high-level roadmap of an environment which the robot can use to quickly find paths through areas that have already been explored, rather than recomputing from scratch. An unresolved question is how to effectively use such a roadmap if the environment is dynamic. I propose an algorithm to find a set of alternate paths through the roadmap which are short, yet sufficiently diverse, so that if a change in the environment invalidates one path, it will likely not affect the others. My algorithm proceeds by finding the shortest path through each of several subgraphs of the roadmap. These subgraphs are formed by successively sampling random regions of the space that intersect a known path, and edges crossing these regions are removed so that future paths avoid the area. For comparison, I use a well-known algorithm to find the shortest paths in order of increasing length and discard paths which are too similar. I expect to determine which approach is more useful in the context of motion planning with roadmaps by analyzing the speed of each and the quality of the path sets returned by each.
+
+PROBLEM:
+Given a roadmap of valid motions, represented as a graph embedded in a state space, and two nodes on the roadmap labeled start and goal, find k paths on the roadmap from start to goal such that each of the paths is short and the set of paths together is diverse. The length of a path is measured as the sum of the weights of its edges. The diversity of a set of paths is the minimum of the distances between any pair of distinct paths in the set.
+
+ALGORITHM:
+Begin with the shortest path from start to goal.
+
+Consider b different scenarios in which...
+
+...we simulate a simple obstacle blocking this path
+
+Recompute and save the new shortest path.
+
+Repeat on each new path, until k paths have been generated.
+
+
+CAPTIONS:
+
+METHOD & RESULTS:
+
+CONCLUSION:
+
+REFERENCES:
+

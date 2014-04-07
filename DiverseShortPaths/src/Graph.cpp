@@ -49,10 +49,10 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphm
 
 Graph::~Graph ()
 {
-    foreachVertex([&] (const Vertex v) -> void
-    {
-        si->freeState(boost::get(boost::vertex_prop, *this, v).state);
-    });
+//     foreachVertex([&] (const Vertex v) -> void
+//     {
+//         si->freeState(boost::get(boost::vertex_prop, *this, v).state);
+//     });
 }
 
 ompl::base::SpaceInformationPtr Graph::getSpaceInfo () const
