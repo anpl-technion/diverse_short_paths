@@ -119,28 +119,39 @@ double Graph::levenshteinDistance (const Path &path1, const Path &path2) const
     const std::size_t rowLength = path1.size();
     const std::size_t colLength = path2.size();
     double *const distances = new double[rowLength*colLength];
-    const std::vector<double> weights1 = path1.getWeights();
-    const std::vector<double> weights2 = path2.getWeights();
+    //const std::vector<double> weights1 = path1.getWeights();
+    //const std::vector<double> weights2 = path2.getWeights();
     const std::vector<ompl::base::State *> states1 = path1.getStates();
     const std::vector<ompl::base::State *> states2 = path2.getStates();
     
     distances[0] = 0;
     for (std::size_t j = 1; j < rowLength; j++)
-        distances[j] = distances[j-1] + weights1[j-1];
+        distances[j] = distances[j-1] + si->distance(states2[0], states1[j]);
     for (std::size_t i = 1; i < colLength; i++)
-        distances[i*rowLength] = distances[(i-1)*rowLength] + weights2[i-1];
+        distances[i*rowLength] = distances[(i-1)*rowLength] +
+          si->distance(states1[0], states2[i]);
     
     for (std::size_t i = 1; i < colLength; i++)
     {
         for (std::size_t j = 1; j < rowLength; j++)
         {
-            const double iWeight = weights2[i-1];
-            const double jWeight = weights1[j-1];
-            const double del = distances[(i-1)*rowLength+j] + iWeight;
-            const double ins = distances[i*rowLength+j-1] + jWeight;
-            const double match = distances[(i-1)*rowLength+j-1] + 
-                si->distance(states1[j], states2[i]);
-            distances[i*rowLength+j] = std::min(std::min(del, ins), match);
+            //const double iWeight = weights2[i-1];
+            //const double jWeight = weights1[j-1];
+            const double xform = distances[(i-1)*rowLength+j-1] +
+              si->distance(states1[j], states2[i]);
+            const double del = distances[(i-1)*rowLength+j] +
+              si->distance(states2[i-1], states2[i]) +
+              ((i+1==colLength) ? 0 : (si->distance(states2[i], states2[i+1]) -
+              si->distance(states2[i-1], states2[i+1])));
+            const double ins = distances[i*rowLength+j-1] +
+              si->distance(states1[j-1], states1[j]) +
+              ((j+1==rowLength) ? 0 : (si->distance(states1[j], states1[j+1]) -
+              si->distance(states1[j-1], states1[j+1])));
+            //const double del = distances[(i-1)*rowLength+j] + iWeight;
+            //const double ins = distances[i*rowLength+j-1] + jWeight;
+            //const double match = distances[(i-1)*rowLength+j-1] + 
+            //    si->distance(states1[j], states2[i]);
+            distances[i*rowLength+j] = std::min(std::min(del, ins), xform);
         }
     }
     
