@@ -4,7 +4,6 @@
 
 #include "Voss.h"
 
-#include "DStar.h"
 #include "Graph.h"
 #include "Neighborhood.h"
 #include "Path.h"
@@ -30,7 +29,6 @@ const Results *Voss::run ()
     
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
     std::vector<std::vector<Neighborhood> > resultAvoids;
-//     std::vector<DStar *> dstars;
     
     // Unfiltered set of paths found
     std::vector<Path> unfilteredPathSet;
@@ -40,13 +38,10 @@ const Results *Voss::run ()
     
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
     std::vector<Neighborhood> alreadyAvoiding;
-//     DStar *current_dstar = new DStar(g, testData->getStart(), testData->getEnd());
-//     Path referencePath = current_dstar->getPath();
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
     {
         Neighborhood::destroyStatePool(g, statePool);
-//         delete current_dstar;
         return getResults(desc.str().c_str());
     }
 
@@ -54,11 +49,9 @@ const Results *Voss::run ()
     if (tooLong())
     {
         Neighborhood::destroyStatePool(g, statePool);
-//         delete current_dstar;
         return getResults(desc.str().c_str());
     }
     resultAvoids.push_back(alreadyAvoiding);
-//     dstars.push_back(current_dstar);
     unfilteredPathSet.push_back(referencePath);
     
     // Work through the queue until we have enough
@@ -78,9 +71,6 @@ const Results *Voss::run ()
             std::vector<Neighborhood> avoid = alreadyAvoiding;
             avoid.push_back(Neighborhood(g, statePool, referencePath.sampleUniform(), radius));
             // Get the shortest path under these constraints
-//             DStar *dstar = new DStar(current_dstar,
-//                 Neighborhood(g, statePool, referencePath.sampleUniform(), radius));
-//             Path path = dstar->getPath();
             Path path = getShortestPathUnderAvoidance(avoid);
             
             if (path.empty())
@@ -92,15 +82,10 @@ const Results *Voss::run ()
             // But we'll need it regardless for later iterations
             unfilteredPathSet.push_back(path);
             resultAvoids.push_back(avoid);
-//             dstars.push_back(dstar);
         }
     }
     
     Neighborhood::destroyStatePool(g, statePool);
-//     for (std::size_t i = 0; i < dstars.size(); i++)
-//     {
-//         delete dstars[i];
-//     }
     return getResults(desc.str().c_str());
 }
 
