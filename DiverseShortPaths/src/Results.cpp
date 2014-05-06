@@ -58,8 +58,8 @@ double Results::findLongestLength () const
 
 double Results::diversity () const
 {
-//     return meanNearestPathDistance();
-    return minNearestPathDistance();
+    return meanNearestPathDistance();
+//     return minNearestPathDistance();
 }
 
 double Results::minNearestPathDistance () const

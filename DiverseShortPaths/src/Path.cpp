@@ -4,6 +4,7 @@
 
 #include "Path.h"
 
+#include "Frechet.h"
 #include "Graph.h"
 
 Path::Path ()
@@ -168,5 +169,5 @@ void Path::cacheStates () const
 
 double Path::distance (const Path &p1, const Path &p2)
 {
-    return p1.getGraph()->levenshteinDistance(p1, p2);
+    return Frechet::distance(p1, p2);
 }

@@ -7,10 +7,9 @@
 
 #include "pch.h"
 
-#include "graehl/kbest.hh"
-
 #include "KDiverseShort.h"
 
+namespace graehl { class Graehl; }
 class Graph;
 class TestData;
 

@@ -14,7 +14,6 @@ D = Avg[%s];
 L = Avg[%s];
 Te = SparseArray[{}, Length[X], %s];
 De = SparseArray[{}, Length[X], %s];
-name = "%s";
 last = Last[Select[Table[
   i, {i, 1, Length[P]}
   ], P[[#]] == P[[1]] &]];
@@ -34,7 +33,6 @@ plot = ListLinePlot[
   PlotLegend->{"Time (s)", "Paths Found", "Diversity", "Length", "Epp. Time", "Epp. Diversity"},
   LegendPosition->{0.9, -0.8},
   LegendSize->1.5,
-  LegendShadow->None,
-  PlotLabel->name
+  LegendShadow->None
 ];
 Export[name<>".pdf", plot];

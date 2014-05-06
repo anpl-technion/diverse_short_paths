@@ -1,7 +1,9 @@
-#include <math.h>
+#include <cmath>
 #include <iostream>
-#include <assert.h>
+#include <cassert>
 #include <new>
+#include <functional>
+#define CUSTOMNEW
 #include "2heap.h"
 #include "list.h"
 
@@ -44,8 +46,8 @@ Graph reverseGraph(Graph g)
 
 Graph dfsGraph;
 bool *dfsVis;
-std::function<void(int, int)> dfsFunc;
-std::function<void(int, int)> dfsExitFunc;
+function<void(int, int)> dfsFunc;
+function<void(int, int)> dfsExitFunc;
 
 void dfsRec(int state, int pred) {
   if ( dfsVis[state] )
@@ -61,7 +63,7 @@ void dfsRec(int state, int pred) {
     dfsExitFunc(state, pred);
 }
 
-inline void depthFirstSearch(Graph graph, int startState, bool* visited, std::function<void(int, int)> func) {
+inline void depthFirstSearch(Graph graph, int startState, bool* visited, function<void(int, int)> func) {
   dfsGraph = graph;
   dfsVis = visited;
   dfsFunc = func;
@@ -86,7 +88,7 @@ List<int> *topologicalSort(Graph g) {
     dfsVis[i] = 0;
   for ( i = 0 ; i < g.nStates ; ++i )
     dfsRec(i, -1);
-  //delete[] dfsVis;
+  delete[] dfsVis;
   return topSort;
 }
 
@@ -190,10 +192,10 @@ Graph shortestPathTree(Graph g, int dest, float *dist)
       pathTree[i].arcs.top().data = best[i];
     }
   
-//   delete[] stateLocations;
-//   delete[] distQueue;
-//   delete[] rev;
-//   delete[] best;
+  delete[] stateLocations;
+  delete[] distQueue;
+  delete[] rev;
+  delete[] best;
 
   Graph ret;
   ret.nStates = nStates;

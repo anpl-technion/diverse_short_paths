@@ -21,13 +21,13 @@ void runEppsteinTests (const TestData *data, double &Te, double &De)
     
     // Run Eppstein's algorithm on the data
     Eppstein *epp = new Eppstein(data);
-    const Results *res = epp->timedRun(time);\
+    const Results *res = epp->timedRun(time);
     
     // Put results into a nice format
     Te = time;
     De = res->diversity();
     std::cout << "Epp time: " << Te << "; diversity: " << De << "\n";
-    //res->print(time);
+    res->print(time);
     res->saveSet();
     delete epp;
     delete res;
@@ -61,7 +61,7 @@ void runVossTests (const TestData *data, double radiusFactor,
 /*
  * Write out data as Mathematica code.
  */
-void mathematicate (const char *plotName, std::string X,  std::string T,
+void mathematicate (std::string X,  std::string T,
   std::string P, std::string D, std::string L, double Te, double De)
 {
     std::stringstream ss_Te, ss_De;
@@ -70,18 +70,18 @@ void mathematicate (const char *plotName, std::string X,  std::string T,
     // Insert data into plot template
     std::ifstream in("plotTemplate.m.in");
     std::string format((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    std::size_t length = format.length() + std::strlen(plotName) + X.length() + T.length()
+    std::size_t length = format.length() + X.length() + T.length()
       + P.length() + D.length() + L.length() + ss_Te.str().length() + ss_De.str().length() + 1;
     char *buf = new char[length];
     std::sprintf(buf, format.c_str(), X.c_str(), T.c_str(), P.c_str(), D.c_str(),
-                 L.c_str(), ss_Te.str().c_str(), ss_De.str().c_str(), plotName);
+                 L.c_str(), ss_Te.str().c_str(), ss_De.str().c_str());
     std::cout << buf;
     delete buf;
 }
 
 int usage ()
 {
-    std::cerr << "Usage: diverse <graph> <-u | -l maxLength | -d minDistance> <plotName> <runs>\n";
+    std::cerr << "Usage: diverse <graph> <-u | -l maxLength | -d minDistance> <runs>\n";
     return -1;
 }
 /*
@@ -92,7 +92,7 @@ int main (int argc, char *argv[])
     srand(1000);
     
     // Parse command line args
-    if (argc != 6 && argc != 5)
+    if (argc != 4 && argc != 5)
         return usage();
     int arg = 1;
     const char *graphFile = argv[arg++];
@@ -104,13 +104,12 @@ int main (int argc, char *argv[])
         minPathPairwiseDistance = std::atof(argv[arg+1]);
     else
     {
-        if (argc != 5)
+        if (argc != 4)
             return usage();
         arg--;
     }
-    arg += 2;
-    const char *plotName = argv[arg++];
-    const size_t runs = std::atoi(argv[arg++]);
+    //arg += 2;
+    //const size_t runs = std::atoi(argv[arg++]);
     
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
@@ -118,7 +117,7 @@ int main (int argc, char *argv[])
     // Eppstein
     double Te, De;
     runEppsteinTests(&data, Te, De);
-    
+    /*
     // Voss
     std::stringstream X, T, P, D, L;
     X << "{";
@@ -167,7 +166,7 @@ int main (int argc, char *argv[])
     P << "}";
     D << "}";
     L << "}";
-    mathematicate(plotName, X.str(), T.str(), P.str(), D.str(), L.str(), Te, De);
-    
+    mathematicate(X.str(), T.str(), P.str(), D.str(), L.str(), Te, De);
+    */
     return 0;
 }

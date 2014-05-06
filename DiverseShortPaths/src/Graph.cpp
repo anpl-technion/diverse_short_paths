@@ -91,7 +91,7 @@ ompl::base::State *Graph::getVertexState (const Vertex v) const
 {
     return boost::get(boost::vertex_prop, *this, v).state;
 }
-    
+
 void Graph::getVertices (const Edge e, Vertex *const u, Vertex *const v) const
 {
     *u = boost::source(e, *this);

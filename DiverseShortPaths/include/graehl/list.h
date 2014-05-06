@@ -16,7 +16,7 @@ template <class T> struct Node {
   Node(const T &it, Node<T> *ne) : data(it), next(ne) { }
   static Node<T> *freeList;
   static const int newBlocksize;
-#ifdef CUSTOMNEW/*
+#ifdef CUSTOMNEW
   void *operator new(size_t)
   {
     Node<T> *ret, *max;
@@ -37,7 +37,7 @@ template <class T> struct Node {
     Node<T> *e = (Node<T> *)p;
     e->next = freeList;
     freeList = e;
-  }*/
+  }
 #endif
 };
 
@@ -55,7 +55,7 @@ public:
     Node<T> *next;
     while (head) {
       next = head->next;
-      //delete head;
+      delete head;
       head = next;
     }
   }
@@ -84,7 +84,7 @@ public:
   }
   void pop() {
     Node<T> *n = head->next;
-    //delete head;
+    delete head;
     head = n;
   }
   friend class ListIter<T>;
@@ -109,7 +109,7 @@ public:
     return ret;
   }
   void remove() {
-    //delete cut();
+    delete cut();
   }
   T & insert(const T& t) {
     Node<T> *n = new Node<T> (t, current);

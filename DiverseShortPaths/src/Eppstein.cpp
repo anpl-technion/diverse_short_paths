@@ -2,6 +2,8 @@
  * Eppstein.cpp
  */
 
+#define MAXPATHS 10000000
+
 #include "Eppstein.h"
 
 #include "graehl/kbest.h"

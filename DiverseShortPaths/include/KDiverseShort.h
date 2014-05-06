@@ -26,6 +26,9 @@ private:
     // Next index to store a path
     std::size_t _i;
     
+    // Total paths looked at
+    std::size_t c;
+    
 protected:
     // Set of paths found
     ompl::NearestNeighbors<Path> *pathNN;

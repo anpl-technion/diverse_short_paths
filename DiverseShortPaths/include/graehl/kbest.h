@@ -30,11 +30,41 @@ struct GraphHeap {
   static List<GraphHeap *> usedBlocks;
   static GraphHeap *freeList;
   static const int newBlocksize;
-  GraphHeap *left, *right;        // for balanced heap  
+  GraphHeap *left, *right;          // for balanced heap  
   int nDescend;
   GraphArc *arc;                // data at each vertex, or cross edge 
   pGraphArc *arcHeap = NULL;                // binary heap of sidetracks originating from a state
   int arcHeapSize;
+  void *operator new(size_t)
+  {
+    GraphHeap *ret, *max;
+    if (freeList) {
+      ret = freeList;
+      freeList = freeList->left;
+      return ret;
+    }
+    freeList = (GraphHeap *)::operator new(newBlocksize * sizeof(GraphHeap));
+    usedBlocks.push(freeList);
+    freeList->left = NULL;
+    max = freeList + newBlocksize - 1;
+    for ( ret = freeList++; freeList < max ; ret = freeList++ )
+      freeList->left = ret;
+    return freeList--;
+  }
+  void operator delete(void *p) 
+  {
+    GraphHeap *e = (GraphHeap *)p;
+    e->left = freeList;
+    freeList = e;
+  }
+  static void freeAll()
+  {
+    while ( usedBlocks.notEmpty() ) {
+      ::operator delete((void *)usedBlocks.top());
+      usedBlocks.pop();
+    }
+    freeList = NULL;
+  }
 };
 
 template<>
@@ -72,8 +102,6 @@ int operator < (const EdgePath &l, const EdgePath &r) {
   return l.weight > r.weight;
 }
 
-#define MAXPATHS 10000
-
 class Graehl
 {
 private:
@@ -99,6 +127,7 @@ private:
     EdgePath *endRetired;
     EdgePath newPath;
     Node<List<GraphArc *> > *nextBest;
+    Node<List<GraphArc *> > *prevBest;
     
 public:
     
@@ -116,6 +145,7 @@ public:
         List<GraphArc *> dummy;
         insertHere->insert(dummy);
         nextBest = paths->first();
+        prevBest = NULL;
         
         dist = new float[nStates];
         shortPathGraph = shortestPathTree(graph, dest, dist);
@@ -133,11 +163,11 @@ public:
             path = new ListIter<GraphArc *>(insertHere->insert(List<GraphArc *>()));
             insertShortPath(source, dest, *path);
             
-            //GraphHeap::freeAll();
+            GraphHeap::freeAll();
             graphPaths = List<List<GraphArc *> >();
             revPathTree = reverseGraph(shortPathGraph);
             pathGraph = new GraphHeap *[nStates];
-            for (std::size_t i = 0; i < (std::size_t) nStates; i++)
+            for (size_t i = 0; i < (size_t) nStates; i++)
                 pathGraph[i] = NULL;
             sidetracks = sidetrackGraph(graph, shortPathGraph, dist);
             visited = new bool[nStates];
@@ -164,7 +194,7 @@ public:
     
     ~Graehl ()
     {
-        /*if (retired)
+        if (retired)
             delete [] retired;
         if (pathQueue)
             delete [] pathQueue;
@@ -182,13 +212,19 @@ public:
         delete [] dist;
         delete insertHere;
         delete paths;
-        delete [] graph.states;*/
+        delete [] graph.states;
     }
 
     List<GraphArc *> *getNextPath()
     {
         if (!ready)
             return NULL;
+        
+        if (prevBest != NULL)
+        {
+            delete prevBest->data;
+            delete prevBest;
+        }
         
         if (heapSize(pathQueue, endQueue))
         {
@@ -285,6 +321,7 @@ public:
             }
             
             List<GraphArc *> *ret = &nextBest->data;
+            prevBest = nextBest;
             nextBest = nextBest->next;
             return ret;
         }

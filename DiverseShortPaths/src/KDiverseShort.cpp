@@ -10,7 +10,7 @@
 #include "TestData.h"
 
 KDiverseShort::KDiverseShort (const TestData *data)
-  : too_long(false), pathNN(new ompl::NearestNeighborsGNAT<Path>()), testData(data)
+  : too_long(false), c(0), pathNN(new ompl::NearestNeighborsGNAT<Path>()), testData(data)
 {
     pathArray = new Path[testData->getK()];
     _i = 0;
@@ -35,6 +35,9 @@ bool KDiverseShort::needMore () const
 
 bool KDiverseShort::considerPath(const Path &path)
 {
+    if (++c % 10000 == 0)
+        std::cout << "Success rate: " << _i << "/" << c << "\n";
+    
     if (path.getLength() > testData->getMaxLength())
     {
         too_long = true;
