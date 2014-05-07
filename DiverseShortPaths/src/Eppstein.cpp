@@ -2,7 +2,7 @@
  * Eppstein.cpp
  */
 
-#define MAXPATHS 10000000
+#define MAXPATHS 20000000
 
 #include "Eppstein.h"
 

@@ -52,7 +52,7 @@ void runVossTests (const TestData *data, double radiusFactor,
     D << res->diversity();
     L << res->findLongestLength();
     std::cout << time << " s; " << res->diversity() << " " << res->numPaths() << " " << res->findLongestLength() << "\n";
-    //res->print(time);
+    res->print(time);
     res->saveSet();
     delete voss;
     delete res;
@@ -108,16 +108,16 @@ int main (int argc, char *argv[])
             return usage();
         arg--;
     }
-    //arg += 2;
-    //const size_t runs = std::atoi(argv[arg++]);
+    arg += 2;
+    const size_t runs = std::atoi(argv[arg++]);
     
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
-    
+    /*
     // Eppstein
     double Te, De;
     runEppsteinTests(&data, Te, De);
-    /*
+    */
     // Voss
     std::stringstream X, T, P, D, L;
     X << "{";
@@ -141,9 +141,9 @@ int main (int argc, char *argv[])
         P << "{";
         D << "{";
         L << "{";
-        for (double rf = 0.0025; rf <= 0.160001; rf += 0.0025)
+        //for (double rf = 0.0025; rf <= 0.160001; rf += 0.0025)
         //for (double rf = 0.0600; rf <= 0.160001; rf += 0.0025)
-        //double rf = 0.1075;
+        double rf = 0.13;
         {
             if (run == 0)
             {
@@ -166,7 +166,7 @@ int main (int argc, char *argv[])
     P << "}";
     D << "}";
     L << "}";
-    mathematicate(X.str(), T.str(), P.str(), D.str(), L.str(), Te, De);
-    */
+    //mathematicate(X.str(), T.str(), P.str(), D.str(), L.str(), Te, De);
+    
     return 0;
 }
