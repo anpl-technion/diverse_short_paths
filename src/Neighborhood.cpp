@@ -15,7 +15,7 @@ Neighborhood::Neighborhood (ompl::base::State *c, Edge cedge, double r)
 }
 
 Neighborhood::Neighborhood (const Neighborhood &copy)
- :  center(copy.g->getSpaceInfo()->cloneState(copy.center)), centerEdge(copy.centerEdge), radius(copy.radius)
+ :  center(g->getSpaceInfo()->cloneState(copy.getCenter())), centerEdge(copy.getCenterEdge()), radius(copy.getRadius())
 {
     extantCount++;
     if (method == GRAPH)
@@ -24,7 +24,7 @@ Neighborhood::Neighborhood (const Neighborhood &copy)
 
 Neighborhood &Neighborhood::operator=(const Neighborhood &copy)
 {
-    Neighborhood *nbh = new Neighborhood(copy.g->getSpaceInfo()->cloneState(copy.center), copy.centerEdge, copy.radius);
+    Neighborhood *nbh = new Neighborhood(g->getSpaceInfo()->cloneState(copy.center), copy.centerEdge, copy.radius);
     return *nbh;
 }
 
@@ -33,6 +33,21 @@ Neighborhood::~Neighborhood ()
     g->getSpaceInfo()->freeState(center);
     if (--extantCount == 0)
         destroyStatePool();
+}
+
+const ompl::base::State * Neighborhood::getCenter () const
+{
+    return center;
+}
+
+Edge Neighborhood::getCenterEdge () const
+{
+    return centerEdge;
+}
+
+double Neighborhood::getRadius () const
+{
+    return radius;
 }
 
 void Neighborhood::setupWeight ()

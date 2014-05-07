@@ -8,7 +8,7 @@
 #include "pch.h"
 
 class Graph;
-struct Neighborhood;
+class Neighborhood;
 
 // Will allow us to associate an object to each vertex representing all its attributes
 namespace boost

@@ -9,9 +9,12 @@
 
 #include "_graph_detail.h"
 
-struct Neighborhood
+class Neighborhood
 {
+public:
     enum AvoidMethod { UNDEFINED, CSPACE, GRAPH };
+    
+private:
     
     static const Graph *g;
     static ompl::base::State **const statePool;
@@ -27,6 +30,8 @@ struct Neighborhood
     
     double radius;
     
+public:
+    
     Neighborhood (ompl::base::State *c, Edge cedge, double r);
     
     Neighborhood (const Neighborhood &copy);
@@ -34,6 +39,12 @@ struct Neighborhood
     Neighborhood &operator=(const Neighborhood &copy);
     
     ~Neighborhood ();
+    
+    const ompl::base::State *getCenter () const;
+    
+    Edge getCenterEdge () const;
+    
+    double getRadius () const;
     
     void setupWeight ();
     

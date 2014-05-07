@@ -9,7 +9,7 @@
 
 #include "KDiverseShort.h"
 
-struct Neighborhood;
+class Neighborhood;
 class Path;
 class TestData;
 
