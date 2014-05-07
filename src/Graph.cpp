@@ -7,13 +7,8 @@
 #include "Path.h"
 #include "Neighborhood.h"
 
-Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo)
-: boost_graph(), si(sinfo)
-{
-}
-
 Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphml)
-: boost_graph(), si(sinfo)
+: boost_graph(), si(sinfo), apsp(NULL)
 {
     std::map<Vertex, std::string> coordStrings;
     std::map<Edge, double> weights;
@@ -49,10 +44,10 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphm
 
 Graph::~Graph ()
 {
-//     foreachVertex([&] (const Vertex v) -> void
-//     {
-//         si->freeState(boost::get(boost::vertex_prop, *this, v).state);
-//     });
+    foreachVertex([&] (const Vertex v) -> void
+    {
+        si->freeState(boost::get(boost::vertex_prop, *this, v).state);
+    });
 }
 
 ompl::base::SpaceInformationPtr Graph::getSpaceInfo () const
@@ -77,6 +72,11 @@ std::size_t Graph::getNumVertices () const
     return boost::num_vertices(*this);
 }
 
+Edge Graph::getEdge (const Vertex u, const Vertex v) const
+{
+    return boost::edge(u, v, *this).first;
+}
+
 double Graph::getEdgeWeight (const Edge e) const
 {
     return boost::get(boost::edge_weight, *this, e);
@@ -84,7 +84,7 @@ double Graph::getEdgeWeight (const Edge e) const
 
 double Graph::getEdgeWeight (const Vertex u, const Vertex v) const
 {
-    return getEdgeWeight(boost::edge(u, v, *this).first);
+    return getEdgeWeight(getEdge(u, v));
 }
 
 ompl::base::State *Graph::getVertexState (const Vertex v) const
@@ -94,8 +94,10 @@ ompl::base::State *Graph::getVertexState (const Vertex v) const
 
 void Graph::getVertices (const Edge e, Vertex *const u, Vertex *const v) const
 {
-    *u = boost::source(e, *this);
-    *v = boost::target(e, *this);
+    if (u != NULL)
+        *u = boost::source(e, *this);
+    if (v != NULL)
+        *v = boost::target(e, *this);
 }
 
 void Graph::foreachEdge (std::function<void (const Edge)> applyMe) const
@@ -114,53 +116,32 @@ void Graph::foreachVertex (std::function<void (const Vertex)> applyMe) const
     }
 }
 
-double Graph::levenshteinDistance (const Path &path1, const Path &path2) const
-{
-    const std::size_t rowLength = path1.size();
-    const std::size_t colLength = path2.size();
-    double *const distances = new double[rowLength*colLength];
-    //const std::vector<double> weights1 = path1.getWeights();
-    //const std::vector<double> weights2 = path2.getWeights();
-    const std::vector<ompl::base::State *> states1 = path1.getStates();
-    const std::vector<ompl::base::State *> states2 = path2.getStates();
-    
-    distances[0] = 0;
-    for (std::size_t j = 1; j < rowLength; j++)
-        distances[j] = distances[j-1] + si->distance(states2[0], states1[j]);
-    for (std::size_t i = 1; i < colLength; i++)
-        distances[i*rowLength] = distances[(i-1)*rowLength] +
-          si->distance(states1[0], states2[i]);
-    
-    for (std::size_t i = 1; i < colLength; i++)
-    {
-        for (std::size_t j = 1; j < rowLength; j++)
-        {
-            //const double iWeight = weights2[i-1];
-            //const double jWeight = weights1[j-1];
-            const double xform = distances[(i-1)*rowLength+j-1] +
-              si->distance(states1[j], states2[i]);
-            const double del = distances[(i-1)*rowLength+j] +
-              si->distance(states2[i-1], states2[i]) +
-              ((i+1==colLength) ? 0 : (si->distance(states2[i], states2[i+1]) -
-              si->distance(states2[i-1], states2[i+1])));
-            const double ins = distances[i*rowLength+j-1] +
-              si->distance(states1[j-1], states1[j]) +
-              ((j+1==rowLength) ? 0 : (si->distance(states1[j], states1[j+1]) -
-              si->distance(states1[j-1], states1[j+1])));
-            //const double del = distances[(i-1)*rowLength+j] + iWeight;
-            //const double ins = distances[i*rowLength+j-1] + jWeight;
-            //const double match = distances[(i-1)*rowLength+j-1] + 
-            //    si->distance(states1[j], states2[i]);
-            distances[i*rowLength+j] = std::min(std::min(del, ins), xform);
-        }
-    }
-    
-    const double d = distances[rowLength*colLength-1];
-    delete [] distances;
-    return d;
-}
-
 void Graph::midpoint (const ompl::base::State *s1, const ompl::base::State *s2, ompl::base::State *mid) const
 {
     si->getStateSpace()->interpolate(s1, s2, 0.5, mid);
+}
+
+void Graph::allPairsShortestPaths () const
+{
+    if (apsp == NULL)
+    {
+        const std::size_t n = getNumVertices();
+        apsp = new double*[n];
+        for (std::size_t i = 0; i < n; i++)
+            apsp[i] = new double[n];
+    }
+    
+    // Run the Floyd-Warshall algorithm
+    boost::floyd_warshall_all_pairs_shortest_paths(*this, apsp);
+}
+
+double Graph::graphDistance (Vertex u, Vertex v) const
+{
+    if (apsp == NULL)
+    {
+        std::cerr << "Error: All pairs shortest paths not pre-computed!\n";
+        exit(-1);
+    }
+    
+    return apsp[u][v];
 }

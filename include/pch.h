@@ -18,12 +18,10 @@
 
 #include <libgen.h>
 
-#include <boost/bimap/bimap.hpp>
-#include <boost/bimap/multiset_of.hpp>
-#include <boost/bimap/unordered_set_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/astar_search.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/graphml.hpp>
 
 #include <ompl/base/ScopedState.h>

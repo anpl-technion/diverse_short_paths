@@ -22,7 +22,9 @@ const Results *Voss::run ()
     std::stringstream desc;
     desc << VOSS_NAME << ":radius_" << radius_factor;
     const Graph &g = testData->getGraph();
-    ompl::base::State **statePool = Neighborhood::allocStatePool(g);
+    Neighborhood::allocStatePool(&g);
+//     Neighborhood::setParam(Neighborhood::AvoidMethod::CSPACE);
+    Neighborhood::setParam(Neighborhood::AvoidMethod::GRAPH);
     
     if (!needMore())
         return getResults(desc.str().c_str());
@@ -40,17 +42,11 @@ const Results *Voss::run ()
     std::vector<Neighborhood> alreadyAvoiding;
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
-    {
-        Neighborhood::destroyStatePool(g, statePool);
         return getResults(desc.str().c_str());
-    }
 
     considerPath(referencePath);
     if (tooLong())
-    {
-        Neighborhood::destroyStatePool(g, statePool);
         return getResults(desc.str().c_str());
-    }
     resultAvoids.push_back(alreadyAvoiding);
     unfilteredPathSet.push_back(referencePath);
     
@@ -59,20 +55,18 @@ const Results *Voss::run ()
     {
         referencePath = unfilteredPathSet[frontier];
         alreadyAvoiding = resultAvoids[frontier];
-//         current_dstar = dstars[frontier];
         frontier++;
         
         // Make attempts at imposing a new neighborhood to avoid on the graph
-        // Neighborhood's radius is some pre-defined fraction of the referencePath's length
-        // Number of Neighborhoods is twice the number of edges in the path
         double radius = radius_factor * referencePath.getLength();
-        for (std::size_t i = 0; i < 2/*2*referencePath.size()*/ && needMore(); i++)
+        for (std::size_t i = 0; i < 2 && needMore(); i++)
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
-            avoid.push_back(Neighborhood(g, statePool, referencePath.sampleUniform(), radius));
+            Edge e;
+            avoid.push_back(Neighborhood(referencePath.sampleUniform(&e), e, radius));
+            
             // Get the shortest path under these constraints
             Path path = getShortestPathUnderAvoidance(avoid);
-            
             if (path.empty())
                 continue;
             
@@ -85,7 +79,6 @@ const Results *Voss::run ()
         }
     }
     
-    Neighborhood::destroyStatePool(g, statePool);
     return getResults(desc.str().c_str());
 }
 
@@ -120,8 +113,3 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
     return path;
 }
 
-ompl::base::State *Voss::sampleFromPath (const Path &path) const
-{
-    Vertex v = path[std::rand() % path.size()];
-    return testData->getGraph().getVertexState(v);
-}

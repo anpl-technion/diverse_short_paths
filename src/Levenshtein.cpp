@@ -2,16 +2,18 @@
  * Frechet.cpp
  */
 
-#include "Frechet.h"
+#include "Levenshtein.h"
 
 #include "Graph.h"
 #include "Path.h"
 
 #define DYN(I,J)    (dynarray[(I)+(J)*rowLength])
 #define DIST(I,J)   (si->distance(states1[I], states2[J]))
+#define DIST1(I1,I2)    (si->distance(states1[I1], states1[I2]))
+#define DIST2(J1,J2)    (si->distance(states2[J1], states2[J2]))
 
-// Compute Frechet distance between two paths
-double Frechet::distance (const Path &path1, const Path &path2)
+// Compute Levenshtein edit distance between two paths
+double Levenshtein::distance (const Path &path1, const Path &path2)
 {
     const ompl::base::SpaceInformationPtr si = path1.getGraph()->getSpaceInfo();
     const std::size_t rowLength = path1.size();
@@ -22,18 +24,20 @@ double Frechet::distance (const Path &path1, const Path &path2)
     
     DYN(0,0) = DIST(0,0);
     for (std::size_t i = 1; i < rowLength; i++)
-        DYN(i,0) = std::max(DYN(i-1,0), DIST(i,0));
+        DYN(i,0) = DYN(i-1,0) + DIST(i,0);
     for (std::size_t j = 1; j < colLength; j++)
-        DYN(0,j) = std::max(DYN(0,j-1), DIST(0,j));
+        DYN(0,j) = DYN(0,j-1) + DIST(0,j);
     
     for (std::size_t i = 1; i < rowLength; i++)
     {
         for (std::size_t j = 1; j < colLength; j++)
         {
-            const double leash = DIST(i,j);
-            DYN(i,j) = std::min(
-                std::max(DYN(i-1,j), leash),
-                std::max(DYN(i,j-1), leash));
+            const double xform = DYN(i-1,j-1) + DIST(i,j);
+//             const double del = DYN(i-1,j) + DIST1(i-1,i) + DIST1(i,i+1) - DIST1(i-1,i+1);
+//             const double ins = DYN(i,j-1) + DIST2(j-1,j) + DIST2(j,j+1) - DIST2(j-1,j+1);
+            const double del = DYN(i-1,j) + DIST(i,j-1) + DIST(i,j+1) - DIST2(j-1,j+1);
+            const double ins = DYN(i,j-1) + DIST(i-1,j) + DIST(i+1,j) - DIST1(i-1,i+1);
+            DYN(i,j) = std::min(xform, std::min(ins, del));
         }
     }
     
@@ -44,3 +48,6 @@ double Frechet::distance (const Path &path1, const Path &path2)
 
 #undef DYN
 #undef DIST
+#undef DIST1
+#undef DIST2
+

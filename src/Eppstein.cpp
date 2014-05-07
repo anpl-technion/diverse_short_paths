@@ -28,8 +28,15 @@ Eppstein::~Eppstein ()
 
 const Results *Eppstein::run ()
 {
+    static std::size_t c = 0;
+    
     while (!tooLong() && needMore())
     {
+        if (++c > MAXPATHS)
+        {
+            std::cerr << "Error: need to increase MAXPATHS\n";
+            return getResults(EPP_NAME);
+        }
         graehl::List<graehl::GraphArc *> *raw = graehl_kernel->getNextPath();
         if (raw == NULL)
             break;

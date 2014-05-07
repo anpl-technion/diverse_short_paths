@@ -13,7 +13,7 @@ KDiverseShort::KDiverseShort (const TestData *data)
   : too_long(false), c(0), pathNN(new ompl::NearestNeighborsGNAT<Path>()), testData(data)
 {
     pathArray = new Path[testData->getK()];
-    _i = 0;
+    i = 0;
     pathNN->setDistanceFunction(&Path::distance);
 }
 
@@ -30,13 +30,13 @@ bool KDiverseShort::tooLong () const
 
 bool KDiverseShort::needMore () const
 {
-    return _i < testData->getK();
+    return i < testData->getK();
 }
 
 bool KDiverseShort::considerPath(const Path &path)
 {
     if (++c % 10000 == 0)
-        std::cout << "Success rate: " << _i << "/" << c << "\n";
+        std::cout << "Success rate: " << i << "/" << c << "\n";
     
     if (path.getLength() > testData->getMaxLength())
     {
@@ -44,7 +44,7 @@ bool KDiverseShort::considerPath(const Path &path)
         return false;
     }
     
-    if (_i > 0)
+    if (i > 0)
     {
         const Path &nearest = pathNN->nearest(path);
         const double d = (pathNN->getDistanceFunction())(path, nearest);
@@ -52,15 +52,14 @@ bool KDiverseShort::considerPath(const Path &path)
             return false;
     }
     
-    pathArray[_i++] = path;
-    pathNN->add(pathArray[_i-1]);
-    //path.print();
+    pathArray[i++] = path;
+    pathNN->add(pathArray[i-1]);
     return true;
 }
 
 const Results *KDiverseShort::getResults (const char *alg_name)
 {
-    return new Results(alg_name, testData, pathArray, _i);
+    return new Results(alg_name, testData, pathArray, i);
 }
 
 const Results *KDiverseShort::timedRun (double &seconds)

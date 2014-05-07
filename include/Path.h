@@ -12,7 +12,9 @@
 class Path : public std::vector<Vertex>
 {
 private:
+    
     const Graph *g;
+    
     std::vector<double> parametrization;
     
     mutable std::vector<double> weights;
@@ -52,7 +54,7 @@ public:
     std::vector<double> getPartialEdgeSums () const;
     
     // Allocates a state that should be freed later
-    ompl::base::State *sampleUniform () const;
+    ompl::base::State *sampleUniform (Edge *edge) const;
     
     const std::vector<double> &getWeights () const;
     

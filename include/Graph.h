@@ -19,9 +19,9 @@ class Graph : public boost_graph
 private:
     ompl::base::SpaceInformationPtr si;
     
+    mutable double **apsp;
+    
 public:
-    // Initialize an empty graph
-    Graph (const ompl::base::SpaceInformationPtr &sinfo);
     
     // Initialize graph from GraphML file
     Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphml);
@@ -41,6 +41,9 @@ public:
     // Get the number of vertices in this graph
     std::size_t getNumVertices () const;
     
+    // Get the edge corresponding to two vertices
+    Edge getEdge (const Vertex u, const Vertex v) const;
+    
     // Get the length of an edge in the state space
     double getEdgeWeight (const Edge e) const;
     
@@ -59,11 +62,14 @@ public:
     // Apply a function to every vertex in this graph
     void foreachVertex (std::function<void (const Vertex)> applyMe) const;
     
-    // Compute the Levenshtein edit distance between two paths
-    double levenshteinDistance (const Path &path1, const Path &path2) const;
-    
     // Compute the midpoint state of two states
     void midpoint (const ompl::base::State *s1, const ompl::base::State *s2, ompl::base::State *mid) const;
+    
+    // Pre-compute the graph distance between every pair of vertices
+    void allPairsShortestPaths () const;
+    
+    // Compute the distance along graph edges between two vertices
+    double graphDistance (Vertex u, Vertex v) const;
 };
 
 #endif

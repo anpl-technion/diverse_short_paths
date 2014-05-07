@@ -101,7 +101,7 @@ std::vector<double> Path::getPartialEdgeSums () const
     return parametrization;
 }
 
-ompl::base::State *Path::sampleUniform () const
+ompl::base::State *Path::sampleUniform (Edge *edge) const
 {
     // Sample between [0,length]
     double par = getLength() * ((double)rand() / (double)RAND_MAX);
@@ -114,6 +114,10 @@ ompl::base::State *Path::sampleUniform () const
     }
     
     par = (par-parametrization[i]) / getLength();
+    
+    // Save the edge
+    if (edge != NULL)
+        *edge = g->getEdge((*this)[i], (*this)[i+1]);
     
     // Interpolate
     ompl::base::State *sample = g->getSpaceInfo()->allocState();

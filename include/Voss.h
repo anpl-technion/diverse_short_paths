@@ -10,7 +10,6 @@
 #include "KDiverseShort.h"
 
 struct Neighborhood;
-class DStar;
 class Path;
 class TestData;
 
@@ -33,10 +32,7 @@ public:
     
 private:
     // Compute the shortest path under avoidance constraints
-    Path getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoidThese) const;\
-    
-    // Randomly sample a point on the path
-    ompl::base::State *sampleFromPath (const Path &path) const;
+    Path getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoidThese) const;
 };
 
 #endif

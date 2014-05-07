@@ -71,4 +71,3 @@ void visitor::examine_vertex (Vertex u, const Graph &) const
         throw foundGoalException();
 }
 
-

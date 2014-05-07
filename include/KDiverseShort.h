@@ -24,7 +24,7 @@ private:
     Path *pathArray;
     
     // Next index to store a path
-    std::size_t _i;
+    std::size_t i;
     
     // Total paths looked at
     std::size_t c;

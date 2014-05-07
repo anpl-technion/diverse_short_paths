@@ -11,12 +11,23 @@
 
 struct Neighborhood
 {
-    const Graph &g;
-    ompl::base::State **statePool;
+    enum AvoidMethod { UNDEFINED, CSPACE, GRAPH };
+    
+    static const Graph *g;
+    static ompl::base::State **const statePool;
+    static std::size_t extantCount;
+    static AvoidMethod method;
+    
     ompl::base::State *center;
+    Edge centerEdge;
+    double edgeWeight;
+    double centerWeight;
+    Vertex centerU;
+    Vertex centerV;
+    
     double radius;
     
-    Neighborhood (const Graph &g, ompl::base::State **statePool, ompl::base::State *c, const double r);
+    Neighborhood (ompl::base::State *c, Edge cedge, double r);
     
     Neighborhood (const Neighborhood &copy);
     
@@ -24,13 +35,21 @@ struct Neighborhood
     
     ~Neighborhood ();
     
-    bool shouldAvoid (const Edge e) const;
+    void setupWeight ();
     
-    static ompl::base::State **allocStatePool (const Graph &g);
+    static void setParam (AvoidMethod m);
     
-    static void destroyStatePool (const Graph &g, ompl::base::State **statePool);
+    bool shouldAvoid (Edge e) const;
+    
+    static void allocStatePool (const Graph *graph);
+    
+    static void destroyStatePool ();
     
 private:
+    
+    bool shouldAvoid_cspace (Edge e) const;
+    
+    bool shouldAvoid_graph (Edge e) const;
     
     bool isInside (const ompl::base::State *s) const;
 };

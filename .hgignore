@@ -1,5 +1,3 @@
-^DiverseShortPaths/bak
-^DiverseShortPaths/build
-^DiverseShortPaths/include/pch.h.pch
-^DiverseShortPaths/\.
-^DiverseShortPaths/out
+^build
+^include/pch.h.pch
+
