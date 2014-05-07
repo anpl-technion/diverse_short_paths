@@ -9,10 +9,6 @@
 
 #include "KDiverseShort.h"
 
-class Neighborhood;
-class Path;
-class TestData;
-
 /*
  * My algorithm for k short, diverse paths by stochastic avoidance.
  */

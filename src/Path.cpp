@@ -40,8 +40,8 @@ void Path::saveOMPLFormat(std::ostream &out) const
     {
         for (double interp = 0; interp < 1; interp += 0.2)
         {
-            ompl::base::State *s1 = g->getVertexState((*this)[i-1]);
-            ompl::base::State *s2 = g->getVertexState((*this)[i]);
+            const ompl::base::State *s1 = g->getVertexState((*this)[i-1]);
+            const ompl::base::State *s2 = g->getVertexState((*this)[i]);
             g->getSpaceInfo()->getStateSpace()->interpolate(s1, s2, interp, state);
             std::vector<double> reals;
             g->getSpaceInfo()->getStateSpace()->copyToReals(reals, state);
@@ -150,7 +150,7 @@ void Path::cacheWeights () const
     }
 }
 
-const std::vector<ompl::base::State *> &Path::getStates () const
+const std::vector<const ompl::base::State *> &Path::getStates () const
 {
     if (!isStateCached())
         cacheStates();

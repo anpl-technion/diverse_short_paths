@@ -1,4 +1,4 @@
-### DiverseShortPaths Makefile ###
+### diverse Makefile ###
 
 SHELL		= /bin/bash
 CXX		= clang++
@@ -22,17 +22,19 @@ OBJS    	= $(subst $(SRCDIR)/,build/$(SRCDIR)/,$(SRCS:.cpp=.o))
 all: $(PCH) $(INCS) $(SRCS) $(EXEC)
 
 again:
-	+$(MAKE) clean
-	+$(MAKE) all
+	+@$(MAKE) clean
+	+@$(MAKE) all
 
 ${EXEC}: $(OBJS) | dirs
+	@echo -e "\033[1;34m[Linking ${EXEC}]\033[0m"
 	${CXX} ${LDFLAGS} ${OBJS} -o $@
 
 build/%.o: %.cpp $(PCH) $(INCS) | dirs
-	@echo -e "\033[1;35m[$(subst $(SRCDIR)/,,$<)]\033[0m"
+	@echo -e "\033[1;35m[Compiling $(subst $(SRCDIR)/,,$<)]\033[0m"
 	${CXX} -c ${CXXFLAGS} -include ${PCHINC} $< -o $@
 
 ${PCH}: $(PCHINC)
+	@echo -e "\033[1;36m[Precompiling headers]\033[0m"
 	${CXX} -x c++-header ${CXXFLAGS} $< -o $@
 
 .PHONY: dirs clean

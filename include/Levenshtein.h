@@ -7,8 +7,6 @@
 
 #include "pch.h"
 
-class Path;
-
 class Levenshtein
 {
 public:

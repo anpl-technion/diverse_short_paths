@@ -7,9 +7,6 @@
 
 #include "pch.h"
 
-class Path;
-class TestData;
-
 /*
  * Representation of experiment results for an algorithm.
  */

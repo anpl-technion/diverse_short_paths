@@ -9,10 +9,6 @@
 
 #include "KDiverseShort.h"
 
-namespace graehl { class Graehl; }
-class Graph;
-class TestData;
-
 /*
  * Eppstein's algorithm for k shortest paths.
  */

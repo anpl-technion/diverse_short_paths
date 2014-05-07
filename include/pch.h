@@ -30,4 +30,17 @@
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/datastructures/NearestNeighborsGNAT.h>
 
+class Eppstein;
+class Frechet;
+class Graph;
+class KDiverseShort;
+class Levenshtein;
+class Neighborhood;
+class Path;
+class Results;
+class TestData;
+class Voss;
+
+namespace graehl { class Graehl; }
+
 #endif

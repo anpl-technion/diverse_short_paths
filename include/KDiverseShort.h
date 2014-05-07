@@ -7,10 +7,6 @@
 
 #include "pch.h"
 
-class Path;
-class Results;
-class TestData;
-
 /*
  * Abstract algorithm to find k diverse, short paths in a graph.
  */

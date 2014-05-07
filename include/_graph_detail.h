@@ -7,94 +7,178 @@
 
 #include "pch.h"
 
-class Graph;
-class Neighborhood;
-
-// Will allow us to associate an object to each vertex representing all its attributes
 namespace boost
 {
+    /** Want to associate an object to each Vertex. */
     enum vertex_prop_t { vertex_prop };
 }
 
-// Collection of attributes for a vertex
-struct VertexAttributes
+/**
+ * Collection of attributes for a vertex.
+ */
+class VertexAttributes
 {
-    // Vertex's location in the state space in which the graph is embedded
-    ompl::base::State *state;
+    ompl::base::State *state;   // Vertex's location in C-space
     
+public:
+    
+    /** Construct attributes without specifying state. */
     VertexAttributes ();
     
+    /**
+     * Construct attributes mapping the Vertex to a state.
+     * @param  state   Vertex's location in the space in which the graph is embedded
+     */
     VertexAttributes (ompl::base::State *state);
+    
+    /**
+     * Free memory used for this attribute.
+     * @param  si  SpaceInformationPtr the Vertex's state belongs to
+     */
+    void freeState (ompl::base::SpaceInformationPtr si);
+    
+    /**
+     * Get the state this Vertex is associated to.
+     * @return our \a state
+     */
+    const ompl::base::State *getState () const;
 };
 
-// Wrapper for the object assigned to a vertex as its property
+/** Wrapper for the object assigned to a vertex as its property. */
 typedef boost::property <boost::vertex_prop_t,VertexAttributes> VertexProperty;
-// Wrapper for the object assigned to an edge as its property
+
+/** Wrapper for the double assigned to an edge as its weight property. */
 typedef boost::property <boost::edge_weight_t,double> EdgeProperty;
-// The underlying boost graph type (undirected weighted-edge adjacency list with embedding)
+
+/** The underlying boost graph type (directed weighted-edge adjacency list with above properties). */
 typedef boost::adjacency_list <
   boost::vecS, boost::vecS, boost::directedS,
   VertexProperty, EdgeProperty> boost_graph;
-// Our graph's graph_traits
+  
+/** Our graph's graph_traits. */
 typedef boost::graph_traits<boost_graph> graph_traits;
-// Vertex type
+
+/** Vertex type. */
 typedef graph_traits::vertex_descriptor Vertex;
-// Edge type
+
+/** Edge type. */
 typedef graph_traits::edge_descriptor Edge;
 
 namespace boost
 {
+    // Install the property
     BOOST_INSTALL_PROPERTY(vertex, prop);
 }
 
-class heuristic // implements AStarHeuristic
+/**
+ * Heuristic for the A* search.
+ * @implements  AStarHeuristicConcept
+ */
+class heuristic
 {
-    const Graph &g;
-    const Vertex goal;
+    const Graph &g;     // Graph used
+    const Vertex goal;  // Goal location
     
 public:
     
+    /**
+     * Construct heuristic for a given search query.
+     * @param   graph   Graph to use
+     * @param   goal    goal location
+     */
     heuristic (const Graph &graph, Vertex goal);
     
+    /**
+     * Estimate the cost remaining to the goal.
+     * @param   u   current location
+     * @return  estimated distance left
+     */
     double operator() (Vertex u) const;
 };
 
-class edgeWeightMap // implements ReadablePropertyMap
+/**
+ * Used to artifically supress edges during A* search.
+ * @implements  ReadablePropertyMapConcept
+ */
+class edgeWeightMap
 {
-    const Graph &g;
-    const std::vector<Neighborhood> &avoid;
+    const Graph &g;                         // Graph used
+    const std::vector<Neighborhood> &avoid; // List of Neighborhoods to stay out of
     
 public:
     
+    /** Map key type. */
     typedef Edge key_type;
+    /** Map value type. */
     typedef double value_type;
-    typedef double reference;
+    /** Map auxiliary value type. */
+    typedef double &reference;
+    /** Map type. */
     typedef boost::readable_property_map_tag category;
     
+    /**
+     * Construct map for certain constraints.
+     * @param   graph       Graph to use
+     * @param   avoidThese  list of Neighborhoods to stay out of
+     */
     edgeWeightMap (const Graph &graph, const std::vector<Neighborhood> &avoidThese);
     
-    bool shouldAvoid (Edge e) const;
+    /**
+     * Get the weight of an Edge.
+     * @param   e   the Edge
+     * @return  infinity if \a e lies in a forbidden Neighborhood; actual weight of \a e otherwise
+     */
+    double get (Edge e) const;
     
-    const Graph &getGraph () const;
+private:
+    /**
+     * Should this edge be avoided?
+     * @param   e   Edge to consider
+     * @return  true if \a e lies within a forbidden Neighborhood; false otherwise
+     */
+    bool shouldAvoid (Edge e) const;
 };
 
 namespace boost
 {
+    /**
+     * Overload boost::get to access our map.
+     * @param   m   map to access
+     * @param   e   Edge to query
+     * @return  weight of \a e
+     */
     double get (const edgeWeightMap &m, const Edge &e);
 }
 
-struct foundGoalException
+/**
+ * Thrown to stop the A* search when finished.
+ */
+class foundGoalException
 {
 };
 
-class visitor : public boost::default_astar_visitor // implements AStar_Visitor
+/**
+ * Vertex visitor to check if A* search is finished.
+ * @implements  AStarVisitorConcept
+ */
+class visitor : public boost::default_astar_visitor
 {
-    Vertex goal;
+    Vertex goal;    // Goal Vertex of the search
     
 public:
     
+    /**
+     * Construct a visitor for a given search.
+     * @param   goal    Goal Vertex of the search
+     */
     visitor (Vertex goal);
     
+    /**
+     * Check if we have arrived at the goal.
+     * @param   u   current Vertex
+     * @param   g   Graph we are searching on
+     * @throw   foundGoalException  if \a u is the goal
+     */
     void examine_vertex(Vertex u, const Graph &g) const;
 };
 

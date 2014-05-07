@@ -9,8 +9,6 @@
 
 #include "_graph_detail.h"
 
-class Path;
-
 /*
  * Wrapper for a boost graph, with helper functions
  */
@@ -51,7 +49,7 @@ public:
     double getEdgeWeight (const Vertex u, const Vertex v) const;
     
     // Get the ompl state for this vertex
-    ompl::base::State *getVertexState (const Vertex v) const;
+    const ompl::base::State *getVertexState (const Vertex v) const;
     
     // Get an edge's two vertices
     void getVertices (const Edge e, Vertex *const u, Vertex *const v) const;

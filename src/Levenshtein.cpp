@@ -19,8 +19,8 @@ double Levenshtein::distance (const Path &path1, const Path &path2)
     const std::size_t rowLength = path1.size();
     const std::size_t colLength = path2.size();
     double *const dynarray = new double[rowLength*colLength];
-    const std::vector<ompl::base::State *> states1 = path1.getStates();
-    const std::vector<ompl::base::State *> states2 = path2.getStates();
+    const std::vector<const ompl::base::State *> states1 = path1.getStates();
+    const std::vector<const ompl::base::State *> states2 = path2.getStates();
     
     DYN(0,0) = DIST(0,0);
     for (std::size_t i = 1; i < rowLength; i++)

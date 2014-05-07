@@ -46,7 +46,7 @@ Graph::~Graph ()
 {
     foreachVertex([&] (const Vertex v) -> void
     {
-        si->freeState(boost::get(boost::vertex_prop, *this, v).state);
+        boost::get(boost::vertex_prop, *this, v).freeState(si);
     });
 }
 
@@ -62,8 +62,8 @@ Vertex Graph::addVertex (ompl::base::State *state)
 
 Edge Graph::addEdge (const Vertex &u, const Vertex &v)
 {
-    ompl::base::State *uState = boost::get(boost::vertex_prop, *this, u).state;
-    ompl::base::State *vState = boost::get(boost::vertex_prop, *this, v).state;
+    const ompl::base::State *uState = boost::get(boost::vertex_prop, *this, u).getState();
+    const ompl::base::State *vState = boost::get(boost::vertex_prop, *this, v).getState();
     return boost::add_edge(u, v, EdgeProperty(si->distance(uState, vState)), *this).first;
 }
 
@@ -87,9 +87,9 @@ double Graph::getEdgeWeight (const Vertex u, const Vertex v) const
     return getEdgeWeight(getEdge(u, v));
 }
 
-ompl::base::State *Graph::getVertexState (const Vertex v) const
+const ompl::base::State *Graph::getVertexState (const Vertex v) const
 {
-    return boost::get(boost::vertex_prop, *this, v).state;
+    return boost::get(boost::vertex_prop, *this, v).getState();
 }
 
 void Graph::getVertices (const Edge e, Vertex *const u, Vertex *const v) const

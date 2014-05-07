@@ -19,7 +19,7 @@ private:
     
     mutable std::vector<double> weights;
     
-    mutable std::vector<ompl::base::State *> states;
+    mutable std::vector<const ompl::base::State *> states;
     
     bool isWeightCached () const;
 
@@ -58,7 +58,7 @@ public:
     
     const std::vector<double> &getWeights () const;
     
-    const std::vector<ompl::base::State *> &getStates () const;
+    const std::vector<const ompl::base::State *> &getStates () const;
     
     static double distance (const Path &p1, const Path &p2);
 };
