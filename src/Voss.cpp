@@ -22,7 +22,7 @@ Voss::Voss (const TestData *data, double radiusFactor, Neighborhood::AvoidMethod
 std::string Voss::run ()
 {
     std::stringstream desc;
-    desc << "Random Avoidance, radius factor " << radiusFactor;
+    desc << "Random Avoidance (in " << avoidString() << "), radius factor " << radiusFactor;
     
     // Set up neighborhoods
     const Graph &g = testData->getGraph();
@@ -112,4 +112,17 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
         path.clear();
     
     return path;
+}
+
+std::string Voss::avoidString () const
+{
+    switch (avoidance)
+    {
+    case Neighborhood::CSPACE:
+        return "C-space";
+    case Neighborhood::GRAPH:
+        return "graph distance";
+    default:
+        return "UNKNOWN";
+    }
 }

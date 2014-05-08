@@ -67,7 +67,7 @@ int main (int argc, char *argv[])
     const size_t runs = std::atoi(argv[arg++]);
     
     // Build graph to test on
-    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance, Levenshtein::distance);
+    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance, Frechet::distance);
     /*
     // Eppstein
     Eppstein epp(&data);

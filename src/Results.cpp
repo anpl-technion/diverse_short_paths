@@ -20,7 +20,7 @@ Results::Results (const std::string &desc, const TestData *testData,
 void Results::saveSet () const
 {
     // Open a file and save each path in turn
-    std::ofstream fout(description + ".txt");
+    std::ofstream fout("paths.txt");
     for (std::size_t i = 0; i < n; i++)
     {
         paths[i].saveOMPLFormat(fout);

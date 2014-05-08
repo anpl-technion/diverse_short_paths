@@ -4,7 +4,9 @@
 
 #include "KDiverseShort.h"
 
+#include "Frechet.h"
 #include "Graph.h"
+#include "Levenshtein.h"
 #include "Path.h"
 #include "Results.h"
 #include "TestData.h"
@@ -70,9 +72,15 @@ const Results *KDiverseShort::timedRun ()
     fullDescription << desc;
     const double d = testData->getMinDistance();
     if (d == std::numeric_limits<double>::epsilon())
-        fullDescription << ", no filtering";
+    {
+        const double l = testData->getMaxLength();
+        if (l == std::numeric_limits<double>::infinity())
+            fullDescription << ", no filtering";
+        else
+            fullDescription << ", filtering for maximum length " << l;
+    }
     else
-        fullDescription << ", filtering for " << d << " units of distance";
+        fullDescription << ", filtering for pairwise distance " << d << " (" << distanceName() << ")";
     return new Results(fullDescription.str(), testData, pathArray, i, seconds);
 }
 
@@ -86,4 +94,18 @@ bool KDiverseShort::tooLong () const
 bool KDiverseShort::needMore () const
 {
     return i < testData->getK();
+}
+
+// Private methods
+
+std::string KDiverseShort::distanceName () const
+{
+    Path::DistanceFunction func = testData->getPathDistanceFunction();
+    auto f = func.target<double (*)(const Path &, const Path &)>();
+    if (*f == &Frechet::distance)
+        return "Frechet";
+    else if (*f == &Levenshtein::distance)
+        return "Levenshtein";
+    else
+        return "UNKNOWN";
 }

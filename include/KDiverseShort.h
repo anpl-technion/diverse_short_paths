@@ -72,6 +72,14 @@ protected:
      * @return textual description of the algorithm
      */
     virtual std::string run () = 0;
+    
+private:
+    
+    /**
+     * Get the name of the path distance function used.
+     * @return string naming our path distance function
+     */
+    std::string distanceName () const;
 };
 
 #endif

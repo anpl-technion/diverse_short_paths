@@ -45,6 +45,12 @@ private:
      *  or an empty Path object if no such path exists
      */
     Path getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoidThese) const;
+    
+    /**
+     * Return the name of the avoid method used.
+     * @return string name our \a avoidance setting
+     */
+    std::string avoidString () const;
 };
 
 #endif
