@@ -12,7 +12,7 @@
 // Constructors, destructors
 
 KDiverseShort::KDiverseShort (const TestData *data)
-  : too_long(false), i(0), c(0), testData(data)
+: too_long(false), i(0), c(0), testData(data)
 {
     // Set up path storage and nearest neighbors
     Path::setDistanceFunction(testData->getPathDistanceFunction());

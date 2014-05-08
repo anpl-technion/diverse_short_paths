@@ -8,7 +8,6 @@
 #include "pch.h"
 
 #include "_graph_detail.h"
-#include "Neighborhood.h"
 #include "Path.h"
 
 /**
@@ -24,7 +23,6 @@ private:
     const double maxLength;                 // Maximum allowable length of a returned path
     const double minDistance;               // Minimum allowable distance between any two returned paths
     const Path::DistanceFunction pDist;     // Method used to compute path distance
-    const Neighborhood::AvoidMethod avoid;  // Method used to measure distance to center of neighborhood
     const Graph *graph;                     // Graph to search in
     
 public:
@@ -35,10 +33,10 @@ public:
      * @param numPaths                  number of paths to try to find
      * @param maxPathLength             maximum length of any returned path
      * @param minPathPairwiseDistance   minimum distance between any two returned paths
+     * @param distFunc                  function to compute distance between two paths
      */
     TestData (const std::string &graphFileName, std::size_t numPaths,
-              double maxPathLength, double minPathPairwiseDistance,
-              Path::DistanceFunction func, Neighborhood::AvoidMethod avoidance);
+        double maxPathLength, double minPathPairwiseDistance, Path::DistanceFunction distFunc);
     
     /** Destructor. */
     ~TestData ();
@@ -78,12 +76,6 @@ public:
      * @return our path distance function \a pDist
      */
     Path::DistanceFunction getPathDistanceFunction () const;
-    
-    /**
-     * Get the setting for which avoid method to use.
-     * @return our avoidance method \a avoid
-     */
-    Neighborhood::AvoidMethod getAvoidMethod () const;
     
     /**
      * Get the graph.

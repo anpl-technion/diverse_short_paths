@@ -11,7 +11,7 @@
 
 Results::Results (const std::string &desc, const TestData *testData,
                   const Path *pathSet, std::size_t nPaths, double runtime)
-  : description(desc), data(testData), paths(pathSet), n(nPaths), t(runtime)
+: description(desc), data(testData), paths(pathSet), n(nPaths), t(runtime)
 {
 }
 

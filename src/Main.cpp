@@ -7,51 +7,11 @@
 
 #include "Eppstein.h"
 #include "Frechet.h"
+#include "Levenshtein.h"
 #include "Neighborhood.h"
 #include "Results.h"
 #include "TestData.h"
 #include "Voss.h"
-
-/*
- * Run my algorithm on the data.
- * Print results.
- */
-void runEppsteinTests (const TestData *data, double &Te, double &De)
-{
-    // Run Eppstein's algorithm on the data
-    Eppstein *epp = new Eppstein(data);
-    const Results *res = epp->timedRun();
-    
-    // Put results into a nice format
-    Te = res->getTime();
-    De = res->minNearestPathDistance();
-    res->print();
-    res->saveSet();
-    delete epp;
-    delete res;
-}
-
-/*
- * Run my algorithm on the data.
- * Print results.
- */
-void runVossTests (const TestData *data, double radiusFactor,
-  std::ostream &T, std::ostream &P, std::ostream &D, std::ostream &L)
-{
-    // Run my algorithm on the data
-    Voss *voss = new Voss(data, radiusFactor);
-    const Results *res = voss->timedRun();
-    
-    // Put results into nice tables
-    T << res->getTime();
-    P << res->numPaths();
-    D << res->minNearestPathDistance();
-    L << res->findLongestLength();
-    res->print();
-    res->saveSet();
-    delete voss;
-    delete res;
-}
 
 /*
  * Write out data as Mathematica code.
@@ -107,11 +67,19 @@ int main (int argc, char *argv[])
     const size_t runs = std::atoi(argv[arg++]);
     
     // Build graph to test on
-    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance, Frechet::distance, Neighborhood::GRAPH);
+    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance, Levenshtein::distance);
     /*
     // Eppstein
+    Eppstein epp(&data);
+    const Results *res = epp.timedRun();
+    
+    // Put results into a nice format
     double Te, De;
-    runEppsteinTests(&data, Te, De);
+    Te = res->getTime();
+    De = res->minNearestPathDistance();
+    res->print();
+    res->saveSet();
+    delete res;
     */
     // Voss
     std::stringstream X, T, P, D, L;
@@ -149,7 +117,18 @@ int main (int argc, char *argv[])
             P << ",";
             D << ",";
             L << ",";
-            runVossTests(&data, rf, T, P, D, L);
+
+            Voss voss(&data, rf, Neighborhood::CSPACE);
+            const Results *res = voss.timedRun();
+            
+            // Put results into nice tables
+            T << res->getTime();
+            P << res->numPaths();
+            D << res->minNearestPathDistance();
+            L << res->findLongestLength();
+            res->print();
+            res->saveSet();
+            delete res;
         }
         T << "}";
         P << "}";

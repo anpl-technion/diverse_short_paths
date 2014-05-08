@@ -9,9 +9,8 @@
 // Constructors, destructors
 
 TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
-                    double maxPathLength, double minPathPairwiseDistance,
-                    Path::DistanceFunction func, Neighborhood::AvoidMethod avoidance)
- :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), pDist(func), avoid(avoidance)
+    double maxPathLength, double minPathPairwiseDistance, Path::DistanceFunction distFunc)
+:  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), pDist(distFunc)
 {
     // Initialize the space
     ompl::base::SpaceInformationPtr si;
@@ -64,11 +63,6 @@ double TestData::getMinDistance () const
 Path::DistanceFunction TestData::getPathDistanceFunction () const
 {
     return pDist;
-}
-
-Neighborhood::AvoidMethod TestData::getAvoidMethod () const
-{
-    return avoid;
 }
 
 const Graph &TestData::getGraph () const

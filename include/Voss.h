@@ -8,6 +8,7 @@
 #include "pch.h"
 
 #include "KDiverseShort.h"
+#include "Neighborhood.h"
 
 /**
  * My algorithm for k short, diverse paths by random avoidance.
@@ -16,7 +17,8 @@ class Voss : public KDiverseShort
 {
 private:
     
-    const double radiusFactor;  // Size of avoided regions as a factor of shortest path length
+    const double radiusFactor;                  // Size of avoided regions as a factor of shortest path length
+    const Neighborhood::AvoidMethod avoidance;  // Method used to measure distance to center of neighborhood
     
 public:
     
@@ -24,8 +26,9 @@ public:
      * Construct an instance of this algorithm.
      * @param data          data set to run on
      * @param radiusFactor  radius of avoided regions as a factor of shortest path length
+     * @param avoid         method used to measure distance to center of neighborhood
      */
-    Voss (const TestData *data, double radiusFactor);
+    Voss (const TestData *data, double radiusFactor, Neighborhood::AvoidMethod avoid);
     
 private:
     

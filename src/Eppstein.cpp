@@ -14,7 +14,7 @@
 // Constructors, destructors
 
 Eppstein::Eppstein (const TestData *data)
-  : KDiverseShort(data)
+: KDiverseShort(data)
 {
     // Initialize the underlying Graehl implementation
     std::stringstream ss;

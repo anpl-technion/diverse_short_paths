@@ -9,7 +9,7 @@
 // Constructors, destructors
 
 Neighborhood::Neighborhood (ompl::base::State *c, Edge cedge, double r)
- :  center(c), centerEdge(cedge), radius(r)
+:  center(c), centerEdge(cedge), radius(r)
 {
     extantCount++;
     if (method == GRAPH)
@@ -17,7 +17,7 @@ Neighborhood::Neighborhood (ompl::base::State *c, Edge cedge, double r)
 }
 
 Neighborhood::Neighborhood (const Neighborhood &copy)
- :  center(graph->getSpaceInfo()->cloneState(copy.getCenter())), centerEdge(copy.getCenterEdge()), radius(copy.getRadius())
+:  center(graph->getSpaceInfo()->cloneState(copy.getCenter())), centerEdge(copy.getCenterEdge()), radius(copy.getRadius())
 {
     extantCount++;
     if (method == GRAPH)

@@ -9,17 +9,17 @@
 // Constructors, destructors
 
 Path::Path ()
- :  std::vector<Vertex>(), g(nullptr)
+:  std::vector<Vertex>(), g(nullptr)
 {
 }
 
 Path::Path (const Path &path)
- :  std::vector<Vertex>(path), g(path.getGraph()), parametrization(path.getPartialEdgeSums())
+:  std::vector<Vertex>(path), g(path.getGraph()), parametrization(path.getPartialEdgeSums())
 {
 }
 
 Path::Path (std::vector<Vertex> &path, const Graph *graph)
- :  std::vector<Vertex>(path), g(graph)
+:  std::vector<Vertex>(path), g(graph)
 {
     parametrization.reserve(size());
     parametrization.push_back(0);
@@ -30,7 +30,7 @@ Path::Path (std::vector<Vertex> &path, const Graph *graph)
 }
 
 Path::Path (const Graph *graph)
- :  std::vector<Vertex>(), g(graph)
+:  std::vector<Vertex>(), g(graph)
 {
 }
 

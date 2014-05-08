@@ -8,10 +8,10 @@
 #include "Path.h"
 
 // Some convenience macros
-#define DYN(I,J)    (dynarray[(I)+(J)*rowLength])
-#define DIST(I,J)   (si->distance(states1[I], states2[J]))
-#define DIST1(I1,I2)    (si->distance(states1[I1], states1[I2]))
-#define DIST2(J1,J2)    (si->distance(states2[J1], states2[J2]))
+#define DYN(I,J)        (dynarray[(I)+(J)*rowLength])
+#define DIST(I,J)       ((I < rowLength && J < colLength) ? si->distance(states1[I], states2[J]) : 0)
+#define DIST1(I1,I2)    ((I1 < rowLength && I2 < rowLength) ? si->distance(states1[I1], states1[I2]) : 0)
+#define DIST2(J1,J2)    ((J1 < colLength && J2 < colLength) ? si->distance(states2[J1], states2[J2]) : 0)
 
 // Public static methods
 
@@ -38,10 +38,10 @@ double Levenshtein::distance (const Path &path1, const Path &path2)
         for (std::size_t j = 1; j < colLength; j++)
         {
             const double xform = DYN(i-1,j-1) + DIST(i,j);
-//             const double del = DYN(i-1,j) + DIST1(i-1,i) + DIST1(i,i+1) - DIST1(i-1,i+1);
-//             const double ins = DYN(i,j-1) + DIST2(j-1,j) + DIST2(j,j+1) - DIST2(j-1,j+1);
-            const double del = DYN(i-1,j) + DIST(i,j-1) + DIST(i,j+1) - DIST2(j-1,j+1);
-            const double ins = DYN(i,j-1) + DIST(i-1,j) + DIST(i+1,j) - DIST1(i-1,i+1);
+            const double del = DYN(i-1,j) + DIST1(i-1,i) + DIST1(i,i+1) - DIST1(i-1,i+1);
+            const double ins = DYN(i,j-1) + DIST2(j-1,j) + DIST2(j,j+1) - DIST2(j-1,j+1);
+//             const double del = DYN(i-1,j) + DIST(i,j-1) + DIST(i,j+1) - DIST2(j-1,j+1);
+//             const double ins = DYN(i,j-1) + DIST(i-1,j) + DIST(i+1,j) - DIST1(i-1,i+1);
             DYN(i,j) = std::min(xform, std::min(ins, del));
         }
     }

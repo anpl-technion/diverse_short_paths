@@ -12,8 +12,8 @@
 
 // Constructors, destructors
 
-Voss::Voss (const TestData *data, double radiusFactor)
-  : KDiverseShort(data), radiusFactor(radiusFactor)
+Voss::Voss (const TestData *data, double radiusFactor, Neighborhood::AvoidMethod avoid)
+: KDiverseShort(data), radiusFactor(radiusFactor), avoidance(avoid)
 {
 }
 
@@ -23,29 +23,23 @@ std::string Voss::run ()
 {
     std::stringstream desc;
     desc << "Random Avoidance, radius factor " << radiusFactor;
-    const Graph &g = testData->getGraph();
     
     // Set up neighborhoods
-    Neighborhood::setParam(testData->getAvoidMethod(), &g);
+    const Graph &g = testData->getGraph();
+    Neighborhood::setParam(avoidance, &g);
     
     if (!needMore())
         return desc.str();
     
-    // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
-    std::vector<std::vector<Neighborhood> > resultAvoids;
-    
-    // Unfiltered set of paths found
-    std::vector<Path> unfilteredPathSet;
-    
-    // The next path to analyze
-    std::size_t frontier = 0;
+    std::vector<std::vector<Neighborhood> > resultAvoids;   // Avoided neighborhoods each path in resultsPaths was made with
+    std::vector<Path> unfilteredPathSet;                    // Unfiltered set of paths found
+    std::size_t frontier = 0;                               // The next path to analyze
     
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
     std::vector<Neighborhood> alreadyAvoiding;
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
         return desc.str();
-
     considerPath(referencePath);
     if (tooLong())
         return desc.str();
