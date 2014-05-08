@@ -7,33 +7,42 @@
 #include "Path.h"
 #include "TestData.h"
 
-Results::Results (const std::string name, const TestData *const testData,
-                  const Path *pathSet, const std::size_t nPaths)
-  : description(name), data(testData), paths(pathSet), n(nPaths)
+// Constructors, destructors
+
+Results::Results (const std::string &desc, const TestData *testData,
+                  const Path *pathSet, std::size_t nPaths, double runtime)
+  : description(desc), data(testData), paths(pathSet), n(nPaths), t(runtime)
 {
 }
 
-void Results::print (double runtime) const
-{
-    std::clog << "Description: " << description << "\n";
-    std::clog << " Found " << n << " of " << data->getK() << " requested paths.\n";
-    const double shortest = findShortestLength();
-    std::clog << "\tshortest path length is " << shortest << "\n";
-    const double longest = findLongestLength();
-    std::clog << "\tlongest path length is " << longest << " (" << longest/shortest << " times as long)\n";
-    std::clog << "\tmin distance to nearest neighbor is " << minNearestPathDistance() << "\n";
-    std::clog << " Completed in " << runtime << " seconds\n";
-    
-    std::clog << "\n\n" << std::flush;
-}
+// Public methods
 
 void Results::saveSet () const
 {
+    // Open a file and save each path in turn
     std::ofstream fout(description + ".txt");
     for (std::size_t i = 0; i < n; i++)
     {
         paths[i].saveOMPLFormat(fout);
     }
+}
+
+void Results::print () const
+{
+    std::cout << "Description: " << description << "\n";
+    std::cout << " Found " << n << " of " << data->getK() << " requested paths.\n";
+    const double shortest = findShortestLength();
+    std::cout << "\tshortest path length: " << shortest << "\n";
+    const double longest = findLongestLength();
+    std::cout << "\tlongest path length:  " << longest << " (" << longest/shortest << " times as long)\n";
+    std::cout << "\tmin distance to nearest neighbor:  " << minNearestPathDistance() << "\n";
+    std::cout << "\tmean distance to nearest neighbor: " << meanNearestPathDistance() << "\n";
+    std::cout << " Completed in " << t << " seconds\n\n\n";
+}
+
+double Results::getTime () const
+{
+    return t;
 }
 
 double Results::findShortestLength () const
@@ -54,12 +63,6 @@ double Results::findLongestLength () const
             longest = paths[i].getLength();
     }
     return longest;
-}
-
-double Results::diversity () const
-{
-    return meanNearestPathDistance();
-//     return minNearestPathDistance();
 }
 
 double Results::minNearestPathDistance () const
@@ -89,6 +92,7 @@ double Results::nearestPathDistance (const std::size_t which) const
     double nearest = std::numeric_limits<double>::infinity();
     for (std::size_t i = 0; i < n; i++)
     {
+        // Don't check against itself
         if (i == which)
             continue;
         const double distance = Path::distance(paths[i], paths[which]);
@@ -98,17 +102,7 @@ double Results::nearestPathDistance (const std::size_t which) const
     return nearest;
 }
 
-const TestData *Results::getData () const
-{
-    return data;
-}
-
 std::size_t Results::numPaths () const
 {
     return n;
-}
-
-const Path *Results::getPath (std::size_t i) const
-{
-    return &paths[i];
 }

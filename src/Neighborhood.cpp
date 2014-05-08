@@ -6,6 +6,8 @@
 
 #include "Graph.h"
 
+// Constructors, destructors
+
 Neighborhood::Neighborhood (ompl::base::State *c, Edge cedge, double r)
  :  center(c), centerEdge(cedge), radius(r)
 {
@@ -15,7 +17,7 @@ Neighborhood::Neighborhood (ompl::base::State *c, Edge cedge, double r)
 }
 
 Neighborhood::Neighborhood (const Neighborhood &copy)
- :  center(g->getSpaceInfo()->cloneState(copy.getCenter())), centerEdge(copy.getCenterEdge()), radius(copy.getRadius())
+ :  center(graph->getSpaceInfo()->cloneState(copy.getCenter())), centerEdge(copy.getCenterEdge()), radius(copy.getRadius())
 {
     extantCount++;
     if (method == GRAPH)
@@ -24,18 +26,35 @@ Neighborhood::Neighborhood (const Neighborhood &copy)
 
 Neighborhood &Neighborhood::operator=(const Neighborhood &copy)
 {
-    Neighborhood *nbh = new Neighborhood(g->getSpaceInfo()->cloneState(copy.center), copy.centerEdge, copy.radius);
+    Neighborhood *nbh = new Neighborhood(graph->getSpaceInfo()->cloneState(copy.center), copy.centerEdge, copy.radius);
     return *nbh;
 }
 
 Neighborhood::~Neighborhood ()
 {
-    g->getSpaceInfo()->freeState(center);
+    // Free local resources
+    graph->getSpaceInfo()->freeState(center);
+    
+    // Free shared resources if there are no more others
     if (--extantCount == 0)
         destroyStatePool();
 }
 
-const ompl::base::State * Neighborhood::getCenter () const
+// Public methods
+
+void Neighborhood::setParam (AvoidMethod m, const Graph *g)
+{
+    method = m;
+    graph = g;
+    
+    // Allocate shared states to do computes in
+    for (size_t i = 0; i < 5; i++)
+    {
+        statePool[i] = graph->getSpaceInfo()->allocState();
+    }
+}
+
+const ompl::base::State *Neighborhood::getCenter () const
 {
     return center;
 }
@@ -50,35 +69,8 @@ double Neighborhood::getRadius () const
     return radius;
 }
 
-void Neighborhood::setupWeight ()
-{
-    if (g == NULL)
-    {
-        std::cerr << "Error: State pool not allocated!\n";
-        exit(-1);
-    }
-    
-    edgeWeight = g->getEdgeWeight(centerEdge);
-    g->getVertices(centerEdge, &centerU, &centerV);
-    centerWeight = g->getSpaceInfo()->distance(g->getVertexState(centerU), center);
-}
-
-void Neighborhood::setParam (AvoidMethod m)
-{
-    method = m;
-    
-    if (method == GRAPH)
-        g->allPairsShortestPaths();
-}
-
 bool Neighborhood::shouldAvoid (Edge e) const
 {
-    if (g == NULL)
-    {
-        std::cerr << "Error: State pool not allocated!\n";
-        exit(-1);
-    }
-    
     switch (method)
     {
     case CSPACE:
@@ -91,31 +83,58 @@ bool Neighborhood::shouldAvoid (Edge e) const
     }
 }
 
+// Private static methods
+
+void Neighborhood::destroyStatePool ()
+{
+    for (size_t i = 0; i < 5; i++)
+    {
+        graph->getSpaceInfo()->freeState(statePool[i]);
+    }
+    
+    delete [] statePool;
+}
+
+// Private methods
+
+void Neighborhood::setupWeight ()
+{
+    if (graph == nullptr)
+    {
+        std::cerr << "Error: Graph not set!\n";
+        exit(-1);
+    }
+    
+    // Compute values ahead of time that we will need often
+    edgeWeight = graph->getEdgeWeight(centerEdge);
+    std::tie(centerU, centerV) = graph->getVertices(centerEdge);
+    centerWeight = graph->getSpaceInfo()->distance(graph->getVertexState(centerU), center);
+}
+
 bool Neighborhood::shouldAvoid_cspace (Edge e) const
 {
-    Vertex u = 0;
-    Vertex v = 0;
-    g->getVertices(e, &u, &v);
-    
-    ompl::base::SpaceInformationPtr si = g->getSpaceInfo();
-    
+    // Set up
+    Vertex u, v;
+    std::tie(u, v) = graph->getVertices(e);
+    ompl::base::SpaceInformationPtr si = graph->getSpaceInfo();
     ompl::base::State *left = statePool[0];
     ompl::base::State *right = statePool[1];
     ompl::base::State *midleft = statePool[2];
     ompl::base::State *midright = statePool[3];
     ompl::base::State *mid = statePool[4];
     
-    si->copyState(left, g->getVertexState(u));
-    si->copyState(right, g->getVertexState(v));
-    g->midpoint(left, right, mid);
+    // Populate states
+    si->copyState(left, graph->getVertexState(u));
+    si->copyState(right, graph->getVertexState(v));
+    graph->midpoint(left, right, mid);
+    
     // Might be able to quit early
     if (isInside(left) || isInside(right) || isInside(mid))
         return true;
     
-    g->midpoint(left, mid, midleft);
-    g->midpoint(right, mid, midright);
-    
-    // h is always distance(left, mid)
+    // Populate more states
+    graph->midpoint(left, mid, midleft);
+    graph->midpoint(right, mid, midright);
     double h = si->distance(left, mid);
     double left_dist = si->distance(midleft, center);
     double right_dist = si->distance(midright, center);
@@ -130,7 +149,7 @@ bool Neighborhood::shouldAvoid_cspace (Edge e) const
             ompl::base::State *tmp = right;
             right = mid;
             mid = midleft;
-            midleft = tmp;  // So we don't lose track of the 5 allocated states
+            midleft = tmp;
             
             // If there's no chance of hitting the neighborhood, stop now
             if (left_dist > radius + h)
@@ -141,64 +160,46 @@ bool Neighborhood::shouldAvoid_cspace (Edge e) const
             ompl::base::State *tmp = left;
             left = mid;
             mid = midright;
-            midright = tmp;  // So we don't lose track of the 5 allocated states
+            midright = tmp;
             
             // If there's no chance of hitting the neighborhood, stop now
             if (right_dist > radius + h/2)
                 return false;
         }
-        // Make sure h is still distance(left, mid)
-        h /= 2;
         
         // Find new interval midpoints
-        g->midpoint(left, mid, midleft);
-        g->midpoint(right, mid, midright);
+        h /= 2;
+        graph->midpoint(left, mid, midleft);
+        graph->midpoint(right, mid, midright);
     }
     
+    // We reached the neighborhood
     return true;
 }
 
 bool Neighborhood::shouldAvoid_graph(Edge e) const
 {
-    // If either end point is within the radius, avoid it
-    Vertex u;
-    Vertex v;
-    g->getVertices(e, &u, &v);
+    Vertex u, v;
+    std::tie(u, v) = graph->getVertices(e);
     
-    if (g->graphDistance(u, centerU) + centerWeight < radius
-      || g->graphDistance(u, centerV) + edgeWeight - centerWeight < radius
-      || g->graphDistance(v, centerU) + centerWeight < radius
-      || g->graphDistance(v, centerV) + edgeWeight - centerWeight < radius)
+    // If either endpoint is within the radius, edge should be avoided
+    if (graph->graphDistance(u, centerU) + centerWeight < radius
+      || graph->graphDistance(u, centerV) + edgeWeight - centerWeight < radius
+      || graph->graphDistance(v, centerU) + centerWeight < radius
+      || graph->graphDistance(v, centerV) + edgeWeight - centerWeight < radius)
         return true;
     
     return false;
 }
 
-void Neighborhood::allocStatePool (const Graph *graph)
-{
-    g = graph;
-    for (size_t i = 0; i < 5; i++)
-    {
-        statePool[i] = g->getSpaceInfo()->allocState();
-    }
-}
-
-void Neighborhood::destroyStatePool ()
-{
-    for (size_t i = 0; i < 5; i++)
-    {
-        g->getSpaceInfo()->freeState(statePool[i]);
-    }
-    
-    delete [] statePool;
-}
-
 bool Neighborhood::isInside (const ompl::base::State *s) const
 {
-    return g->getSpaceInfo()->distance(s, center) < radius;
+    return graph->getSpaceInfo()->distance(s, center) < radius;
 }
 
-const Graph *Neighborhood::g = NULL;
+// Static members
+
+const Graph *Neighborhood::graph = nullptr;
 ompl::base::State **const Neighborhood::statePool = new ompl::base::State *[5];
 std::size_t Neighborhood::extantCount = 0;
 Neighborhood::AvoidMethod Neighborhood::method = UNDEFINED;

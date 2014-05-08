@@ -9,52 +9,70 @@
 
 #include "_graph_detail.h"
 
-/*
- * Suite of graphs and parameters to test an algorithm.
+/**
+ * Data and parameters to test an algorithm on.
  */
 class TestData
 {
 private:
-    Vertex start;
-    Vertex end;
-    std::size_t k;
-    double maxLength;
-    double minDistance;
-    const Graph *graph;
-    const std::string graphName;
-    mutable char *buf;
+    
+    Vertex start;                   // Vertex to start search from
+    Vertex end;                     // Vertex to end search at
+    std::size_t k;                  // Number of paths to try to find
+    double maxLength;               // Maximum allowable length of a returned path
+    double minDistance;             // Minimum allowable distance between any two returned paths
+    const Graph *graph;             // Graph to search in
     
 public:
-    // Constructor
+    
+    /**
+     * Construct data set.
+     * @param graphFileName             name of the *.graphml file containing the graph
+     * @param numPaths                  number of paths to try to find
+     * @param maxPathLength             maximum length of any returned path
+     * @param minPathPairwiseDistance   minimum distance between any two returned paths
+     */
     TestData (const std::string &graphFileName, const std::size_t numPaths,
               const double maxPathLength, const double minPathPairwiseDistance);
-    // Destructor
+    
+    /** Destructor. */
     ~TestData ();
     
-    // Get the graph
-    const Graph &getGraph () const;
-    
-    // Get the basename of the graphml file
-    char *getName () const;
-    
-    // Get the start node
+    /**
+     * Get the start node.
+     * @return our \a start vertex
+     */
     Vertex getStart () const;
     
-    // Get the end node
+    /**
+     * Get the end node.
+     * @return our \a end vertex
+     */
     Vertex getEnd () const;
     
-    // Get the maximum allowable path length
+    /**
+     * Get the maximum allowable path length.
+     * @return our \a maxLength
+     */
     double getMaxLength () const;
     
-    // Get the minimum allowable path closeness
+    /**
+     * Get the minimum allowable path closeness.
+     * @return our \a minDistance
+     */
     double getMinDistance () const;
     
-    // Get the number of paths to find
+    /**
+     * Get the number of paths to find.
+     * @return our \a k
+     */
     std::size_t getK () const;
     
-private:
-    // Constructor an empty data set
-    TestData ();
+    /**
+     * Get the graph.
+     * @return our \a graph
+     */
+    const Graph &getGraph () const;
 };
 
 #endif

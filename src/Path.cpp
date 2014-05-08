@@ -7,8 +7,10 @@
 #include "Frechet.h"
 #include "Graph.h"
 
+// Constructors, destructors
+
 Path::Path ()
- :  std::vector<Vertex>(), g(NULL)
+ :  std::vector<Vertex>(), g(nullptr)
 {
 }
 
@@ -32,6 +34,20 @@ Path::Path (const Graph *graph)
  :  std::vector<Vertex>(), g(graph)
 {
 }
+
+// Static methods
+
+double Path::distance (const Path &p1, const Path &p2)
+{
+    if (p1.getGraph() != p2.getGraph())
+    {
+        std::cerr << "Error: Cannot measure distance between paths in different graphs!\n";
+        exit(-1);
+    }
+    return Frechet::distance(p1, p2);
+}
+
+// Public methods
 
 void Path::saveOMPLFormat(std::ostream &out) const
 {
@@ -57,16 +73,6 @@ void Path::saveOMPLFormat(std::ostream &out) const
     g->getSpaceInfo()->freeState(state);
 }
 
-double Path::getLength () const
-{
-    return parametrization[size()-1];
-}
-
-const Graph *Path::getGraph () const
-{
-    return g;
-}
-
 void Path::print () const
 {
     for (std::size_t i = 0; i < size(); i++)
@@ -86,9 +92,19 @@ void Path::printWithWeights () const
     std::cout << (*this)[size()-1] << " : " << getLength() << "\n";
 }
 
-void Path::push_back (const Vertex &vertex)
+double Path::getLength () const
 {
-    std::vector<Vertex>::push_back(vertex);
+    return parametrization[size()-1];
+}
+
+const Graph *Path::getGraph () const
+{
+    return g;
+}
+
+void Path::push_back (const Vertex &v)
+{
+    std::vector<Vertex>::push_back(v);
     if (size() == 1)
         parametrization.push_back(0);
     else
@@ -96,12 +112,7 @@ void Path::push_back (const Vertex &vertex)
             + g->getEdgeWeight((*this)[size()-2], (*this)[size()-1]));
 }
 
-std::vector<double> Path::getPartialEdgeSums () const
-{
-    return parametrization;
-}
-
-ompl::base::State *Path::sampleUniform (Edge *edge) const
+std::tuple<ompl::base::State *, Edge> Path::sampleUniform () const
 {
     // Sample between [0,length]
     double par = getLength() * ((double)rand() / (double)RAND_MAX);
@@ -115,14 +126,10 @@ ompl::base::State *Path::sampleUniform (Edge *edge) const
     
     par = (par-parametrization[i]) / getLength();
     
-    // Save the edge
-    if (edge != NULL)
-        *edge = g->getEdge((*this)[i], (*this)[i+1]);
-    
     // Interpolate
     ompl::base::State *sample = g->getSpaceInfo()->allocState();
     g->getSpaceInfo()->getStateSpace()->interpolate(g->getVertexState((*this)[i]), g->getVertexState((*this)[i+1]), par, sample);
-    return sample;
+    return std::make_tuple(sample, g->getEdge((*this)[i], (*this)[i+1]));
 }
 
 const std::vector<double> &Path::getWeights () const
@@ -132,6 +139,13 @@ const std::vector<double> &Path::getWeights () const
     
     return weights;
 }
+
+std::vector<double> Path::getPartialEdgeSums () const
+{
+    return parametrization;
+}
+
+// Private methods
 
 bool Path::isWeightCached () const
 {
@@ -169,9 +183,4 @@ void Path::cacheStates () const
     {
         states.push_back(g->getVertexState(v));
     }
-}
-
-double Path::distance (const Path &p1, const Path &p2)
-{
-    return Frechet::distance(p1, p2);
 }

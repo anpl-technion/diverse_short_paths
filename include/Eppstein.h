@@ -9,33 +9,56 @@
 
 #include "KDiverseShort.h"
 
-/*
+/**
+ * Maximum number of paths Graehl implementation is prepared to handle.
+ */
+#define MAXPATHS 20000000
+
+/**
  * Eppstein's algorithm for k shortest paths.
  */
 class Eppstein : public KDiverseShort
 {
 private:
-    // Kernel of Graehl code
-    graehl::Graehl *graehl_kernel;
     
-    static const char *EPP_NAME;
+    graehl::Graehl *graehl_kernel;  // Encapsulation of Graehl's implementation
     
 public:
-    // Construct the algorithm to use the given data
+    
+    /**
+     * Construct an instance of this algorithm.
+     * @param data  data set to run on
+     */
     Eppstein (const TestData *data);
     
-    // Destructor
+    /** Destructor. */
     ~Eppstein ();
     
-    // Evaluate the algorithm
-    const Results *run ();
-    
 private:
-    // Convert our Graph to the Graehl graph format
-    static std::stringstream *makeGraehlGraph (const Graph &g);
     
-    // Set up the Graehl code for the graph
-    static graehl::Graehl *initGraehl (std::stringstream *input, const std::size_t start, const std::size_t end);
+    /**
+     * Convert a Graph to the Graehl graph format.
+     * @param out   stream to write graph to
+     * @param g     Graph to convert
+     * @return \a out
+     */
+    static std::stringstream &makeGraehlGraph (std::stringstream &out, const Graph &g);
+    
+    /**
+     * Set up the Graehl code for the graph.
+     * @param input stream to read graph from
+     * @param start vertex number to start at
+     * @param end   vertex number to end at
+     * @return new instance of Graehl for this Graph
+     */
+    static graehl::Graehl *initGraehl (std::stringstream &input, const std::size_t start, const std::size_t end);
+    
+    /**
+     * Execute the algorithm.
+     * @return textual description of the algorithm
+     * @warning Will terminate the program if more than \a MAXPATHS are requested.
+     */
+    std::string run ();
 };
 
 #endif

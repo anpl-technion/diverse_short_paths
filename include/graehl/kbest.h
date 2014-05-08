@@ -131,10 +131,10 @@ private:
     
 public:
     
-    Graehl (stringstream *graphstream, int s, int d)
+    Graehl (stringstream &graphstream, int s, int d)
       : source(s), dest(d), ready(false)
     {
-        *graphstream >> graph;
+        graphstream >> graph;
         nStates = graph.nStates;
         assert(nStates > 0 && graph.states);
         assert(source >= 0 && source < nStates);

@@ -9,59 +9,125 @@
 
 #include "_graph_detail.h"
 
+/**
+ * A sequence of adjacent edges, represented by the vertices in between.
+ */
 class Path : public std::vector<Vertex>
 {
 private:
     
-    const Graph *g;
-    
-    std::vector<double> parametrization;
-    
-    mutable std::vector<double> weights;
-    
-    mutable std::vector<const ompl::base::State *> states;
-    
-    bool isWeightCached () const;
-
-    void cacheWeights () const;
-    
-    bool isStateCached () const;
-
-    void cacheStates () const;
+    const Graph *g;                                         // Graph the path lies in
+    mutable std::vector<const ompl::base::State *> states;  // State of each vertex
+    mutable std::vector<double> weights;                    // Weight of each edge
+    std::vector<double> parametrization;                    // Partial sums of edge weights
     
 public:
     
+    /** Default constructor. */
     Path ();
     
+    /**
+     * Copy constructor.
+     * @param path  existing path to copy
+     */
     Path (const Path &path);
     
+    /**
+     * Construct path from vertex list.
+     * @param path  list of vertices in \a g in order
+     * @param g     graph this path lies in
+     */
     Path (std::vector<Vertex> &path, const Graph *g);
     
+    /**
+     * Construct an empty path.
+     * @param g graph this path lies in
+     */
     Path (const Graph *g);
     
+    /**
+     * Compute the distance between two paths.
+     * @param p1    first path
+     * @param p2    second path
+     * @return distance between \a p1 and \a p2 according to some measure
+     * @warning Terminates program if \a p1 and \a p2 are in different graphs.
+     */
+    static double distance (const Path &p1, const Path &p2);
+    
+    /**
+     * Write this path in format used by OMPL App.
+     * @param out   stream to write to
+     */
     void saveOMPLFormat(std::ostream &out) const;
     
-    double getLength () const;
-    
-    const Graph *getGraph () const;
-    
+    /** Print this path as a list of vertices and total length. */
     void print () const;
     
+    /** Print this path as a list of vertices, each edge weight, and total length. */
     void printWithWeights () const;
     
-    void push_back (const Vertex &vertex);
+    /**
+     * Get the length of this path (sum of edge weights).
+     * @return path length
+     */
+    double getLength () const;
     
-    std::vector<double> getPartialEdgeSums () const;
+    /**
+     * Get the graph this path lies in.
+     * @return our graph \a g
+     */
+    const Graph *getGraph () const;
     
-    // Allocates a state that should be freed later
-    ompl::base::State *sampleUniform (Edge *edge) const;
+    /**
+     * Append a vertex.
+     * @param v vertex in our graph \a g
+     */
+    void push_back (const Vertex &v);
     
+    /**
+     * Uniformly sample a state along the path.
+     * @return tuple of state sampled and the edge it lies in
+     * @note Returned state should be freed manually.
+     */
+    std::tuple<ompl::base::State *, Edge> sampleUniform () const;
+    
+    /**
+     * Get the weight of each edge, in order.
+     * @return our \a weights vector
+     */
     const std::vector<double> &getWeights () const;
     
+    /**
+     * Get the state of each vertex, in order.
+     * @return out \a states vector
+     */
     const std::vector<const ompl::base::State *> &getStates () const;
     
-    static double distance (const Path &p1, const Path &p2);
+    /**
+     * Get the partial sums of the edge weights, in order.
+     * @return our \a parameterization vector
+     */
+    std::vector<double> getPartialEdgeSums () const;
+    
+private:
+    
+    /**
+     * Have the weights been stored?
+     * @return true if \a weights has been initialized; false otherwise
+     */
+    bool isWeightCached () const;
+    
+    /** Populate \a weights for random access. */
+    void cacheWeights () const;
+    
+    /**
+     * Have the states been stored?
+     * @return true if \a states has been initialized; false otherwise
+     */
+    bool isStateCached () const;
+    
+    /** Populate \a weights for random access. */
+    void cacheStates () const;
 };
-
 
 #endif

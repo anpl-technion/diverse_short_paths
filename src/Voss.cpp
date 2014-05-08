@@ -10,24 +10,25 @@
 #include "Results.h"
 #include "TestData.h"
 
-const char *Voss::VOSS_NAME = "Random Neighborhood Avoidance";
+// Constructors, destructors
 
 Voss::Voss (const TestData *data, double radiusFactor)
-  : KDiverseShort(data), radius_factor(radiusFactor)
+  : KDiverseShort(data), radiusFactor(radiusFactor)
 {
 }
 
-const Results *Voss::run ()
+// Private methods
+
+std::string Voss::run ()
 {
     std::stringstream desc;
-    desc << VOSS_NAME << ":radius_" << radius_factor;
+    desc << "Random Avoidance, radius factor " << radiusFactor;
     const Graph &g = testData->getGraph();
-    Neighborhood::allocStatePool(&g);
-//     Neighborhood::setParam(Neighborhood::AvoidMethod::CSPACE);
-    Neighborhood::setParam(Neighborhood::AvoidMethod::GRAPH);
+//     Neighborhood::setParam(Neighborhood::AvoidMethod::CSPACE, &g);
+    Neighborhood::setParam(Neighborhood::AvoidMethod::GRAPH, &g);
     
     if (!needMore())
-        return getResults(desc.str().c_str());
+        return desc.str();
     
     // Holds the set of avoided neighborhoods that each path in resultsPaths was made with
     std::vector<std::vector<Neighborhood> > resultAvoids;
@@ -42,11 +43,11 @@ const Results *Voss::run ()
     std::vector<Neighborhood> alreadyAvoiding;
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
-        return getResults(desc.str().c_str());
+        return desc.str();
 
     considerPath(referencePath);
     if (tooLong())
-        return getResults(desc.str().c_str());
+        return desc.str();
     resultAvoids.push_back(alreadyAvoiding);
     unfilteredPathSet.push_back(referencePath);
     
@@ -58,19 +59,21 @@ const Results *Voss::run ()
         frontier++;
         
         // Make attempts at imposing a new neighborhood to avoid on the graph
-        double radius = radius_factor * referencePath.getLength();
+        double radius = radiusFactor * referencePath.getLength();
         for (std::size_t i = 0; i < 2 && needMore(); i++)
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
-            Edge e;
-            avoid.push_back(Neighborhood(referencePath.sampleUniform(&e), e, radius));
+            ompl::base::State *sampledState;
+            Edge sampledEdge;
+            std::tie(sampledState, sampledEdge) = referencePath.sampleUniform();
+            avoid.push_back(Neighborhood(sampledState, sampledEdge, radius));
             
             // Get the shortest path under these constraints
             Path path = getShortestPathUnderAvoidance(avoid);
             if (path.empty())
                 continue;
             
-            // Don't store it if it's not diverse enough
+            // Can we keep it?
             considerPath(path);
             
             // But we'll need it regardless for later iterations
@@ -79,7 +82,7 @@ const Results *Voss::run ()
         }
     }
     
-    return getResults(desc.str().c_str());
+    return desc.str();
 }
 
 Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid) const
@@ -99,6 +102,7 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
     }
     catch (foundGoalException e)
     {
+        // Trace back the shortest path
         for (Vertex v = end;; v = pred[v])
         {
             path.push_back(v);
@@ -107,9 +111,10 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
         }
         std::reverse(path.begin(), path.end());
     }
-
+    
+    // If no path is found, we want to return an empty path
     if (path.size() == 1 && start != end)
         path.clear();
+    
     return path;
 }
-

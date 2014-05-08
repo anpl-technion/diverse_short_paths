@@ -9,11 +9,13 @@
 #include "Results.h"
 #include "TestData.h"
 
+// Constructors, destructors
+
 KDiverseShort::KDiverseShort (const TestData *data)
-  : too_long(false), c(0), pathNN(new ompl::NearestNeighborsGNAT<Path>()), testData(data)
+  : too_long(false), i(0), c(0), testData(data)
 {
     pathArray = new Path[testData->getK()];
-    i = 0;
+    pathNN = new ompl::NearestNeighborsGNAT<Path>();
     pathNN->setDistanceFunction(&Path::distance);
 }
 
@@ -22,6 +24,57 @@ KDiverseShort::~KDiverseShort ()
     delete [] pathArray;
     delete pathNN;
 }
+
+// Public methods
+
+bool KDiverseShort::considerPath(const Path &path)
+{
+    // Update user on progress during long runs
+    if (++c % 10000 == 0)
+        std::cout << "Success rate: " << i << "/" << c << "\n";
+    
+    // Reject path if it is too long
+    if (path.getLength() > testData->getMaxLength())
+    {
+        too_long = true;
+        return false;
+    }
+    
+    // Reject path if it is too close to others
+    if (i > 0)
+    {
+        const Path &nearest = pathNN->nearest(path);
+        const double d = (pathNN->getDistanceFunction())(path, nearest);
+        if (d < testData->getMinDistance())
+            return false;
+    }
+    
+    // Path meets criteria
+    pathArray[i++] = path;
+    pathNN->add(pathArray[i-1]);
+    return true;
+}
+
+const Results *KDiverseShort::timedRun ()
+{
+    // Time the execution
+    clock_t start = clock();
+    std::string desc = run();
+    clock_t end = clock();
+    double seconds = ((double)(end-start))/CLOCKS_PER_SEC;
+    
+    // Label the results
+    std::stringstream fullDescription;
+    fullDescription << desc;
+    const double d = testData->getMinDistance();
+    if (d == std::numeric_limits<double>::epsilon())
+        fullDescription << ", no filtering";
+    else
+        fullDescription << ", filtering for " << d << " units of distance";
+    return new Results(fullDescription.str(), testData, pathArray, i, seconds);
+}
+
+// Protected methods
 
 bool KDiverseShort::tooLong () const
 {
@@ -32,44 +85,3 @@ bool KDiverseShort::needMore () const
 {
     return i < testData->getK();
 }
-
-bool KDiverseShort::considerPath(const Path &path)
-{
-    if (++c % 10000 == 0)
-        std::cout << "Success rate: " << i << "/" << c << "\n";
-    
-    if (path.getLength() > testData->getMaxLength())
-    {
-        too_long = true;
-        return false;
-    }
-    
-    if (i > 0)
-    {
-        const Path &nearest = pathNN->nearest(path);
-        const double d = (pathNN->getDistanceFunction())(path, nearest);
-        if (d < testData->getMinDistance())
-            return false;
-    }
-    
-    pathArray[i++] = path;
-    pathNN->add(pathArray[i-1]);
-    return true;
-}
-
-const Results *KDiverseShort::getResults (const char *alg_name)
-{
-    return new Results(alg_name, testData, pathArray, i);
-}
-
-const Results *KDiverseShort::timedRun (double &seconds)
-{
-    // Time the execution
-    clock_t start = clock();
-    const Results *res = run();
-    clock_t end = clock();
-    
-    seconds = ((double)(end-start))/CLOCKS_PER_SEC;
-    return res;
-}
-

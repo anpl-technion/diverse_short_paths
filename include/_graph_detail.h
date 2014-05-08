@@ -9,7 +9,7 @@
 
 namespace boost
 {
-    /** Want to associate an object to each Vertex. */
+    /** Want to associate an object to each vertex. */
     enum vertex_prop_t { vertex_prop };
 }
 
@@ -18,7 +18,7 @@ namespace boost
  */
 class VertexAttributes
 {
-    ompl::base::State *state;   // Vertex's location in C-space
+    ompl::base::State *state;   // vertex's location in C-space
     
 public:
     
@@ -26,19 +26,21 @@ public:
     VertexAttributes ();
     
     /**
-     * Construct attributes mapping the Vertex to a state.
-     * @param  state   Vertex's location in the space in which the graph is embedded
+     * Construct attributes mapping the vertex to a state.
+     * @param state vertex's location in the space in which the graph is embedded
      */
     VertexAttributes (ompl::base::State *state);
     
     /**
      * Free memory used for this attribute.
-     * @param  si  SpaceInformationPtr the Vertex's state belongs to
+     * @param si    SpaceInformationPtr the vertex's state belongs to
+     * @note Call this for each vertex before destroying graph.
+     * @warning Assumes the state has not been freed elsewhere.
      */
     void freeState (ompl::base::SpaceInformationPtr si);
     
     /**
-     * Get the state this Vertex is associated to.
+     * Get the state this vertex is associated to.
      * @return our \a state
      */
     const ompl::base::State *getState () const;
@@ -72,7 +74,7 @@ namespace boost
 
 /**
  * Heuristic for the A* search.
- * @implements  AStarHeuristicConcept
+ * @implements AStarHeuristicConcept
  */
 class heuristic
 {
@@ -83,27 +85,27 @@ public:
     
     /**
      * Construct heuristic for a given search query.
-     * @param   graph   Graph to use
-     * @param   goal    goal location
+     * @param graph Graph to use
+     * @param goal  goal location
      */
     heuristic (const Graph &graph, Vertex goal);
     
     /**
      * Estimate the cost remaining to the goal.
-     * @param   u   current location
-     * @return  estimated distance left
+     * @param u current location
+     * @return estimated distance left
      */
     double operator() (Vertex u) const;
 };
 
 /**
  * Used to artifically supress edges during A* search.
- * @implements  ReadablePropertyMapConcept
+ * @implements ReadablePropertyMapConcept
  */
 class edgeWeightMap
 {
     const Graph &g;                         // Graph used
-    const std::vector<Neighborhood> &avoid; // List of Neighborhoods to stay out of
+    const std::vector<Neighborhood> &avoid; // List of neighborhoods to stay out of
     
 public:
     
@@ -118,23 +120,23 @@ public:
     
     /**
      * Construct map for certain constraints.
-     * @param   graph       Graph to use
-     * @param   avoidThese  list of Neighborhoods to stay out of
+     * @param graph         Graph to use
+     * @param avoidThese    list of neighborhoods to stay out of
      */
     edgeWeightMap (const Graph &graph, const std::vector<Neighborhood> &avoidThese);
     
     /**
-     * Get the weight of an Edge.
-     * @param   e   the Edge
-     * @return  infinity if \a e lies in a forbidden Neighborhood; actual weight of \a e otherwise
+     * Get the weight of an edge.
+     * @param e     the edge
+     * @return infinity if \a e lies in a forbidden neighborhood; actual weight of \a e otherwise
      */
     double get (Edge e) const;
     
 private:
     /**
      * Should this edge be avoided?
-     * @param   e   Edge to consider
-     * @return  true if \a e lies within a forbidden Neighborhood; false otherwise
+     * @param e edge to consider
+     * @return true if \a e lies within a forbidden neighborhood; false otherwise
      */
     bool shouldAvoid (Edge e) const;
 };
@@ -143,9 +145,9 @@ namespace boost
 {
     /**
      * Overload boost::get to access our map.
-     * @param   m   map to access
-     * @param   e   Edge to query
-     * @return  weight of \a e
+     * @param m     map to access
+     * @param e     edge to query
+     * @return weight of \a e
      */
     double get (const edgeWeightMap &m, const Edge &e);
 }
@@ -159,7 +161,7 @@ class foundGoalException
 
 /**
  * Vertex visitor to check if A* search is finished.
- * @implements  AStarVisitorConcept
+ * @implements AStarVisitorConcept
  */
 class visitor : public boost::default_astar_visitor
 {
@@ -169,15 +171,15 @@ public:
     
     /**
      * Construct a visitor for a given search.
-     * @param   goal    Goal Vertex of the search
+     * @param goal  goal vertex of the search
      */
     visitor (Vertex goal);
     
     /**
      * Check if we have arrived at the goal.
-     * @param   u   current Vertex
-     * @param   g   Graph we are searching on
-     * @throw   foundGoalException  if \a u is the goal
+     * @param u current vertex
+     * @param g graph we are searching on
+     * @throw foundGoalException if \a u is the goal
      */
     void examine_vertex(Vertex u, const Graph &g) const;
 };

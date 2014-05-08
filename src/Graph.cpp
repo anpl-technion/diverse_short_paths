@@ -7,9 +7,12 @@
 #include "Path.h"
 #include "Neighborhood.h"
 
-Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphml)
-: boost_graph(), si(sinfo), apsp(NULL)
+// Constructors, destructors
+
+Graph::Graph (const ompl::base::SpaceInformationPtr &si, std::istream &graphml)
+: boost_graph(), si(si), apsp(nullptr)
 {
+    // Read in vertex coordinates and edge weights from graphml format
     std::map<Vertex, std::string> coordStrings;
     std::map<Edge, double> weights;
     boost::associative_property_map<std::map<Vertex, std::string> > coords_map(coordStrings);
@@ -19,13 +22,14 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphm
     dyn_prop.property("weight", weight_map);
     boost::read_graphml(graphml, *this, dyn_prop);
     
-    foreachEdge([&] (const Edge e) -> void
+    // Assign weights
+    foreachEdge([&] (Edge e) -> void
     {
         boost::put(boost::edge_weight, *this, e, weight_map[e]);
     });
     
     // Populate state information
-    foreachVertex([&] (const Vertex v) -> void
+    foreachVertex([&] (Vertex v) -> void
     {
         ompl::base::State *state = si->allocState();
         std::istringstream coords(coordStrings[v]);
@@ -44,27 +48,18 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &sinfo, std::istream &graphm
 
 Graph::~Graph ()
 {
-    foreachVertex([&] (const Vertex v) -> void
+    // Free state of each vertex
+    foreachVertex([&] (Vertex v) -> void
     {
         boost::get(boost::vertex_prop, *this, v).freeState(si);
     });
 }
 
-ompl::base::SpaceInformationPtr Graph::getSpaceInfo () const
+// Public methods
+
+const ompl::base::SpaceInformationPtr Graph::getSpaceInfo () const
 {
     return si;
-}
-
-Vertex Graph::addVertex (ompl::base::State *state)
-{
-    return boost::add_vertex(VertexProperty(VertexAttributes(state)), *this);
-}
-
-Edge Graph::addEdge (const Vertex &u, const Vertex &v)
-{
-    const ompl::base::State *uState = boost::get(boost::vertex_prop, *this, u).getState();
-    const ompl::base::State *vState = boost::get(boost::vertex_prop, *this, v).getState();
-    return boost::add_edge(u, v, EdgeProperty(si->distance(uState, vState)), *this).first;
 }
 
 std::size_t Graph::getNumVertices () const
@@ -72,35 +67,34 @@ std::size_t Graph::getNumVertices () const
     return boost::num_vertices(*this);
 }
 
-Edge Graph::getEdge (const Vertex u, const Vertex v) const
+Edge Graph::getEdge (Vertex u, Vertex v) const
 {
+    // No guarantee this edge exists
     return boost::edge(u, v, *this).first;
 }
 
-double Graph::getEdgeWeight (const Edge e) const
+double Graph::getEdgeWeight (Edge e) const
 {
     return boost::get(boost::edge_weight, *this, e);
 }
 
-double Graph::getEdgeWeight (const Vertex u, const Vertex v) const
+double Graph::getEdgeWeight (Vertex u, Vertex v) const
 {
+    // If edge does not exist, this might crash...
     return getEdgeWeight(getEdge(u, v));
 }
 
-const ompl::base::State *Graph::getVertexState (const Vertex v) const
+const ompl::base::State *Graph::getVertexState (Vertex v) const
 {
     return boost::get(boost::vertex_prop, *this, v).getState();
 }
 
-void Graph::getVertices (const Edge e, Vertex *const u, Vertex *const v) const
+std::tuple<Vertex,Vertex> Graph::getVertices (Edge e) const
 {
-    if (u != NULL)
-        *u = boost::source(e, *this);
-    if (v != NULL)
-        *v = boost::target(e, *this);
+    return std::make_tuple(boost::source(e, *this), boost::target(e, *this));
 }
 
-void Graph::foreachEdge (std::function<void (const Edge)> applyMe) const
+void Graph::foreachEdge (std::function<void (Edge)> applyMe) const
 {
     BOOST_FOREACH (const Edge e, boost::edges(*this))
     {
@@ -108,7 +102,7 @@ void Graph::foreachEdge (std::function<void (const Edge)> applyMe) const
     }
 }
 
-void Graph::foreachVertex (std::function<void (const Vertex)> applyMe) const
+void Graph::foreachVertex (std::function<void (Vertex)> applyMe) const
 {
     BOOST_FOREACH (const Vertex v, boost::vertices(*this))
     {
@@ -123,7 +117,8 @@ void Graph::midpoint (const ompl::base::State *s1, const ompl::base::State *s2, 
 
 void Graph::allPairsShortestPaths () const
 {
-    if (apsp == NULL)
+    // Allocate a 2D array for the distances
+    if (apsp == nullptr)
     {
         const std::size_t n = getNumVertices();
         apsp = new double*[n];
@@ -137,11 +132,9 @@ void Graph::allPairsShortestPaths () const
 
 double Graph::graphDistance (Vertex u, Vertex v) const
 {
-    if (apsp == NULL)
-    {
-        std::cerr << "Error: All pairs shortest paths not pre-computed!\n";
-        exit(-1);
-    }
+    // Pre-compute all graph distances if we haven't already
+    if (apsp == nullptr)
+        allPairsShortestPaths();
     
     return apsp[u][v];
 }

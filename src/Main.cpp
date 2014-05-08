@@ -17,17 +17,14 @@
  */
 void runEppsteinTests (const TestData *data, double &Te, double &De)
 {
-    double time;
-    
     // Run Eppstein's algorithm on the data
     Eppstein *epp = new Eppstein(data);
-    const Results *res = epp->timedRun(time);
+    const Results *res = epp->timedRun();
     
     // Put results into a nice format
-    Te = time;
-    De = res->diversity();
-    std::cout << "Epp time: " << Te << "; diversity: " << De << "\n";
-    res->print(time);
+    Te = res->getTime();
+    De = res->minNearestPathDistance();
+    res->print();
     res->saveSet();
     delete epp;
     delete res;
@@ -40,19 +37,16 @@ void runEppsteinTests (const TestData *data, double &Te, double &De)
 void runVossTests (const TestData *data, double radiusFactor,
   std::ostream &T, std::ostream &P, std::ostream &D, std::ostream &L)
 {
-    double time;
-    
     // Run my algorithm on the data
     Voss *voss = new Voss(data, radiusFactor);
-    const Results *res = voss->timedRun(time);
+    const Results *res = voss->timedRun();
     
     // Put results into nice tables
-    T << time;
+    T << res->getTime();
     P << res->numPaths();
-    D << res->diversity();
+    D << res->minNearestPathDistance();
     L << res->findLongestLength();
-    std::cout << time << " s; " << res->diversity() << " " << res->numPaths() << " " << res->findLongestLength() << "\n";
-    res->print(time);
+    res->print();
     res->saveSet();
     delete voss;
     delete res;
@@ -97,7 +91,7 @@ int main (int argc, char *argv[])
     int arg = 1;
     const char *graphFile = argv[arg++];
     double maxPathLength = std::numeric_limits<double>::infinity();
-    double minPathPairwiseDistance = 1e-12;
+    double minPathPairwiseDistance = std::numeric_limits<double>::epsilon();
     if (std::strcmp("-l", argv[arg]) == 0)
         maxPathLength = std::atof(argv[arg+1]);
     else if (std::strcmp("-d", argv[arg]) == 0)

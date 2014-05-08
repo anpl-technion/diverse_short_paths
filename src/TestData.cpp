@@ -6,9 +6,11 @@
 
 #include "Graph.h"
 
+// Constructors, destructors
+
 TestData::TestData (const std::string &graphFileName, const std::size_t numPaths,
                     const double maxPathLength, const double minPathPairwiseDistance)
- :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), graphName(graphFileName)
+ :  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance)
 {
     // Initialize the space
     ompl::base::SpaceInformationPtr si;
@@ -24,29 +26,14 @@ TestData::TestData (const std::string &graphFileName, const std::size_t numPaths
     
     std::ifstream graphmlstream(graphFileName);
     graph = new Graph(si, graphmlstream);
-    
-    buf = new char[graphName.length() + 1];
-    
-    // TODO: Remove connected components not containing start state
 }
 
 TestData::~TestData ()
 {
-    delete [] buf;
     delete graph;
 }
 
-const Graph &TestData::getGraph () const
-{
-    return *graph;
-}
-
-char *TestData::getName () const
-{
-    graphName.copy(buf, graphName.length());
-    buf[graphName.length()] = '\0';
-    return basename(buf);
-}
+// Public methods
 
 Vertex TestData::getStart () const
 {
@@ -71,4 +58,9 @@ double TestData::getMinDistance () const
 std::size_t TestData::getK () const
 {
     return k;
+}
+
+const Graph &TestData::getGraph () const
+{
+    return *graph;
 }

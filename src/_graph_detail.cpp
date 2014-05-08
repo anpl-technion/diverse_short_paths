@@ -7,8 +7,10 @@
 #include "Graph.h"
 #include "Neighborhood.h"
 
+// VertexAttributes methods
+
 VertexAttributes::VertexAttributes ()
-: state(NULL)
+: state(nullptr)
 {
 }
 
@@ -19,7 +21,9 @@ VertexAttributes::VertexAttributes (ompl::base::State *state)
 
 void VertexAttributes::freeState (ompl::base::SpaceInformationPtr si)
 {
-    si->freeState(state);
+    if (state)
+        si->freeState(state);
+    state = nullptr;
 }
 
 const ompl::base::State *VertexAttributes::getState () const
@@ -27,6 +31,7 @@ const ompl::base::State *VertexAttributes::getState () const
     return state;
 }
 
+// heuristic methods
 
 BOOST_CONCEPT_ASSERT((boost::AStarHeuristicConcept<heuristic, Graph>));
 
@@ -42,6 +47,7 @@ double heuristic::operator() (Vertex u) const
     return g.getSpaceInfo()->distance(goalState, uState);
 }
 
+// edgeWeightMap methods
 
 BOOST_CONCEPT_ASSERT((boost::ReadablePropertyMapConcept<edgeWeightMap, Edge>));
 
@@ -76,6 +82,7 @@ namespace boost
     }
 }
 
+// visitor methods
 
 BOOST_CONCEPT_ASSERT((boost::AStarVisitorConcept<visitor, Graph>));
 
