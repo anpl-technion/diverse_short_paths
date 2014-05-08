@@ -54,17 +54,23 @@ int main (int argc, char *argv[])
     double maxPathLength = std::numeric_limits<double>::infinity();
     double minPathPairwiseDistance = std::numeric_limits<double>::epsilon();
     if (std::strcmp("-l", argv[arg]) == 0)
-        maxPathLength = std::atof(argv[arg+1]);
+    {
+        if (argc != 5)
+            return usage();
+        maxPathLength = std::atof(argv[++arg]);
+    }
     else if (std::strcmp("-d", argv[arg]) == 0)
-        minPathPairwiseDistance = std::atof(argv[arg+1]);
+    {
+        if (argc != 5)
+            return usage();
+        minPathPairwiseDistance = std::atof(argv[++arg]);
+    }
     else
     {
         if (argc != 4)
             return usage();
-        arg--;
     }
-    arg += 2;
-    const size_t runs = std::atoi(argv[arg++]);
+    const size_t runs = std::atoi(argv[++arg]);
     
     // Build graph to test on
     TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance, Frechet::distance);
