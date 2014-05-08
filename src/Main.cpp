@@ -6,6 +6,7 @@
 #include "pch.h"
 
 #include "Eppstein.h"
+#include "Frechet.h"
 #include "Neighborhood.h"
 #include "Results.h"
 #include "TestData.h"
@@ -106,7 +107,7 @@ int main (int argc, char *argv[])
     const size_t runs = std::atoi(argv[arg++]);
     
     // Build graph to test on
-    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
+    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance, Frechet::distance, Neighborhood::GRAPH);
     /*
     // Eppstein
     double Te, De;

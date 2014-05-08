@@ -14,6 +14,8 @@
 KDiverseShort::KDiverseShort (const TestData *data)
   : too_long(false), i(0), c(0), testData(data)
 {
+    // Set up path storage and nearest neighbors
+    Path::setDistanceFunction(testData->getPathDistanceFunction());
     pathArray = new Path[testData->getK()];
     pathNN = new ompl::NearestNeighborsGNAT<Path>();
     pathNN->setDistanceFunction(&Path::distance);

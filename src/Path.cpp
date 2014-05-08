@@ -4,7 +4,6 @@
 
 #include "Path.h"
 
-#include "Frechet.h"
 #include "Graph.h"
 
 // Constructors, destructors
@@ -37,6 +36,11 @@ Path::Path (const Graph *graph)
 
 // Static methods
 
+void Path::setDistanceFunction (DistanceFunction func)
+{
+    distanceFunc = func;
+}
+
 double Path::distance (const Path &p1, const Path &p2)
 {
     if (p1.getGraph() != p2.getGraph())
@@ -44,7 +48,14 @@ double Path::distance (const Path &p1, const Path &p2)
         std::cerr << "Error: Cannot measure distance between paths in different graphs!\n";
         exit(-1);
     }
-    return Frechet::distance(p1, p2);
+    
+    if (distanceFunc == nullptr)
+    {
+        std::cerr << "Error: Path distance function not set!\n";
+        exit(-1);
+    }
+    
+    return distanceFunc(p1, p2);
 }
 
 // Public methods
@@ -80,16 +91,6 @@ void Path::print () const
         std::cout << (*this)[i] << " ";
     }
     std::cout << ": " << (empty() ? 0 : getLength()) << "\n";
-}
-
-void Path::printWithWeights () const
-{
-    for (std::size_t i = 0; i < size()-1; i++)
-    {
-        const double w = g->getEdgeWeight((*this)[i], (*this)[i+1]);
-        std::cout << (*this)[i] << " (" << w << ") ";
-    }
-    std::cout << (*this)[size()-1] << " : " << getLength() << "\n";
 }
 
 double Path::getLength () const
@@ -184,3 +185,7 @@ void Path::cacheStates () const
         states.push_back(g->getVertexState(v));
     }
 }
+
+// Static members
+
+Path::DistanceFunction Path::distanceFunc = nullptr;

@@ -78,7 +78,7 @@ bool Neighborhood::shouldAvoid (Edge e) const
     case GRAPH:
         return shouldAvoid_graph(e);
     default:
-        std::cerr << "Error: Avoid Method not set!\n";
+        std::cerr << "Error: Unknown avoid method!\n";
         exit(-1);
     }
 }

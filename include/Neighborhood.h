@@ -18,9 +18,9 @@ public:
     
     /** Ways distance can be measured from the center. */
     enum AvoidMethod {
-        UNDEFINED,  // Initial value; must be changed
-        CSPACE,     // Use C-space distance metric
-        GRAPH       // Use graph distance metric
+        UNDEFINED,  ///< Initial value for a\ method; must be changed
+        CSPACE,     ///< Use C-space distance metric
+        GRAPH       ///< Use graph distance metric
     };
     
 private:

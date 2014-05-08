@@ -8,6 +8,8 @@
 #include "pch.h"
 
 #include "_graph_detail.h"
+#include "Neighborhood.h"
+#include "Path.h"
 
 /**
  * Data and parameters to test an algorithm on.
@@ -16,12 +18,14 @@ class TestData
 {
 private:
     
-    Vertex start;                   // Vertex to start search from
-    Vertex end;                     // Vertex to end search at
-    std::size_t k;                  // Number of paths to try to find
-    double maxLength;               // Maximum allowable length of a returned path
-    double minDistance;             // Minimum allowable distance between any two returned paths
-    const Graph *graph;             // Graph to search in
+    const Vertex start;                     // Vertex to start search from
+    const Vertex end;                       // Vertex to end search at
+    const std::size_t k;                    // Number of paths to try to find
+    const double maxLength;                 // Maximum allowable length of a returned path
+    const double minDistance;               // Minimum allowable distance between any two returned paths
+    const Path::DistanceFunction pDist;     // Method used to compute path distance
+    const Neighborhood::AvoidMethod avoid;  // Method used to measure distance to center of neighborhood
+    const Graph *graph;                     // Graph to search in
     
 public:
     
@@ -32,8 +36,9 @@ public:
      * @param maxPathLength             maximum length of any returned path
      * @param minPathPairwiseDistance   minimum distance between any two returned paths
      */
-    TestData (const std::string &graphFileName, const std::size_t numPaths,
-              const double maxPathLength, const double minPathPairwiseDistance);
+    TestData (const std::string &graphFileName, std::size_t numPaths,
+              double maxPathLength, double minPathPairwiseDistance,
+              Path::DistanceFunction func, Neighborhood::AvoidMethod avoidance);
     
     /** Destructor. */
     ~TestData ();
@@ -51,6 +56,12 @@ public:
     Vertex getEnd () const;
     
     /**
+     * Get the number of paths to find.
+     * @return our \a k
+     */
+    std::size_t getK () const;
+    
+    /**
      * Get the maximum allowable path length.
      * @return our \a maxLength
      */
@@ -63,10 +74,16 @@ public:
     double getMinDistance () const;
     
     /**
-     * Get the number of paths to find.
-     * @return our \a k
+     * Get the path distance measured used.
+     * @return our path distance function \a pDist
      */
-    std::size_t getK () const;
+    Path::DistanceFunction getPathDistanceFunction () const;
+    
+    /**
+     * Get the setting for which avoid method to use.
+     * @return our avoidance method \a avoid
+     */
+    Neighborhood::AvoidMethod getAvoidMethod () const;
     
     /**
      * Get the graph.

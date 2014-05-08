@@ -24,8 +24,9 @@ std::string Voss::run ()
     std::stringstream desc;
     desc << "Random Avoidance, radius factor " << radiusFactor;
     const Graph &g = testData->getGraph();
-//     Neighborhood::setParam(Neighborhood::AvoidMethod::CSPACE, &g);
-    Neighborhood::setParam(Neighborhood::AvoidMethod::GRAPH, &g);
+    
+    // Set up neighborhoods
+    Neighborhood::setParam(testData->getAvoidMethod(), &g);
     
     if (!needMore())
         return desc.str();
