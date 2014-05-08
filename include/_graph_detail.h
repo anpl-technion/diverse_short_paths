@@ -18,6 +18,8 @@ namespace boost
  */
 class VertexAttributes
 {
+private:
+    
     ompl::base::State *state;   // vertex's location in C-space
     
 public:
@@ -78,6 +80,8 @@ namespace boost
  */
 class heuristic
 {
+private:
+    
     const Graph &g;     // Graph used
     const Vertex goal;  // Goal location
     
@@ -104,6 +108,8 @@ public:
  */
 class edgeWeightMap
 {
+private:
+    
     const Graph &g;                         // Graph used
     const std::vector<Neighborhood> &avoid; // List of neighborhoods to stay out of
     
@@ -165,6 +171,8 @@ class foundGoalException
  */
 class visitor : public boost::default_astar_visitor
 {
+private:
+    
     Vertex goal;    // Goal Vertex of the search
     
 public:
