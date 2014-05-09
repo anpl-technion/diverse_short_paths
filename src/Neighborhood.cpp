@@ -202,4 +202,4 @@ bool Neighborhood::isInside (const ompl::base::State *s) const
 const Graph *Neighborhood::graph = nullptr;
 ompl::base::State **const Neighborhood::statePool = new ompl::base::State *[5];
 std::size_t Neighborhood::extantCount = 0;
-Neighborhood::AvoidMethod Neighborhood::method = UNDEFINED;
+Neighborhood::AvoidMethod Neighborhood::method = UNKNOWN;

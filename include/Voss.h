@@ -25,10 +25,11 @@ public:
     /**
      * Construct an instance of this algorithm.
      * @param data          data set to run on
+     * @param pDist path distance function to use
      * @param radiusFactor  radius of avoided regions as a factor of shortest path length
      * @param avoid         method used to measure distance to center of neighborhood
      */
-    Voss (const TestData *data, double radiusFactor, Neighborhood::AvoidMethod avoid);
+    Voss (const TestData *data, Path::DistanceFunction pDist, double radiusFactor, Neighborhood::AvoidMethod avoid);
     
 private:
     

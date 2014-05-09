@@ -13,8 +13,8 @@
 
 // Constructors, destructors
 
-Eppstein::Eppstein (const TestData *data)
-: KDiverseShort(data)
+Eppstein::Eppstein (const TestData *data, Path::DistanceFunction pDist)
+: KDiverseShort(data, pDist)
 {
     // Initialize the underlying Graehl implementation
     std::stringstream ss;

@@ -22,7 +22,6 @@ private:
     const std::size_t k;                    // Number of paths to try to find
     const double maxLength;                 // Maximum allowable length of a returned path
     const double minDistance;               // Minimum allowable distance between any two returned paths
-    const Path::DistanceFunction pDist;     // Method used to compute path distance
     const Graph *graph;                     // Graph to search in
     
 public:
@@ -33,10 +32,9 @@ public:
      * @param numPaths                  number of paths to try to find
      * @param maxPathLength             maximum length of any returned path
      * @param minPathPairwiseDistance   minimum distance between any two returned paths
-     * @param distFunc                  function to compute distance between two paths
      */
     TestData (const std::string &graphFileName, std::size_t numPaths,
-        double maxPathLength, double minPathPairwiseDistance, Path::DistanceFunction distFunc);
+        double maxPathLength, double minPathPairwiseDistance);
     
     /** Destructor. */
     ~TestData ();
@@ -70,12 +68,6 @@ public:
      * @return our \a minDistance
      */
     double getMinDistance () const;
-    
-    /**
-     * Get the path distance measured used.
-     * @return our path distance function \a pDist
-     */
-    Path::DistanceFunction getPathDistanceFunction () const;
     
     /**
      * Get the graph.

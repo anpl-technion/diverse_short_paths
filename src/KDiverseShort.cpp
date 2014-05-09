@@ -13,14 +13,23 @@
 
 // Constructors, destructors
 
-KDiverseShort::KDiverseShort (const TestData *data)
+KDiverseShort::KDiverseShort (const TestData *data, Path::DistanceFunction pDist)
 : too_long(false), i(0), c(0), testData(data)
 {
     // Set up path storage and nearest neighbors
-    Path::setDistanceFunction(testData->getPathDistanceFunction());
+    Path::setDistanceFunction(pDist);
     pathArray = new Path[testData->getK()];
     pathNN = new ompl::NearestNeighborsGNAT<Path>();
     pathNN->setDistanceFunction(&Path::distance);
+    
+    // Save the distance name
+    auto f = pDist.target<double (*)(const Path &, const Path &)>();
+    if (*f == &Frechet::distance)
+        pDistName = "Frechet";
+    else if (*f == &Levenshtein::distance)
+        pDistName = "Levenshtein";
+    else
+        pDistName = "UNKNOWN";
 }
 
 KDiverseShort::~KDiverseShort ()
@@ -71,7 +80,7 @@ const Results *KDiverseShort::timedRun ()
     std::stringstream fullDescription;
     fullDescription << desc;
     const double d = testData->getMinDistance();
-    if (d == std::numeric_limits<double>::epsilon())
+    if (d <= std::numeric_limits<double>::epsilon())
     {
         const double l = testData->getMaxLength();
         if (l == std::numeric_limits<double>::infinity())
@@ -80,7 +89,8 @@ const Results *KDiverseShort::timedRun ()
             fullDescription << ", filtering for maximum length " << l;
     }
     else
-        fullDescription << ", filtering for pairwise distance " << d << " (" << distanceName() << ")";
+        fullDescription << ", filtering for pairwise distance " << d;
+    fullDescription << " (" << distanceName() << ")";
     return new Results(fullDescription.str(), testData, pathArray, i, seconds);
 }
 
@@ -100,12 +110,5 @@ bool KDiverseShort::needMore () const
 
 std::string KDiverseShort::distanceName () const
 {
-    Path::DistanceFunction func = testData->getPathDistanceFunction();
-    auto f = func.target<double (*)(const Path &, const Path &)>();
-    if (*f == &Frechet::distance)
-        return "Frechet";
-    else if (*f == &Levenshtein::distance)
-        return "Levenshtein";
-    else
-        return "UNKNOWN";
+    return pDistName;
 }

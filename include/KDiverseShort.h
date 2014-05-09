@@ -7,6 +7,8 @@
 
 #include "pch.h"
 
+#include "Path.h"
+
 /**
  * Abstract algorithm to find k diverse, short paths in a graph.
  */
@@ -14,10 +16,11 @@ class KDiverseShort
 {
 private:
     
-    bool too_long;      // Whether the last considered path was too long
-    Path *pathArray;    // Storage for result paths
-    std::size_t i;      // Next index to store a path
-    std::size_t c;      // Total paths looked at
+    bool too_long;              // Whether the last considered path was too long
+    Path *pathArray;            // Storage for result paths
+    std::size_t i;              // Next index to store a path
+    std::size_t c;              // Total paths looked at
+    std::string pDistName;      // Name of the path distance measure
     
 protected:
     
@@ -32,8 +35,9 @@ public:
     /**
      * Construct the algorithm to run on the given data set.
      * @param data  data to run on
+     * @param pDist path distance function to use
      */
-    KDiverseShort (const TestData *data);
+    KDiverseShort (const TestData *data, Path::DistanceFunction pDist);
     
     /**
      * Destructor.

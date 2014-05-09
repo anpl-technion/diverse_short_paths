@@ -12,8 +12,8 @@
 
 // Constructors, destructors
 
-Voss::Voss (const TestData *data, double radiusFactor, Neighborhood::AvoidMethod avoid)
-: KDiverseShort(data), radiusFactor(radiusFactor), avoidance(avoid)
+Voss::Voss (const TestData *data, Path::DistanceFunction pDist, double radiusFactor, Neighborhood::AvoidMethod avoid)
+: KDiverseShort(data, pDist), radiusFactor(radiusFactor), avoidance(avoid)
 {
 }
 

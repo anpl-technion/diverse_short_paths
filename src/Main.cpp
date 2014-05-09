@@ -36,7 +36,15 @@ void mathematicate (std::string X,  std::string T,
 
 int usage ()
 {
-    std::cerr << "Usage: diverse <graph> <-u | -l maxLength | -d minDistance> <runs>\n";
+    std::cerr << "Usage: diverse <graphml> <algorithm> { -u | -l <maxLength> | -d <minDistance> } <runs>\n";
+    std::cerr << "    <graphml> a file in *.graphml format\n";
+    std::cerr << "    <algorithm> is of the form <name>:<pathDistance>[:<neighborhoodDistance>]\n";
+    std::cerr << "        <name> is 'kshortest' or 'randomavoidance'\n";
+    std::cerr << "        <pathDistance> is 'levenshtein' or 'frechet'\n";
+    std::cerr << "        <neighborhoodDistance> is 'cspace' or 'graph'; it is only used by 'randomavoidance'\n";
+    std::cerr << "      * algorithm specifications may be abbreviated using k,r,l,f,c,g\n";
+    std::cerr << "    <maxLength>,<minDistance> are floats specifying constraints on returned paths\n";
+    std::cerr << "    <runs> indicates how many runs to perform\n";
     return -1;
 }
 /*
@@ -47,33 +55,70 @@ int main (int argc, char *argv[])
     srand(1000);
     
     // Parse command line args
-    if (argc != 4 && argc != 5)
+    if (argc != 5 && argc != 6)
         return usage();
     int arg = 1;
     const char *graphFile = argv[arg++];
+    
+    // Algorithm specifications
+    char *parser = argv[arg++];
+    char *s;
+    const char *algorithm(strsep(&parser, ":"));
+    const char *pathDistance((s = strsep(&parser, ":")) ? s : "?");
+    const char *neighborhoodDistance((s = strsep(&parser, ":")) ? s : "?");
+    
     double maxPathLength = std::numeric_limits<double>::infinity();
     double minPathPairwiseDistance = std::numeric_limits<double>::epsilon();
     if (std::strcmp("-l", argv[arg]) == 0)
     {
-        if (argc != 5)
+        if (argc != 6)
             return usage();
         maxPathLength = std::atof(argv[++arg]);
     }
     else if (std::strcmp("-d", argv[arg]) == 0)
     {
-        if (argc != 5)
+        if (argc != 6)
             return usage();
         minPathPairwiseDistance = std::atof(argv[++arg]);
     }
     else
     {
-        if (argc != 4)
+        if (argc != 5)
             return usage();
     }
-    const size_t runs = std::atoi(argv[++arg]);
+    //const size_t runs = std::atoi(argv[++arg]);
     
     // Build graph to test on
-    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance, Frechet::distance);
+    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
+    
+    // Choose distance function
+    Path::DistanceFunction distanceFunction = nullptr;
+    if (strcasecmp(pathDistance, "f") == 0 || strcasecmp(pathDistance, "frechet") == 0)
+        distanceFunction = &Frechet::distance;
+    else if (strcasecmp(pathDistance, "l") == 0 || strcasecmp(pathDistance, "levenshtein") == 0)
+        distanceFunction = &Levenshtein::distance;
+    
+    // Choose neighborhood avoidance method (if any)
+    Neighborhood::AvoidMethod avoidMethod = Neighborhood::UNKNOWN;
+    if (strcasecmp(neighborhoodDistance, "c") == 0 || strcasecmp(neighborhoodDistance, "cspace") == 0)
+        avoidMethod = Neighborhood::CSPACE;
+    else if (strcasecmp(neighborhoodDistance, "g") == 0 || strcasecmp(neighborhoodDistance, "graph") == 0)
+        avoidMethod = Neighborhood::GRAPH;
+    
+    // Choose algorithm
+    double rf = 0.13;
+    KDiverseShort *kDiverseShort = nullptr;
+    if (strcasecmp(algorithm, "e") == 0 || strcasecmp(algorithm, "eppstein") == 0)
+        kDiverseShort = new Eppstein(&data, distanceFunction);
+    else if (strcasecmp(algorithm, "r") == 0 || strcasecmp(algorithm, "randomavoidance") == 0)
+        kDiverseShort = new Voss(&data, distanceFunction, rf, avoidMethod);
+    
+    std::cout << "\n";
+    const Results *res = kDiverseShort->timedRun();
+    res->print();
+    delete res;
+    delete kDiverseShort;
+    
     /*
     // Eppstein
     Eppstein epp(&data);
@@ -86,7 +131,7 @@ int main (int argc, char *argv[])
     res->print();
     res->saveSet();
     delete res;
-    */
+    
     // Voss
     std::stringstream X, T, P, D, L;
     X << "{";
@@ -147,6 +192,6 @@ int main (int argc, char *argv[])
     D << "}";
     L << "}";
     //mathematicate(X.str(), T.str(), P.str(), D.str(), L.str(), Te, De);
-    
+    */
     return 0;
 }

@@ -9,8 +9,8 @@
 // Constructors, destructors
 
 TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
-    double maxPathLength, double minPathPairwiseDistance, Path::DistanceFunction distFunc)
-:  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance), pDist(distFunc)
+    double maxPathLength, double minPathPairwiseDistance)
+:  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance)
 {
     // Initialize the space
     ompl::base::SpaceInformationPtr si;
@@ -58,11 +58,6 @@ double TestData::getMaxLength () const
 double TestData::getMinDistance () const
 {
     return minDistance;
-}
-
-Path::DistanceFunction TestData::getPathDistanceFunction () const
-{
-    return pDist;
 }
 
 const Graph &TestData::getGraph () const
