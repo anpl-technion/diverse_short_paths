@@ -37,8 +37,8 @@ ${PCH}: $(PCHINC)
 	@echo -e "\033[1;36m[Precompiling headers]\033[0m"
 	${CXX} -x c++-header ${CXXFLAGS} $< -o $@
 
-.PHONY: dirs clean
-.SILENT: dirs clean
+.PHONY: dirs clean link
+.SILENT: dirs clean link
 
 dirs:
 	for dir in ${DIRS}; do \
@@ -51,3 +51,7 @@ clean:
 		cd $$dir; \
 		$(MAKE) clean; \
 	done
+
+link:
+	rm -R ${EXEC}
+	+@$(MAKE) ${EXEC}

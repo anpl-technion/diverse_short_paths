@@ -113,7 +113,7 @@ void Path::push_back (const Vertex &v)
             + g->getEdgeWeight((*this)[size()-2], (*this)[size()-1]));
 }
 
-std::tuple<ompl::base::State *, Edge> Path::sampleUniform () const
+Edge Path::sampleUniform (ompl::base::State *sample) const
 {
     // Sample between [0,length]
     double par = getLength() * ((double)rand() / (double)RAND_MAX);
@@ -128,9 +128,8 @@ std::tuple<ompl::base::State *, Edge> Path::sampleUniform () const
     par = (par-parametrization[i]) / getLength();
     
     // Interpolate
-    ompl::base::State *sample = g->getSpaceInfo()->allocState();
     g->getSpaceInfo()->getStateSpace()->interpolate(g->getVertexState((*this)[i]), g->getVertexState((*this)[i+1]), par, sample);
-    return std::make_tuple(sample, g->getEdge((*this)[i], (*this)[i+1]));
+    return g->getEdge((*this)[i], (*this)[i+1]);
 }
 
 const std::vector<double> &Path::getWeights () const

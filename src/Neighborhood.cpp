@@ -11,7 +11,6 @@
 Neighborhood::Neighborhood (ompl::base::State *c, Edge cedge, double r)
 :  center(c), centerEdge(cedge), radius(r)
 {
-    extantCount++;
     if (method == GRAPH)
         setupWeight();
 }
@@ -19,7 +18,6 @@ Neighborhood::Neighborhood (ompl::base::State *c, Edge cedge, double r)
 Neighborhood::Neighborhood (const Neighborhood &copy)
 :  center(graph->getSpaceInfo()->cloneState(copy.getCenter())), centerEdge(copy.getCenterEdge()), radius(copy.getRadius())
 {
-    extantCount++;
     if (method == GRAPH)
         setupWeight();
 }
@@ -34,25 +32,40 @@ Neighborhood::~Neighborhood ()
 {
     // Free local resources
     graph->getSpaceInfo()->freeState(center);
-    
-    // Free shared resources if there are no more others
-    if (--extantCount == 0)
-        destroyStatePool();
 }
 
-// Public methods
+// Public static methods
 
-void Neighborhood::setParam (AvoidMethod m, const Graph *g)
+void Neighborhood::constructSharedResources (AvoidMethod m, const Graph *g)
 {
+    // Free previous shared resources
+    if (statePool != nullptr)
+        destroySharedResources();
+    
+    statePool = new ompl::base::State *[5];
     method = m;
     graph = g;
     
-    // Allocate shared states to do computes in
+    // Allocate shared states to do computations in
     for (size_t i = 0; i < 5; i++)
     {
         statePool[i] = graph->getSpaceInfo()->allocState();
     }
 }
+
+void Neighborhood::destroySharedResources ()
+{
+    for (size_t i = 0; i < 5; i++)
+    {
+        graph->getSpaceInfo()->freeState(statePool[i]);
+    }
+    
+    delete [] statePool;
+    statePool = nullptr;
+    method = UNKNOWN;
+}
+
+// Public methods
 
 const ompl::base::State *Neighborhood::getCenter () const
 {
@@ -78,21 +91,9 @@ bool Neighborhood::shouldAvoid (Edge e) const
     case GRAPH:
         return shouldAvoid_graph(e);
     default:
-        std::cerr << "Error: Unknown avoid method!\n";
+        std::cerr << "Error: Call constructSharedResources() first!\n";
         exit(-1);
     }
-}
-
-// Private static methods
-
-void Neighborhood::destroyStatePool ()
-{
-    for (size_t i = 0; i < 5; i++)
-    {
-        graph->getSpaceInfo()->freeState(statePool[i]);
-    }
-    
-    delete [] statePool;
 }
 
 // Private methods
@@ -101,7 +102,7 @@ void Neighborhood::setupWeight ()
 {
     if (graph == nullptr)
     {
-        std::cerr << "Error: Graph not set!\n";
+        std::cerr << "Error: Call constructSharedResources() first!\n";
         exit(-1);
     }
     
@@ -200,6 +201,5 @@ bool Neighborhood::isInside (const ompl::base::State *s) const
 // Static members
 
 const Graph *Neighborhood::graph = nullptr;
-ompl::base::State **const Neighborhood::statePool = new ompl::base::State *[5];
-std::size_t Neighborhood::extantCount = 0;
+ompl::base::State **Neighborhood::statePool = nullptr;
 Neighborhood::AvoidMethod Neighborhood::method = UNKNOWN;

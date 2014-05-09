@@ -38,10 +38,11 @@ int usage ()
 {
     std::cerr << "Usage: diverse <graphml> <algorithm> { -u | -l <maxLength> | -d <minDistance> } <runs>\n";
     std::cerr << "    <graphml> a file in *.graphml format\n";
-    std::cerr << "    <algorithm> is of the form <name>:<pathDistance>[:<neighborhoodDistance>]\n";
+    std::cerr << "    <algorithm> is of the form <name>:<pathDistance>[:<neighborhoodDistance>:<neighborhoodRadius>]\n";
     std::cerr << "        <name> is 'kshortest' or 'randomavoidance'\n";
     std::cerr << "        <pathDistance> is 'levenshtein' or 'frechet'\n";
-    std::cerr << "        <neighborhoodDistance> is 'cspace' or 'graph'; it is only used by 'randomavoidance'\n";
+    std::cerr << "        <neighborhoodDistance> is 'cspace' or 'graph'; it is required by 'randomavoidance'\n";
+    std::cerr << "        <neighborhoodRadius> is a float; it is required by 'randomavoidance'\n";
     std::cerr << "      * algorithm specifications may be abbreviated using k,r,l,f,c,g\n";
     std::cerr << "    <maxLength>,<minDistance> are floats specifying constraints on returned paths\n";
     std::cerr << "    <runs> indicates how many runs to perform\n";
@@ -66,6 +67,8 @@ int main (int argc, char *argv[])
     const char *algorithm(strsep(&parser, ":"));
     const char *pathDistance((s = strsep(&parser, ":")) ? s : "?");
     const char *neighborhoodDistance((s = strsep(&parser, ":")) ? s : "?");
+    const char *neighborhoodRadius((s = strsep(&parser, ":")) ? s : "-1");
+    const double radiusFactor = std::atof(neighborhoodRadius);
     
     double maxPathLength = std::numeric_limits<double>::infinity();
     double minPathPairwiseDistance = std::numeric_limits<double>::epsilon();
@@ -106,12 +109,11 @@ int main (int argc, char *argv[])
         avoidMethod = Neighborhood::GRAPH;
     
     // Choose algorithm
-    double rf = 0.13;
     KDiverseShort *kDiverseShort = nullptr;
     if (strcasecmp(algorithm, "e") == 0 || strcasecmp(algorithm, "eppstein") == 0)
         kDiverseShort = new Eppstein(&data, distanceFunction);
     else if (strcasecmp(algorithm, "r") == 0 || strcasecmp(algorithm, "randomavoidance") == 0)
-        kDiverseShort = new Voss(&data, distanceFunction, rf, avoidMethod);
+        kDiverseShort = new Voss(&data, distanceFunction, radiusFactor, avoidMethod);
     
     std::cout << "\n";
     const Results *res = kDiverseShort->timedRun();

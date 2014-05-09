@@ -96,10 +96,10 @@ public:
     
     /**
      * Uniformly sample a state along the path.
-     * @return tuple of state sampled and the edge it lies in
-     * @note Returned state should be freed manually.
+     * @param sample[out]   allocated state to put sample in
+     * @return edge sampled state lies in
      */
-    std::tuple<ompl::base::State *, Edge> sampleUniform () const;
+    Edge sampleUniform (ompl::base::State *sample) const;
     
     /**
      * Get the weight of each edge, in order.

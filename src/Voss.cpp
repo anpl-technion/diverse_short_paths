@@ -15,6 +15,11 @@
 Voss::Voss (const TestData *data, Path::DistanceFunction pDist, double radiusFactor, Neighborhood::AvoidMethod avoid)
 : KDiverseShort(data, pDist), radiusFactor(radiusFactor), avoidance(avoid)
 {
+    if (radiusFactor <= 0)
+    {
+        std::cerr << "Please specify a positive neighborhood radius.\n";
+        exit(-1);
+    }
 }
 
 // Private methods
@@ -26,7 +31,7 @@ std::string Voss::run ()
     
     // Set up neighborhoods
     const Graph &g = testData->getGraph();
-    Neighborhood::setParam(avoidance, &g);
+    Neighborhood::constructSharedResources(avoidance, &g);
     
     if (!needMore())
         return desc.str();
@@ -58,10 +63,9 @@ std::string Voss::run ()
         for (std::size_t i = 0; i < 2 && needMore(); i++)
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
-            ompl::base::State *sampledState;
-            Edge sampledEdge;
-            std::tie(sampledState, sampledEdge) = referencePath.sampleUniform();
-            avoid.push_back(Neighborhood(sampledState, sampledEdge, radius));
+            ompl::base::State *sample = g.getSpaceInfo()->allocState();
+            Edge sampledEdge = referencePath.sampleUniform(sample);
+            avoid.push_back(Neighborhood(sample, sampledEdge, radius));
             
             // Get the shortest path under these constraints
             Path path = getShortestPathUnderAvoidance(avoid);
@@ -77,6 +81,8 @@ std::string Voss::run ()
         }
     }
     
+    Neighborhood::destroySharedResources();
+    
     return desc.str();
 }
 
@@ -84,32 +90,26 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
 {
     // Run the A* search
     const Graph &g = testData->getGraph();
-    const Vertex start = testData->getStart();
     const Vertex end = testData->getEnd();
-    std::vector<Vertex> pred(g.getNumVertices());
+    Vertex *pred = new Vertex[g.getNumVertices()];
     Path path((Graph *)&g);
     try
     {
-        boost::astar_search(g, start, heuristic(g, end),
+        boost::astar_search(g, testData->getStart(), heuristic(g, end),
                             boost::weight_map(edgeWeightMap(g, avoid)).
-                            predecessor_map(&pred[0]).
+                            predecessor_map(pred).
                             visitor(visitor(end)));
     }
     catch (foundGoalException e)
     {
         // Trace back the shortest path
-        for (Vertex v = end;; v = pred[v])
-        {
+        for (Vertex v = end; v != pred[v]; v = pred[v])
             path.push_back(v);
-            if (pred[v] == v)
-                break;
-        }
+        
         std::reverse(path.begin(), path.end());
     }
     
-    // If no path is found, we want to return an empty path
-    if (path.size() == 1 && start != end)
-        path.clear();
+    delete [] pred;
     
     return path;
 }

@@ -26,8 +26,7 @@ public:
 private:
     
     static const Graph *graph;                  // Graph regions lie in
-    static ompl::base::State **const statePool; // Set of pre-allocated states to work with
-    static std::size_t extantCount;             // Number of instantiated objects of this class
+    static ompl::base::State **statePool;       // Set of pre-allocated states to work with
     static AvoidMethod method;                  // Setting for distance measure
     
     ompl::base::State *center;                  // State at the center of region
@@ -45,18 +44,19 @@ public:
      * @param c     state at region's center
      * @param cedge edge that \a c lies on
      * @param r     radius of region
+     * @warning Neighborhood will free \a c upon destruction.
      */
     Neighborhood (ompl::base::State *c, Edge cedge, double r);
     
     /**
      * Copy constructor.
-     * @param copy  region to deep duplicate
+     * @param copy  neighborhood to deep duplicate
      */
     Neighborhood (const Neighborhood &copy);
     
     /**
      * Copy assignment.
-     * @param copy  region to deep duplicate
+     * @param copy  neighborhood to deep duplicate
      */
     Neighborhood &operator=(const Neighborhood &copy);
     
@@ -64,11 +64,20 @@ public:
     ~Neighborhood ();
     
     /**
-     * Set parameters for all regions.
+     * Initializations for all neighborhoods.
      * @param m     method to use to measure distance to our \a center
      * @param graph graph region will lie in
+     * @note Must be called prior to using neighborhoods.
+     * @note Call destroySharedResources() when finished with neighborhoods.
      */
-    static void setParam (AvoidMethod m, const Graph *graph);
+    static void constructSharedResources (AvoidMethod m, const Graph *graph);
+    
+    /**
+     * Destroy resources shared by all regions.
+     * @warning After calling this, constructSharedResources() must be called again
+     *  before neighborhoods will work again.
+     */
+    static void destroySharedResources ();
     
     /**
      * Get center state of the region.
@@ -97,9 +106,6 @@ public:
     bool shouldAvoid (Edge e) const;
     
 private:
-    
-    /** Destroy resources shared by all regions. */
-    static void destroyStatePool ();
     
     /** Initialize internal values for \a AvoidMethod::GRAPH mode. */
     void setupWeight ();
