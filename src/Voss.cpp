@@ -12,13 +12,13 @@
 
 // Constructors, destructors
 
-Voss::Voss (const TestData *data, Path::DistanceFunction pDist, double radiusFactor, Neighborhood::AvoidMethod avoid)
+Voss::Voss (const TestData *data, PathDistanceMeasure *pDist, double radiusFactor, Neighborhood::AvoidMethod avoid)
 : KDiverseShort(data, pDist), radiusFactor(radiusFactor), avoidance(avoid)
 {
     if (radiusFactor <= 0)
     {
         std::cerr << "Please specify a positive neighborhood radius.\n";
-        exit(-1);
+        std::exit(-1);
     }
 }
 

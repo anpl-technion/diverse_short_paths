@@ -92,7 +92,7 @@ bool Neighborhood::shouldAvoid (Edge e) const
         return shouldAvoid_graph(e);
     default:
         std::cerr << "Error: Call constructSharedResources() first!\n";
-        exit(-1);
+        std::exit(-1);
     }
 }
 
@@ -103,7 +103,7 @@ void Neighborhood::setupWeight ()
     if (graph == nullptr)
     {
         std::cerr << "Error: Call constructSharedResources() first!\n";
-        exit(-1);
+        std::exit(-1);
     }
     
     // Compute values ahead of time that we will need often

@@ -7,11 +7,16 @@
 #include "Graph.h"
 #include "Path.h"
 
-// Some convenience macros
+// Some convenient macros
 #define DYN(I,J)    (dynarray[(I)+(J)*rowLength])
 #define DIST(I,J)   (si->distance(states1[I], states2[J]))
 
-// Public static methods
+// Public methods
+
+std::string Frechet::getName ()
+{
+    return "Frechet";
+}
 
 double Frechet::distance (const Path &path1, const Path &path2)
 {
@@ -35,10 +40,10 @@ double Frechet::distance (const Path &path1, const Path &path2)
     {
         for (std::size_t j = 1; j < colLength; j++)
         {
-            const double leash = DIST(i,j);
-            DYN(i,j) = std::min(
-                std::max(DYN(i-1,j), leash),
-                std::max(DYN(i,j-1), leash));
+            DYN(i,j) = std::max(DIST(i,j),
+                std::min(DYN(i-1,j-1),
+                    std::min(DYN(i-1,j), DYN(i,j-1)))
+            );
         }
     }
     

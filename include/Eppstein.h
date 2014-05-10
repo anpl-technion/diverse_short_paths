@@ -28,9 +28,9 @@ public:
     /**
      * Construct an instance of this algorithm.
      * @param data  data set to run on
-     * @param pDist path distance function to use
+     * @param pDist path distance measure to use
      */
-    Eppstein (const TestData *data, Path::DistanceFunction pDist);
+    Eppstein (const TestData *data, PathDistanceMeasure *pDist);
     
     /** Destructor. */
     ~Eppstein ();

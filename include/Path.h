@@ -8,20 +8,16 @@
 #include "pch.h"
 
 #include "_graph_detail.h"
+#include "PathDistanceMeasure.h"
 
 /**
  * A sequence of adjacent edges, represented by the vertices in between.
  */
 class Path : public std::vector<Vertex>
 {
-public:
-    
-    /** Function type to measure distance between two paths. */
-    typedef std::function<double (const Path &, const Path &)> DistanceFunction;
-    
 private:
     
-    static DistanceFunction distanceFunc;                   // Function to compute path distance
+    static std::function<PathDistanceMeasure::FunctionType> distanceFunc;   // Function to compute path distance
     
     const Graph *g;                                         // Graph the path lies in
     mutable std::vector<const ompl::base::State *> states;  // State of each vertex
@@ -56,7 +52,7 @@ public:
      * Set the function to compute path distance.
      * @param func  function accepting two paths and returning a double as their distance
      */
-    static void setDistanceFunction (DistanceFunction func);
+    static void setDistanceFunction (std::function<PathDistanceMeasure::FunctionType> func);
     
     /**
      * Compute the distance between two paths.

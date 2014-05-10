@@ -13,23 +13,15 @@
 
 // Constructors, destructors
 
-KDiverseShort::KDiverseShort (const TestData *data, Path::DistanceFunction pDist)
+KDiverseShort::KDiverseShort (const TestData *data, PathDistanceMeasure *pDist)
 : too_long(false), i(0), c(0), testData(data)
 {
     // Set up path storage and nearest neighbors
-    Path::setDistanceFunction(pDist);
+    Path::setDistanceFunction(boost::bind(&PathDistanceMeasure::distance, pDist, _1, _2));
+    pDistName = pDist->getName();
     pathArray = new Path[testData->getK()];
-    pathNN = new ompl::NearestNeighborsGNAT<Path>();
+    pathNN = new ompl::NearestNeighborsLinear<Path>();
     pathNN->setDistanceFunction(&Path::distance);
-    
-    // Save the distance name
-    auto f = pDist.target<double (*)(const Path &, const Path &)>();
-    if (*f == &Frechet::distance)
-        pDistName = "Frechet";
-    else if (*f == &Levenshtein::distance)
-        pDistName = "Levenshtein";
-    else
-        pDistName = "UNKNOWN";
 }
 
 KDiverseShort::~KDiverseShort ()
@@ -57,8 +49,7 @@ bool KDiverseShort::considerPath(const Path &path)
     if (i > 0)
     {
         const Path &nearest = pathNN->nearest(path);
-        const double d = (pathNN->getDistanceFunction())(path, nearest);
-        if (d < testData->getMinDistance())
+        if (Path::distance(path, nearest) < testData->getMinDistance())
             return false;
     }
     
@@ -90,7 +81,7 @@ const Results *KDiverseShort::timedRun ()
     }
     else
         fullDescription << ", filtering for pairwise distance " << d;
-    fullDescription << " (" << distanceName() << ")";
+    fullDescription << " (" << pDistName << ")";
     return new Results(fullDescription.str(), testData, pathArray, i, seconds);
 }
 
@@ -104,11 +95,4 @@ bool KDiverseShort::tooLong () const
 bool KDiverseShort::needMore () const
 {
     return i < testData->getK();
-}
-
-// Private methods
-
-std::string KDiverseShort::distanceName () const
-{
-    return pDistName;
 }

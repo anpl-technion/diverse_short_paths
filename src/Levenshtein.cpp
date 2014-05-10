@@ -7,13 +7,18 @@
 #include "Graph.h"
 #include "Path.h"
 
-// Some convenience macros
+// Some convenient macros
 #define DYN(I,J)        (dynarray[(I)+(J)*rowLength])
 #define DIST(I,J)       ((I < rowLength && J < colLength) ? si->distance(states1[I], states2[J]) : 0)
 #define DIST1(I1,I2)    ((I1 < rowLength && I2 < rowLength) ? si->distance(states1[I1], states1[I2]) : 0)
 #define DIST2(J1,J2)    ((J1 < colLength && J2 < colLength) ? si->distance(states2[J1], states2[J2]) : 0)
 
-// Public static methods
+// Public methods
+
+std::string Levenshtein::getName ()
+{
+    return "Levenshtein";
+}
 
 double Levenshtein::distance (const Path &path1, const Path &path2)
 {

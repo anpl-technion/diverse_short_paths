@@ -36,7 +36,7 @@ Path::Path (const Graph *graph)
 
 // Static methods
 
-void Path::setDistanceFunction (DistanceFunction func)
+void Path::setDistanceFunction (std::function<PathDistanceMeasure::FunctionType> func)
 {
     distanceFunc = func;
 }
@@ -46,13 +46,13 @@ double Path::distance (const Path &p1, const Path &p2)
     if (p1.getGraph() != p2.getGraph())
     {
         std::cerr << "Error: Cannot measure distance between paths in different graphs!\n";
-        exit(-1);
+        std::exit(-1);
     }
     
     if (distanceFunc == nullptr)
     {
         std::cerr << "Error: Path distance function not set!\n";
-        exit(-1);
+        std::exit(-1);
     }
     
     return distanceFunc(p1, p2);
@@ -187,4 +187,4 @@ void Path::cacheStates () const
 
 // Static members
 
-Path::DistanceFunction Path::distanceFunc = nullptr;
+std::function<PathDistanceMeasure::FunctionType> Path::distanceFunc = nullptr;

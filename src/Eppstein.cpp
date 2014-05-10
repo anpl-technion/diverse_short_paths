@@ -13,7 +13,7 @@
 
 // Constructors, destructors
 
-Eppstein::Eppstein (const TestData *data, Path::DistanceFunction pDist)
+Eppstein::Eppstein (const TestData *data, PathDistanceMeasure *pDist)
 : KDiverseShort(data, pDist)
 {
     // Initialize the underlying Graehl implementation

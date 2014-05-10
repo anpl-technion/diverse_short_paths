@@ -33,6 +33,7 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/datastructures/NearestNeighborsGNAT.h>
+#include <ompl/datastructures/NearestNeighborsLinear.h>
 
 // Class Prototypes
 
@@ -43,6 +44,7 @@ class KDiverseShort;
 class Levenshtein;
 class Neighborhood;
 class Path;
+class PathDistanceMeasure;
 class Results;
 class TestData;
 class Voss;

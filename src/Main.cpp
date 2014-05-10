@@ -34,19 +34,25 @@ void mathematicate (std::string X,  std::string T,
     delete buf;
 }
 
-int usage ()
+/**
+ * Print a usage message and exit.
+ * @warning Terminates the program.
+ */
+void usage ()
 {
-    std::cerr << "Usage: diverse <graphml> <algorithm> { -u | -l <maxLength> | -d <minDistance> } <runs>\n";
+    std::cerr << "Usage: diverse <graphml> <paths> <algorithm> { -u | -l <maxLength> | -d <minDistance> } [-s]\n";
     std::cerr << "    <graphml> a file in *.graphml format\n";
+    std::cerr << "    <paths> is the number of paths to find\n";
     std::cerr << "    <algorithm> is of the form <name>:<pathDistance>[:<neighborhoodDistance>:<neighborhoodRadius>]\n";
-    std::cerr << "        <name> is 'kshortest' or 'randomavoidance'\n";
+    std::cerr << "        <name> is 'eppstein' or 'randomavoidance'\n";
     std::cerr << "        <pathDistance> is 'levenshtein' or 'frechet'\n";
     std::cerr << "        <neighborhoodDistance> is 'cspace' or 'graph'; it is required by 'randomavoidance'\n";
-    std::cerr << "        <neighborhoodRadius> is a float; it is required by 'randomavoidance'\n";
-    std::cerr << "      * algorithm specifications may be abbreviated using k,r,l,f,c,g\n";
+    std::cerr << "        <neighborhoodRadius> is a float in (0,1); it is required by 'randomavoidance'\n";
+    std::cerr << "      * algorithm specifications may be abbreviated using e,r,l,f,c,g\n";
     std::cerr << "    <maxLength>,<minDistance> are floats specifying constraints on returned paths\n";
-    std::cerr << "    <runs> indicates how many runs to perform\n";
-    return -1;
+    std::cerr << "    -s flag enables saving the path set in a file called paths.txt\n\n";
+    std::cerr << "Example: diverse mygraph.graphml e:l -d 5.7 3\n";
+    std::exit(-1);
 }
 /*
  * Run tests on k diverse short path algorithms.
@@ -56,10 +62,17 @@ int main (int argc, char *argv[])
     srand(1000);
     
     // Parse command line args
-    if (argc != 5 && argc != 6)
-        return usage();
-    int arg = 1;
+    int maxargs = 7;
+    if (argc != maxargs-1 && argc != maxargs)
+        usage();
+    std::size_t arg = 1;
     const char *graphFile = argv[arg++];
+    int paths = std::atoi(argv[arg++]);
+    if (paths < 0)
+    {
+        std::cerr << "Number of paths should not be negative!\n";
+        std::exit(-1);
+    }
     
     // Algorithm specifications
     char *parser = argv[arg++];
@@ -74,32 +87,39 @@ int main (int argc, char *argv[])
     double minPathPairwiseDistance = std::numeric_limits<double>::epsilon();
     if (std::strcmp("-l", argv[arg]) == 0)
     {
-        if (argc != 6)
-            return usage();
+        if (argc != maxargs)
+            usage();
         maxPathLength = std::atof(argv[++arg]);
     }
     else if (std::strcmp("-d", argv[arg]) == 0)
     {
-        if (argc != 6)
-            return usage();
+        if (argc != maxargs)
+            usage();
         minPathPairwiseDistance = std::atof(argv[++arg]);
     }
-    else
+    else if (std::strcmp("-u", argv[arg]) == 0)
     {
-        if (argc != 5)
-            return usage();
+        if (argc != maxargs-1)
+            usage();
     }
-    //const size_t runs = std::atoi(argv[++arg]);
+    else
+        usage();
+    const bool save = (std::strcmp("-s", argv[++arg]) == 0);
     
     // Build graph to test on
-    TestData data(graphFile, 10, maxPathLength, minPathPairwiseDistance);
+    TestData data(graphFile, paths, maxPathLength, minPathPairwiseDistance);
     
     // Choose distance function
-    Path::DistanceFunction distanceFunction = nullptr;
+    PathDistanceMeasure *distanceMeasure = nullptr;
     if (strcasecmp(pathDistance, "f") == 0 || strcasecmp(pathDistance, "frechet") == 0)
-        distanceFunction = &Frechet::distance;
+        distanceMeasure = new Frechet();
     else if (strcasecmp(pathDistance, "l") == 0 || strcasecmp(pathDistance, "levenshtein") == 0)
-        distanceFunction = &Levenshtein::distance;
+        distanceMeasure = new Levenshtein();
+    else
+    {
+        std::cout << "Error: Unknown distance measure '" << pathDistance << "'\n";
+        std::exit(-1);
+    }
     
     // Choose neighborhood avoidance method (if any)
     Neighborhood::AvoidMethod avoidMethod = Neighborhood::UNKNOWN;
@@ -111,89 +131,23 @@ int main (int argc, char *argv[])
     // Choose algorithm
     KDiverseShort *kDiverseShort = nullptr;
     if (strcasecmp(algorithm, "e") == 0 || strcasecmp(algorithm, "eppstein") == 0)
-        kDiverseShort = new Eppstein(&data, distanceFunction);
+        kDiverseShort = new Eppstein(&data, distanceMeasure);
     else if (strcasecmp(algorithm, "r") == 0 || strcasecmp(algorithm, "randomavoidance") == 0)
-        kDiverseShort = new Voss(&data, distanceFunction, radiusFactor, avoidMethod);
+        kDiverseShort = new Voss(&data, distanceMeasure, radiusFactor, avoidMethod);
+    else
+    {
+        std::cout << "Error: Unknown algorithm '" << algorithm << "'\n";
+        std::exit(-1);
+    }
     
     std::cout << "\n";
     const Results *res = kDiverseShort->timedRun();
     res->print();
+    if (save)
+        res->saveSet();
     delete res;
     delete kDiverseShort;
+    delete distanceMeasure;
     
-    /*
-    // Eppstein
-    Eppstein epp(&data);
-    const Results *res = epp.timedRun();
-    
-    // Put results into a nice format
-    double Te, De;
-    Te = res->getTime();
-    De = res->minNearestPathDistance();
-    res->print();
-    res->saveSet();
-    delete res;
-    
-    // Voss
-    std::stringstream X, T, P, D, L;
-    X << "{";
-    T << "{";
-    P << "{";
-    D << "{";
-    L << "{";
-    for (size_t run = 0; run < runs; run++)
-    {
-        std::cout << "Sweep " << run << "\n";
-        if (run != 0)
-        {
-            T << ",";
-            P << ",";
-            D << ",";
-            L << ",";
-        }
-        
-        // Parameter sweep on the radiusFactor
-        T << "{";
-        P << "{";
-        D << "{";
-        L << "{";
-        //for (double rf = 0.0025; rf <= 0.160001; rf += 0.0025)
-        //for (double rf = 0.0600; rf <= 0.160001; rf += 0.0025)
-        double rf = 0.13;
-        {
-            if (run == 0)
-            {
-                X << ",";
-                X << rf;
-            }
-            T << ",";
-            P << ",";
-            D << ",";
-            L << ",";
-
-            Voss voss(&data, rf, Neighborhood::CSPACE);
-            const Results *res = voss.timedRun();
-            
-            // Put results into nice tables
-            T << res->getTime();
-            P << res->numPaths();
-            D << res->minNearestPathDistance();
-            L << res->findLongestLength();
-            res->print();
-            res->saveSet();
-            delete res;
-        }
-        T << "}";
-        P << "}";
-        D << "}";
-        L << "}";
-    }
-    X << "}";
-    T << "}";
-    P << "}";
-    D << "}";
-    L << "}";
-    //mathematicate(X.str(), T.str(), P.str(), D.str(), L.str(), Te, De);
-    */
     return 0;
 }

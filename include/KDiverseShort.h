@@ -35,9 +35,9 @@ public:
     /**
      * Construct the algorithm to run on the given data set.
      * @param data  data to run on
-     * @param pDist path distance function to use
+     * @param pDist path distance measure to use
      */
-    KDiverseShort (const TestData *data, Path::DistanceFunction pDist);
+    KDiverseShort (const TestData *data, PathDistanceMeasure *pDist);
     
     /**
      * Destructor.
@@ -76,14 +76,6 @@ protected:
      * @return textual description of the algorithm
      */
     virtual std::string run () = 0;
-    
-private:
-    
-    /**
-     * Get the name of the path distance function used.
-     * @return string naming our path distance function
-     */
-    std::string distanceName () const;
 };
 
 #endif
