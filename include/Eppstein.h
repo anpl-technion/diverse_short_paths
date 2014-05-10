@@ -55,11 +55,9 @@ private:
     static graehl::Graehl *initGraehl (std::stringstream &input, const std::size_t start, const std::size_t end);
     
     /**
-     * Execute the algorithm.
-     * @return textual description of the algorithm
-     * @warning Will terminate the program if more than \a MAXPATHS are requested.
+     * Execute the algorithm and write a string to \a description.
      */
-    std::string run ();
+    void run ();
 };
 
 #endif

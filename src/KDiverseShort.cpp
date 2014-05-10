@@ -4,9 +4,7 @@
 
 #include "KDiverseShort.h"
 
-#include "Frechet.h"
 #include "Graph.h"
-#include "Levenshtein.h"
 #include "Path.h"
 #include "Results.h"
 #include "TestData.h"
@@ -31,6 +29,54 @@ KDiverseShort::~KDiverseShort ()
 }
 
 // Public methods
+
+const Results *KDiverseShort::timedRun ()
+{
+    // Time the execution
+    clock_t start = clock();
+    run();
+    clock_t end = clock();
+    double seconds = ((double)(end-start))/CLOCKS_PER_SEC;
+    
+    // Label the results
+    const double d = testData->getMinDistance();
+    if (d <= std::numeric_limits<double>::epsilon())
+    {
+        const double l = testData->getMaxLength();
+        if (l == std::numeric_limits<double>::infinity())
+            description << ", no filtering";
+        else
+            description << ", filtering for maximum length " << l;
+    }
+    else
+        description << ", filtering for pairwise distance " << d;
+    description << " (" << pDistName << ")";
+    const Results *res = new Results(description.str(), testData, pathArray, i, seconds);
+    return res;
+}
+
+void KDiverseShort::clear ()
+{
+    // Prepare for future runs
+    too_long = false;
+    i = 0;
+    c = 0;
+    pathNN->clear();
+    description.str("");
+}
+
+
+// Protected methods
+
+bool KDiverseShort::tooLong () const
+{
+    return too_long;
+}
+
+bool KDiverseShort::needMore () const
+{
+    return i < testData->getK();
+}
 
 bool KDiverseShort::considerPath(const Path &path)
 {
@@ -57,42 +103,4 @@ bool KDiverseShort::considerPath(const Path &path)
     pathArray[i++] = path;
     pathNN->add(pathArray[i-1]);
     return true;
-}
-
-const Results *KDiverseShort::timedRun ()
-{
-    // Time the execution
-    clock_t start = clock();
-    std::string desc = run();
-    clock_t end = clock();
-    double seconds = ((double)(end-start))/CLOCKS_PER_SEC;
-    
-    // Label the results
-    std::stringstream fullDescription;
-    fullDescription << desc;
-    const double d = testData->getMinDistance();
-    if (d <= std::numeric_limits<double>::epsilon())
-    {
-        const double l = testData->getMaxLength();
-        if (l == std::numeric_limits<double>::infinity())
-            fullDescription << ", no filtering";
-        else
-            fullDescription << ", filtering for maximum length " << l;
-    }
-    else
-        fullDescription << ", filtering for pairwise distance " << d;
-    fullDescription << " (" << pDistName << ")";
-    return new Results(fullDescription.str(), testData, pathArray, i, seconds);
-}
-
-// Protected methods
-
-bool KDiverseShort::tooLong () const
-{
-    return too_long;
-}
-
-bool KDiverseShort::needMore () const
-{
-    return i < testData->getK();
 }

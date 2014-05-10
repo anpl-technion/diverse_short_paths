@@ -30,6 +30,9 @@ protected:
     /** Data to run the algorithm on. */
     const TestData *testData;
     
+    /** Textual description of the algorithm. */
+    std::stringstream description;
+    
 public:
     
     /**
@@ -39,9 +42,7 @@ public:
      */
     KDiverseShort (const TestData *data, PathDistanceMeasure *pDist);
     
-    /**
-     * Destructor.
-     */
+    /** Destructor. */
     virtual ~KDiverseShort ();
     
     /**
@@ -49,6 +50,13 @@ public:
      * @return collected information about the results of the run
      */
     const Results *timedRun ();
+    
+    /**
+     * Clear internal data structures to prepare for future use.
+     * @note Overriding implementations should call \c KDiverseShort::clear() in addition
+     *  to performing their own clean up.
+     */
+    virtual void clear ();
     
 protected:
     
@@ -68,14 +76,14 @@ protected:
      * Evaluate a path against the set of paths found so far, saving it if it meets the criteria.
      * @param path  path to evaluate
      * @return true if \a path is saved; false otherwise
+     * @throw plannerTerminationException when \a stop returns true
      */
     bool considerPath(const Path &path);
     
     /**
-     * Execute the algorithm.
-     * @return textual description of the algorithm
+     * Execute the algorithm and write a string to \a description.
      */
-    virtual std::string run () = 0;
+    virtual void run () = 0;
 };
 
 #endif

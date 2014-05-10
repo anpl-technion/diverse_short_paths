@@ -10,19 +10,16 @@
 
 TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
     double maxPathLength, double minPathPairwiseDistance)
-:  start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance)
+: start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance)
 {
     // Initialize the space
-    ompl::base::SpaceInformationPtr si;
-    {
-        ompl::base::StateSpacePtr space(new ompl::base::SE3StateSpace());
-        ompl::base::RealVectorBounds bounds(3);
-        bounds.setLow(-1000);
-        bounds.setHigh(1000);
-        space->as<ompl::base::SE3StateSpace>()->setBounds(bounds);
-        si = ompl::base::SpaceInformationPtr(new ompl::base::SpaceInformation(space));
-        si->setup();
-    }
+    ompl::base::StateSpacePtr space(new ompl::base::SE3StateSpace());
+    ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
+    ompl::base::RealVectorBounds bounds(3);
+    bounds.setLow(-1000);
+    bounds.setHigh(1000);
+    space->as<ompl::base::SE3StateSpace>()->setBounds(bounds);
+    si->setup();
     
     std::ifstream graphmlstream(graphFileName);
     graph = new Graph(si, graphmlstream);

@@ -24,17 +24,16 @@ Voss::Voss (const TestData *data, PathDistanceMeasure *pDist, double radiusFacto
 
 // Private methods
 
-std::string Voss::run ()
+void Voss::run ()
 {
-    std::stringstream desc;
-    desc << "Random Avoidance (in " << avoidString() << "), radius factor " << radiusFactor;
+    description << "Random Avoidance (in " << avoidString() << "), radius factor " << radiusFactor;
     
     // Set up neighborhoods
     const Graph &g = testData->getGraph();
     Neighborhood::constructSharedResources(avoidance, &g);
     
     if (!needMore())
-        return desc.str();
+        return;
     
     std::vector<std::vector<Neighborhood> > resultAvoids;   // Avoided neighborhoods each path in resultsPaths was made with
     std::set<Path> unfilteredPathSet;                       // Unfiltered set of paths found
@@ -44,10 +43,10 @@ std::string Voss::run ()
     std::vector<Neighborhood> alreadyAvoiding;
     Path referencePath = getShortestPathUnderAvoidance(alreadyAvoiding);
     if (referencePath.empty())
-        return desc.str();
+        return;
     considerPath(referencePath);
     if (tooLong())
-        return desc.str();
+        return;
     resultAvoids.push_back(alreadyAvoiding);
     unfilteredPathSet.insert(referencePath);
     
@@ -84,7 +83,7 @@ std::string Voss::run ()
     
     Neighborhood::destroySharedResources();
     
-    return desc.str();
+    return;
 }
 
 Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid) const

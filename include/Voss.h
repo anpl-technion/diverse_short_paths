@@ -28,17 +28,16 @@ public:
      * @param pDist         path distance measure to use
      * @param radiusFactor  radius of avoided regions as a factor of shortest path length
      * @param avoid         method used to measure distance to center of neighborhood
-     * @warning Terminates program if \a radiusFactor is negative.
+     * @warning Terminates program if \a radiusFactor is non-positive.
      */
     Voss (const TestData *data, PathDistanceMeasure *pDist, double radiusFactor, Neighborhood::AvoidMethod avoid);
     
 private:
     
     /**
-     * Execute the algorithm.
-     * @return textual description of the algorithm
+     * Execute the algorithm and write a string to \a description.
      */
-    std::string run ();
+    void run ();
     
     /**
      * Compute the shortest path under avoidance constraints.

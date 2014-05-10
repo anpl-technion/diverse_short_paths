@@ -16,9 +16,8 @@
 Eppstein::Eppstein (const TestData *data, PathDistanceMeasure *pDist)
 : KDiverseShort(data, pDist)
 {
-    // Initialize the underlying Graehl implementation
-    std::stringstream ss;
-    graehl_kernel = initGraehl(makeGraehlGraph(ss, data->getGraph()), data->getStart(), data->getEnd());
+    graehl_kernel = nullptr;
+    clear();
 }
 
 Eppstein::~Eppstein ()
@@ -55,10 +54,13 @@ graehl::Graehl *Eppstein::initGraehl (std::stringstream &input, const std::size_
 
 // Private methods
 
-std::string Eppstein::run ()
+void Eppstein::run ()
 {
+    std::stringstream ss;
+    graehl::Graehl * graehl_kernel = initGraehl(makeGraehlGraph(ss, testData->getGraph()), testData->getStart(), testData->getEnd());
+    
     static std::size_t c = 0;
-    std::string description("Eppstein's Shortest Paths");
+    description << "Eppstein's Shortest Paths";
     
     // Until we have enough paths, or they get too long...
     while (!tooLong() && needMore())
@@ -67,7 +69,8 @@ std::string Eppstein::run ()
         if (++c > MAXPATHS)
         {
             std::cerr << "Error: Need to increase MAXPATHS!\n";
-            return description;
+            delete graehl_kernel;
+            return;
         }
         
         // Get the next path from Graehl
@@ -92,5 +95,6 @@ std::string Eppstein::run ()
         considerPath(path);
     }
     
-    return description;
+    delete graehl_kernel;
+    return;
 }

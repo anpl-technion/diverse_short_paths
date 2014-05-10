@@ -28,7 +28,6 @@
 
 // OMPL
 
-#include <ompl/base/ScopedState.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/NearestNeighbors.h>
