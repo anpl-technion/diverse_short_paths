@@ -60,6 +60,25 @@ double Path::distance (const Path &p1, const Path &p2)
 
 // Public methods
 
+bool Path::operator< (const Path &rhs) const
+{
+    // Compare sizes first
+    std::size_t s1 = size();
+    std::size_t s2 = rhs.size();
+    if (s1 != s2)
+        return s1 < s2;
+    
+    // Find first mismatched vertex
+    for (std::size_t i = 0; i < s1; i++)
+    {
+        if ((*this)[i] != rhs[i])
+            return (*this)[i] < rhs[i];
+    }
+    
+    // They are equal
+    return false;
+}
+
 void Path::saveOMPLFormat(std::ostream &out) const
 {
     ompl::base::State *state = g->getSpaceInfo()->allocState();

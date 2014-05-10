@@ -37,7 +37,7 @@ std::string Voss::run ()
         return desc.str();
     
     std::vector<std::vector<Neighborhood> > resultAvoids;   // Avoided neighborhoods each path in resultsPaths was made with
-    std::vector<Path> unfilteredPathSet;                    // Unfiltered set of paths found
+    std::set<Path> unfilteredPathSet;                       // Unfiltered set of paths found
     std::size_t frontier = 0;                               // The next path to analyze
     
     // The path and its avoided neighborhoods that we will try to diverge from (initially the actual shortest path)
@@ -49,12 +49,13 @@ std::string Voss::run ()
     if (tooLong())
         return desc.str();
     resultAvoids.push_back(alreadyAvoiding);
-    unfilteredPathSet.push_back(referencePath);
+    unfilteredPathSet.insert(referencePath);
     
     // Work through the queue until we have enough
-    while (frontier < unfilteredPathSet.size() && !tooLong() && needMore())
+    while (unfilteredPathSet.size() && !tooLong() && needMore())
     {
-        referencePath = unfilteredPathSet[frontier];
+        referencePath = *unfilteredPathSet.begin();
+        unfilteredPathSet.erase(unfilteredPathSet.begin());
         alreadyAvoiding = resultAvoids[frontier];
         frontier++;
         
@@ -76,7 +77,7 @@ std::string Voss::run ()
             considerPath(path);
             
             // But we'll need it regardless for later iterations
-            unfilteredPathSet.push_back(path);
+            unfilteredPathSet.insert(path);
             resultAvoids.push_back(avoid);
         }
     }

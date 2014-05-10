@@ -20,7 +20,7 @@ KDiverseShort::KDiverseShort (const TestData *data, PathDistanceMeasure *pDist)
     Path::setDistanceFunction(boost::bind(&PathDistanceMeasure::distance, pDist, _1, _2));
     pDistName = pDist->getName();
     pathArray = new Path[testData->getK()];
-    pathNN = new ompl::NearestNeighborsLinear<Path>();
+    pathNN = new ompl::NearestNeighborsGNAT<Path>();
     pathNN->setDistanceFunction(&Path::distance);
 }
 

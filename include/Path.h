@@ -64,6 +64,14 @@ public:
     static double distance (const Path &p1, const Path &p2);
     
     /**
+     * Compare a path with this one.
+     * @param rhs   another path
+     * @return true (false) if size of \a *this is < (>) size of \a rhs; otherwise,
+     *  u < v where u,v are the first vertices in \a *this, \a rhs which do not match
+     */
+    bool operator< (const Path &rhs) const;
+    
+    /**
      * Write this path in format used by OMPL App.
      * @param out   stream to write to
      */

@@ -33,7 +33,6 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <ompl/datastructures/NearestNeighborsGNAT.h>
-#include <ompl/datastructures/NearestNeighborsLinear.h>
 
 // Class Prototypes
 
