@@ -6,6 +6,12 @@ import matplotlib.pyplot
 import numpy
 import subprocess
 
+EXE = "build/bin/diverse"
+PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
+NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
+GRAPHS = ["grid1", "grid2"]
+RADII = {"grid1": 0.3, "grid2": 0.3} #, "cubicles1": 0.01}
+
 def extract_datapoint(program_output):
     """
     Extract the 6 numbers from the program's output string.
@@ -31,16 +37,17 @@ def extract_datapoint(program_output):
 Plots:
 
 1) Parameter sweep of radius on grid2 showing Levenshtein, Frechet, graph distance, cspace distance
+2) Comparison of Eppstein with random avoidance on several graphs using Frechet and cspace distance
+    showing both min and mean distance superimposed
+3) Parameter sweep of minimum distance filtering, comparing Eppstein with random avoidance on grid2 
 """
-
-PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
-NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
 
 def main():
     """
     Run "diverse" to generate data and plot it.
     """
     
+    # Plot 1
     try:
         X = numpy.arange(0.01, 0.5, 0.01)
         Y = [[], [], [], []]
@@ -52,18 +59,48 @@ def main():
                     print(r)
                     algorithm = "r:" + d1 + ":" + d2 + ":" + str(r)
                     datapoint = extract_datapoint(
-                        subprocess.check_output(["build/bin/diverse", "resources/grid2.graphml", "10", algorithm], universal_newlines=True)
-                    )
-                    Y[i].append(datapoint[3])
+                        subprocess.check_output(
+                            [EXE, "resources/grid2.graphml", "10", algorithm],
+                            universal_newlines=True))
+                    if datapoint[0] < 10:
+                        Y[i].append(float("inf"))
+                    else:
+                        Y[i].append(datapoint[3])
                 i += 1
     except subprocess.CalledProcessError:
         print("Testing failed.")
     
-    
-    matplotlib.pyplot.plot(X, Y[0], "r--", Y[1], "ys", Y[2], "g^", Y[3], "bo")
+    print(X, Y)
+    matplotlib.pyplot.plot(X, Y[0], "r--", X, Y[1], "ys", X, Y[2], "g^", X, Y[3], "bo")
     matplotlib.pyplot.xlabel("Radius Factor")
     matplotlib.pyplot.ylabel("Diversity")
     matplotlib.pyplot.savefig("plot1.png")
+    
+    # Plot 2
+    try:
+        E = []
+        R = []
+        for g in GRAPHS:
+            algorithm1 = "e:f"
+            algorithm2 = "r:f:c:" + str(RADII[g])
+            datapoint = extract_datapoint(
+                subprocess.check_output(
+                    [EXE, "resources/" + g + ".graphml", "10", algorithm1],
+                    universal_newlines=True))
+            E.append(datapoint[3])
+            datapoint = extract_datapoint(
+                subprocess.check_output(
+                    [EXE, "resources/" + g + ".graphml", "10", algorithm2],
+                    universal_newlines=True))
+            R.append(datapoint[3])
+    except subprocess.CalledProcessError:
+        print("Testing failed.")
+    
+    print(E, R)
+    fig, ax = matplotlib.pyplot.subplots()
+    ax.bar(numpy.arange(len(GRAPHS)), E, 0.35)
+    ax.bar(0.35+numpy.arange(len(GRAPHS)), R, 0.35)
+    matplotlib.pyplot.savefig("plot2.png")
 
 if __name__ == "__main__":
     main()
