@@ -13,34 +13,13 @@
 #include "TestData.h"
 #include "Voss.h"
 
-/*
- * Write out data as Mathematica code.
- */
-void mathematicate (std::string X,  std::string T,
-  std::string P, std::string D, std::string L, double Te, double De)
-{
-    std::stringstream ss_Te, ss_De;
-    ss_Te << Te;
-    ss_De << De;
-    // Insert data into plot template
-    std::ifstream in("plotTemplate.m.in");
-    std::string format((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    std::size_t length = format.length() + X.length() + T.length()
-      + P.length() + D.length() + L.length() + ss_Te.str().length() + ss_De.str().length() + 1;
-    char *buf = new char[length];
-    std::sprintf(buf, format.c_str(), X.c_str(), T.c_str(), P.c_str(), D.c_str(),
-                 L.c_str(), ss_Te.str().c_str(), ss_De.str().c_str());
-    std::cout << buf;
-    delete buf;
-}
-
 /**
  * Print a usage message and exit.
  * @warning Terminates the program.
  */
 void usage ()
 {
-    std::cerr << "Usage: diverse <graphml> <paths> <algorithm> { -u | -l <maxLength> | -d <minDistance> } [-s]\n";
+    std::cerr << "Usage: diverse <graphml> <paths> <algorithm> [ -l <maxLength> | -d <minDistance> ] [-s]\n";
     std::cerr << "    <graphml> a file in *.graphml format\n";
     std::cerr << "    <paths> is the number of paths to find\n";
     std::cerr << "    <algorithm> is of the form <name>:<pathDistance>[:<neighborhoodDistance>:<neighborhoodRadius>]\n";
@@ -51,7 +30,7 @@ void usage ()
     std::cerr << "      * algorithm specifications may be abbreviated using e,r,l,f,c,g\n";
     std::cerr << "    <maxLength>,<minDistance> are floats specifying constraints on returned paths\n";
     std::cerr << "    -s flag enables saving the path set in a file called paths.txt\n\n";
-    std::cerr << "Example: diverse mygraph.graphml e:l -d 5.7 3\n";
+    std::cerr << "Example: diverse resources/grid2.graphml 10 e:l -d 5.7\n";
     std::exit(-1);
 }
 /*
@@ -63,9 +42,9 @@ int main (int argc, char *argv[])
     
     // Parse command line args
     int maxargs = 7;
-    if (argc != maxargs-1 && argc != maxargs)
+    if (argc > maxargs || argc < maxargs-3)
         usage();
-    std::size_t arg = 1;
+    int arg = 1;
     const char *graphFile = argv[arg++];
     int paths = std::atoi(argv[arg++]);
     if (paths < 0)
@@ -85,26 +64,17 @@ int main (int argc, char *argv[])
     
     double maxPathLength = std::numeric_limits<double>::infinity();
     double minPathPairwiseDistance = std::numeric_limits<double>::epsilon();
-    if (std::strcmp("-l", argv[arg]) == 0)
+    if (arg < argc && std::strcmp("-l", argv[arg]) == 0)
     {
-        if (argc != maxargs)
-            usage();
-        maxPathLength = std::atof(argv[++arg]);
+        maxPathLength = std::atof(argv[arg+1]);
+        arg += 2;
     }
-    else if (std::strcmp("-d", argv[arg]) == 0)
+    else if (arg < argc && std::strcmp("-d", argv[arg]) == 0)
     {
-        if (argc != maxargs)
-            usage();
-        minPathPairwiseDistance = std::atof(argv[++arg]);
+        minPathPairwiseDistance = std::atof(argv[arg+1]);
+        arg += 2;
     }
-    else if (std::strcmp("-u", argv[arg]) == 0)
-    {
-        if (argc != maxargs-1)
-            usage();
-    }
-    else
-        usage();
-    const bool save = (std::strcmp("-s", argv[++arg]) == 0);
+    const bool save = arg < argc && (std::strcmp("-s", argv[arg]) == 0);
     
     // Build graph to test on
     TestData data(graphFile, paths, maxPathLength, minPathPairwiseDistance);

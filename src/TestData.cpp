@@ -15,6 +15,7 @@ TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
     // Initialize the space
     ompl::base::StateSpacePtr space(new ompl::base::SE3StateSpace());
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
+    si->setStateValidityChecker([] (const ompl::base::State *) -> bool { return true; });
     ompl::base::RealVectorBounds bounds(3);
     bounds.setLow(-1000);
     bounds.setHigh(1000);
