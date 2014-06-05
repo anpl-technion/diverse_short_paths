@@ -7,6 +7,7 @@ import numpy
 import subprocess
 
 EXE = "build/bin/diverse"
+RUNS = 10
 PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
 NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
 GRAPHS = ["grid1", "grid2"]
@@ -56,15 +57,19 @@ def main():
             print("Running parameter sweep using " + d1 + "," + d2)
             for r in X:
                 print(r)
-                algorithm = "r:" + d1 + ":" + d2 + ":" + str(r)
-                datapoint = extract_datapoint(
-                    subprocess.check_output(
-                        [EXE, "resources/grid2.graphml", "10", algorithm],
-                        universal_newlines=True))
-                if datapoint[0] < 10:
-                    Y[i].append(float("inf"))
-                else:
-                    Y[i].append(datapoint[3])
+                acc = 0
+                runs = float(RUNS)
+                for _ in xrange(RUNS):
+                    algorithm = "r:" + d1 + ":" + d2 + ":" + str(r)
+                    datapoint = extract_datapoint(
+                        subprocess.check_output(
+                            [EXE, "resources/grid2.graphml", "10", algorithm],
+                            universal_newlines=True))
+                    if datapoint[0] < 10:
+                        runs -= 1
+                    else:
+                        acc += datapoint[3]
+                Y[i].append(acc/runs)
             i += 1
     
     print(X, Y)

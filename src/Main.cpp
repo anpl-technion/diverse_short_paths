@@ -38,7 +38,7 @@ void usage ()
  */
 int main (int argc, char *argv[])
 {
-    srand(1000);
+    srand(time(NULL));
     
     // Parse command line args
     int maxargs = 7;
