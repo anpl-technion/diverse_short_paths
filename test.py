@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 ### Script to generate matplotlib plots
 
@@ -10,7 +10,7 @@ EXE = "build/bin/diverse"
 PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
 NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
 GRAPHS = ["grid1", "grid2"]
-RADII = {"grid1": 0.3, "grid2": 0.3} #, "cubicles1": 0.01}
+RADII = {"grid1": 0.2, "grid2": 0.2} #, "cubicles1": 0.01}
 
 def extract_datapoint(program_output):
     """
@@ -39,14 +39,14 @@ Plots:
 1) Parameter sweep of radius on grid2 showing Levenshtein, Frechet, graph distance, cspace distance
 2) Comparison of Eppstein with random avoidance on several graphs using Frechet and cspace distance
     showing both min and mean distance superimposed
-3) Parameter sweep of minimum distance filtering, comparing Eppstein with random avoidance on grid2 
+3) Parameter sweep of minimum distance filtering, comparing Eppstein with random avoidance on grid2 based on speed
 """
 
 def main():
     """
     Run "diverse" to generate data and plot it.
     """
-    
+    """
     # Plot 1
     try:
         X = numpy.arange(0.01, 0.5, 0.01)
@@ -74,12 +74,15 @@ def main():
     matplotlib.pyplot.plot(X, Y[0], "r--", X, Y[1], "ys", X, Y[2], "g^", X, Y[3], "bo")
     matplotlib.pyplot.xlabel("Radius Factor")
     matplotlib.pyplot.ylabel("Diversity")
+    matplotlib.pyplot.title("Comparison of Distance Measures")
     matplotlib.pyplot.savefig("plot1.png")
-    
+    """
     # Plot 2
     try:
-        E = []
-        R = []
+        Emin = []
+        Emean = []
+        Rmin = []
+        Rmean = []
         for g in GRAPHS:
             algorithm1 = "e:f"
             algorithm2 = "r:f:c:" + str(RADII[g])
@@ -87,21 +90,65 @@ def main():
                 subprocess.check_output(
                     [EXE, "resources/" + g + ".graphml", "10", algorithm1],
                     universal_newlines=True))
-            E.append(datapoint[3])
+            Emin.append(datapoint[3])
+            Emean.append(datapoint[4])
             datapoint = extract_datapoint(
                 subprocess.check_output(
                     [EXE, "resources/" + g + ".graphml", "10", algorithm2],
                     universal_newlines=True))
-            R.append(datapoint[3])
+            Rmin.append(datapoint[3])
+            Rmean.append(datapoint[4])
+    except subprocess.CalledProcessError:
+        print("Testing failed.")
+    
+    print(Emin, Emean, Rmin, Rmean)
+    fig, ax = matplotlib.pyplot.subplots()
+    width = 0.35
+    inner = 0.7
+    ticks = numpy.arange(len(GRAPHS))
+    sty1 = ax.bar(ticks, Emean, width, color='r')
+    sty2 = ax.bar(width+ticks, Rmean, width, color='b')
+    sty3 = ax.bar(((1-inner)/2)*width+ticks, Emin, inner*width, color='y')
+    sty4 = ax.bar((1+(1-inner)/2)*width+ticks, Rmin, inner*width, color='g')
+    ax.set_xticks(ticks+width)
+    ax.set_xticklabels(GRAPHS)
+    ax.set_xlabel("Graph")
+    ax.set_ylabel("Diversity")
+    ax.legend((sty3[0], sty1[0], sty4[0], sty2[0]),
+              ('Eppstein, min', 'Eppstein, mean', 'Random Avoidance, min', 'Random Avoidance, mean'))
+    ax.set_title("Distance Between Paths")
+    matplotlib.pyplot.savefig("plot2.png")
+    
+    # Plot 3
+    try:
+        X = numpy.arange(0, 3.5, 0.1)
+        E = []
+        R = []
+        algorithm1 = "e:f"
+        algorithm2 = "r:f:c:" + str(RADII["grid2"])
+        for d in X:
+            print(d)
+            datapoint = extract_datapoint(
+                subprocess.check_output(
+                    [EXE, "resources/grid2.graphml", "10", algorithm1, "-d", str(d)],
+                    universal_newlines=True))
+            E.append(datapoint[5])
+            datapoint = extract_datapoint(
+                subprocess.check_output(
+                    [EXE, "resources/grid2.graphml", "10", algorithm2, "-d", str(d)],
+                    universal_newlines=True))
+            R.append(datapoint[5])
     except subprocess.CalledProcessError:
         print("Testing failed.")
     
     print(E, R)
-    fig, ax = matplotlib.pyplot.subplots()
-    ax.bar(numpy.arange(len(GRAPHS)), E, 0.35)
-    ax.bar(0.35+numpy.arange(len(GRAPHS)), R, 0.35)
-    matplotlib.pyplot.savefig("plot2.png")
-
+    matplotlib.pyplot.subplots()
+    matplotlib.pyplot.plot(X, E, "ro", X, R, "b^")
+    matplotlib.pyplot.xlabel("Minimum Distance")
+    matplotlib.pyplot.ylabel("Time (s)")
+    matplotlib.pyplot.title("Speed Comparison of Algorithms")
+    matplotlib.pyplot.savefig("plot3.png")
+    
 if __name__ == "__main__":
     main()
 
