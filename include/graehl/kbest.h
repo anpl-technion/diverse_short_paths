@@ -226,7 +226,8 @@ public:
         
         if (prevBest != NULL)
         {
-            delete prevBest->data;
+            if (prevBest->data != NULL)
+                delete prevBest->data;
             delete prevBest;
         }
         

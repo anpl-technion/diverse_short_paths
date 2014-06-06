@@ -19,6 +19,8 @@ NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
 GRAPHS = ["grid1", "grid2"]
 RADII = {"grid1": 0.2, "grid2": 0.2} #, "cubicles1": 0.01}
 
+pool = None
+
 def extract_datapoint(program_output):
     """
     Extract the 6 numbers from the program's output string.
@@ -40,6 +42,7 @@ def extract_datapoint(program_output):
     
     return (pathsFound, shortest, longest, minDistance, meanDistance, time)
 
+
 """
 Plots:
 
@@ -58,54 +61,67 @@ def plot1F((d1, d2, r)):
     runs = float(RUNS)
     for _ in xrange(RUNS):
         algorithm = "r:" + d1 + ":" + d2 + ":" + str(r)
-        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm], universal_newlines=True))
+        try:
+            datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm], universal_newlines=True))
+        except subprocess.CalledProcessError as e:
+            raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
         if datapoint[0] < PATHS:
             runs -= 1
         else:
             acc += datapoint[3]
+    if runs == 0:
+        return float("inf")
     return acc/runs
 
-def main():
+def plot1():
     """
-    Run "diverse" to generate data and plot it.
+    Compute and plot data for Plot 1.
     """
-    
-    # Setup parallelization
-    pool = multiprocessing.Pool()
-    
-    # Plot 1
+
+    global pool
     X = numpy.arange(0.01, 0.5, 0.01)
     Y = [[], [], [], []]
     i = 0
     for d1 in PATH_DISTANCE_MEASURES:
         for d2 in NEIGHBORHOOD_RADIUS_MEASURES:
             print("Running parameter sweep using " + d1 + "," + d2)
-            data = pool.map(plot1F, map(lambda r: (d1, d2, r), X))
+            data = pool.map_async(plot1F, map(lambda r: (d1, d2, r), X)).get(99999999)
             Y[i] = data
             i += 1
-    
+
     print(X, Y)
     matplotlib.pyplot.plot(X, Y[0], "r--", X, Y[1], "ys", X, Y[2], "g^", X, Y[3], "bo")
     matplotlib.pyplot.xlabel("Radius Factor")
     matplotlib.pyplot.ylabel("Diversity")
     matplotlib.pyplot.title("Comparison of Distance Measures")
     matplotlib.pyplot.savefig("plot1.png")
-    
-    # Plot 2
-    Emin = []
-    Emean = []
-    Rmin = []
-    Rmean = []
-    for g in GRAPHS:
-        algorithm1 = "e:f"
-        algorithm2 = "r:f:c:" + str(RADII[g])
-        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/" + g + ".graphml", str(PATHS), algorithm1], universal_newlines=True))
-        Emin.append(datapoint[3])
-        Emean.append(datapoint[4])
-        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/" + g + ".graphml", str(PATHS), algorithm2], universal_newlines=True))
-        Rmin.append(datapoint[3])
-        Rmean.append(datapoint[4])
-    
+
+    return
+
+
+def plot2F((algorithm, g)):
+    """
+    Generate a datapoint for Plot 2 from the given graph and algorithm.
+    """
+
+    try:
+        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/" + g  + ".graphml", str(PATHS), algorithm], universal_newlines=True))
+    except subprocess.CalledProcessError as e:
+        raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
+    return (datapoint[3], datapoint[4])
+
+def plot2():
+    """
+    Compute and plot data for Plot 2.
+    """
+
+    global pool
+    data = pool.map_async(plot2F, map(lambda g: ("e:f", g), GRAPHS)).get(99999999)
+    Emin, Emean = zip(*data)
+
+    data = pool.map_async(plot2F, map(lambda g: ("r:f:c:" + str(RADII[g]), g), GRAPHS)).get(99999999)
+    Rmin, Rmean = zip(*data)
+
     print(Emin, Emean, Rmin, Rmean)
     fig, ax = matplotlib.pyplot.subplots()
     width = 0.35
@@ -123,20 +139,31 @@ def main():
               ('Eppstein, min', 'Eppstein, mean', 'Random Avoidance, min', 'Random Avoidance, mean'))
     ax.set_title("Distance Between Paths")
     matplotlib.pyplot.savefig("plot2.png")
+
+    return
     
-    # Plot 3
+
+def plot3F((algorithm, d)):
+    """
+    Generate a datapoint for Plot 3 from the given distance filter and algorithm.
+    """
+
+    try:
+        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))
+    except subprocess.CalledProcessError as e:
+        raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
+    return datapoint[5]
+
+def plot3():
+    """
+    Compute and plot data for Plot 3.
+    """
+
+    global pool
     X = numpy.arange(0, 3.5, 0.1)
-    E = []
-    R = []
-    algorithm1 = "e:f"
-    algorithm2 = "r:f:c:" + str(RADII["grid2"])
-    for d in X:
-        print(d)
-        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm1, "-d", str(d)], universal_newlines=True))
-        E.append(datapoint[5])
-        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm2, "-d", str(d)], universal_newlines=True))
-        R.append(datapoint[5])
-    
+    E = pool.map_async(plot3F, map(lambda d: ("e:f", d), X)).get(99999999)
+    R = pool.map_async(plot3F, map(lambda d: ("r:f:c:" + str(RADII["grid2"]), d), X)).get(99999999)
+
     print(E, R)
     matplotlib.pyplot.subplots()
     matplotlib.pyplot.plot(X, E, "ro", X, R, "b^")
@@ -144,7 +171,27 @@ def main():
     matplotlib.pyplot.ylabel("Time (s)")
     matplotlib.pyplot.title("Speed Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
+
+    return
+
+
+def main():
+    """
+    Run "diverse" to generate data and plot it.
+    """
     
+    # Setup parallelization
+    global pool
+    pool = multiprocessing.Pool()
+    
+    # Plots
+    plot1()
+    plot2()
+    plot3()
+
+    return
+
+
 if __name__ == "__main__":
     try:
         main()
