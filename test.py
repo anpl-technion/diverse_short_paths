@@ -54,7 +54,7 @@ Plots:
 
 def plot1F((d1, d2, r)):
     """
-    Generate a datapoint for Plot 1 from the given radius and distance measures.
+    Generate a datapoint averaged over many runs for Plot 1 from the given radius and distance measures.
     """
 
     acc = 0
@@ -84,12 +84,10 @@ def plot1():
     i = 0
     for d1 in PATH_DISTANCE_MEASURES:
         for d2 in NEIGHBORHOOD_RADIUS_MEASURES:
-            print("Running parameter sweep using " + d1 + "," + d2)
             data = pool.map_async(plot1F, map(lambda r: (d1, d2, r), X)).get(99999999)
             Y[i] = data
             i += 1
 
-    print(X, Y)
     matplotlib.pyplot.plot(X, Y[0], "r--", X, Y[1], "ys", X, Y[2], "g^", X, Y[3], "bo")
     matplotlib.pyplot.xlabel("Radius Factor")
     matplotlib.pyplot.ylabel("Diversity")
@@ -101,7 +99,7 @@ def plot1():
 
 def plot2F((algorithm, g)):
     """
-    Generate a datapoint for Plot 2 from the given graph and algorithm.
+    Generate a single-run datapoint for Plot 2 from the given graph and algorithm.
     """
 
     try:
@@ -116,13 +114,22 @@ def plot2():
     """
 
     global pool
-    data = pool.map_async(plot2F, map(lambda g: ("e:f", g), GRAPHS)).get(99999999)
-    Emin, Emean = zip(*data)
+    Emin = []
+    Emean = []
+    for g in GRAPHS:
+        data = pool.map_async(plot2F, map(lambda _: ("e:f", g), xrange(RUNS))).get(99999999)
+        mins, means = zip(*data)
+        Emin.append(sum(mins)/float(RUNS))
+        Emean.append(sum(means)/float(RUNS))
 
-    data = pool.map_async(plot2F, map(lambda g: ("r:f:c:" + str(RADII[g]), g), GRAPHS)).get(99999999)
-    Rmin, Rmean = zip(*data)
+    Rmin = []
+    Rmean = []
+    for g in GRAPHS:
+        data = pool.map_async(plot2F, map(lambda _: ("r:f:c:" + str(RADII[g]), g), xrange(RUNS))).get(99999999)
+        mins, means = zip(*data)
+        Rmin.append(sum(mins)/float(RUNS))
+        Rmean.append(sum(means)/float(RUNS))
 
-    print(Emin, Emean, Rmin, Rmean)
     fig, ax = matplotlib.pyplot.subplots()
     width = 0.35
     inner = 0.7
@@ -145,14 +152,15 @@ def plot2():
 
 def plot3F((algorithm, d)):
     """
-    Generate a datapoint for Plot 3 from the given distance filter and algorithm.
+    Generate a datapoint averaged over many runs for Plot 3 from the given distance filter and algorithm.
     """
-
+    
     try:
-        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))
+        data = map(lambda _: extract_datapoint(subprocess.check_output(
+            [EXE, "resources/grid2.graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))[5], xrange(RUNS))
     except subprocess.CalledProcessError as e:
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
-    return datapoint[5]
+    return sum(data)/float(RUNS)
 
 def plot3():
     """
@@ -164,7 +172,6 @@ def plot3():
     E = pool.map_async(plot3F, map(lambda d: ("e:f", d), X)).get(99999999)
     R = pool.map_async(plot3F, map(lambda d: ("r:f:c:" + str(RADII["grid2"]), d), X)).get(99999999)
 
-    print(E, R)
     matplotlib.pyplot.subplots()
     matplotlib.pyplot.plot(X, E, "ro", X, R, "b^")
     matplotlib.pyplot.xlabel("Minimum Distance")
@@ -182,11 +189,14 @@ def main():
     
     # Setup parallelization
     global pool
-    pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool(int(multiprocessing.cpu_count()*1.2))
     
     # Plots
+    print("Generating plot 1")
     plot1()
+    print("Generating plot 2")
     plot2()
+    print("Generating plot 3")
     plot3()
 
     return
