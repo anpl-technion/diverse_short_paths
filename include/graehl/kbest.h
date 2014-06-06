@@ -33,8 +33,12 @@ struct GraphHeap {
   GraphHeap *left, *right;          // for balanced heap  
   int nDescend;
   GraphArc *arc;                // data at each vertex, or cross edge 
-  pGraphArc *arcHeap = NULL;                // binary heap of sidetracks originating from a state
+  pGraphArc *arcHeap;                // binary heap of sidetracks originating from a state
   int arcHeapSize;
+  GraphHeap ()
+  {
+    arcHeap = NULL;
+  }
   void *operator new(size_t)
   {
     GraphHeap *ret, *max;

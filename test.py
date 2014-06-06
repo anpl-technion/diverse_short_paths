@@ -2,12 +2,18 @@
 
 ### Script to generate matplotlib plots
 
+import matplotlib
+# Allow matplotlib to generate images without a display
+matplotlib.use('Agg')
+
 import matplotlib.pyplot
+import multiprocessing
 import numpy
 import subprocess
 
 EXE = "build/bin/diverse"
 RUNS = 10
+PATHS = 10
 PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
 NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
 GRAPHS = ["grid1", "grid2"]
@@ -43,10 +49,29 @@ Plots:
 3) Parameter sweep of minimum distance filtering, comparing Eppstein with random avoidance on grid2 based on speed
 """
 
+def plot1F((d1, d2, r)):
+    """
+    Generate a datapoint for Plot 1 from the given radius and distance measures.
+    """
+
+    acc = 0
+    runs = float(RUNS)
+    for _ in xrange(RUNS):
+        algorithm = "r:" + d1 + ":" + d2 + ":" + str(r)
+        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm], universal_newlines=True))
+        if datapoint[0] < PATHS:
+            runs -= 1
+        else:
+            acc += datapoint[3]
+    return acc/runs
+
 def main():
     """
     Run "diverse" to generate data and plot it.
     """
+    
+    # Setup parallelization
+    pool = multiprocessing.Pool()
     
     # Plot 1
     X = numpy.arange(0.01, 0.5, 0.01)
@@ -55,21 +80,8 @@ def main():
     for d1 in PATH_DISTANCE_MEASURES:
         for d2 in NEIGHBORHOOD_RADIUS_MEASURES:
             print("Running parameter sweep using " + d1 + "," + d2)
-            for r in X:
-                print(r)
-                acc = 0
-                runs = float(RUNS)
-                for _ in xrange(RUNS):
-                    algorithm = "r:" + d1 + ":" + d2 + ":" + str(r)
-                    datapoint = extract_datapoint(
-                        subprocess.check_output(
-                            [EXE, "resources/grid2.graphml", "10", algorithm],
-                            universal_newlines=True))
-                    if datapoint[0] < 10:
-                        runs -= 1
-                    else:
-                        acc += datapoint[3]
-                Y[i].append(acc/runs)
+            data = pool.map(plot1F, map(lambda r: (d1, d2, r), X))
+            Y[i] = data
             i += 1
     
     print(X, Y)
@@ -87,16 +99,10 @@ def main():
     for g in GRAPHS:
         algorithm1 = "e:f"
         algorithm2 = "r:f:c:" + str(RADII[g])
-        datapoint = extract_datapoint(
-            subprocess.check_output(
-                [EXE, "resources/" + g + ".graphml", "10", algorithm1],
-                universal_newlines=True))
+        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/" + g + ".graphml", str(PATHS), algorithm1], universal_newlines=True))
         Emin.append(datapoint[3])
         Emean.append(datapoint[4])
-        datapoint = extract_datapoint(
-            subprocess.check_output(
-                [EXE, "resources/" + g + ".graphml", "10", algorithm2],
-                universal_newlines=True))
+        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/" + g + ".graphml", str(PATHS), algorithm2], universal_newlines=True))
         Rmin.append(datapoint[3])
         Rmean.append(datapoint[4])
     
@@ -126,15 +132,9 @@ def main():
     algorithm2 = "r:f:c:" + str(RADII["grid2"])
     for d in X:
         print(d)
-        datapoint = extract_datapoint(
-            subprocess.check_output(
-                [EXE, "resources/grid2.graphml", "10", algorithm1, "-d", str(d)],
-                universal_newlines=True))
+        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm1, "-d", str(d)], universal_newlines=True))
         E.append(datapoint[5])
-        datapoint = extract_datapoint(
-            subprocess.check_output(
-                [EXE, "resources/grid2.graphml", "10", algorithm2, "-d", str(d)],
-                universal_newlines=True))
+        datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm2, "-d", str(d)], universal_newlines=True))
         R.append(datapoint[5])
     
     print(E, R)
@@ -148,6 +148,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         print("Testing failed.")
-
+	print(e)
