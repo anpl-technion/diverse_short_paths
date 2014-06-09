@@ -24,16 +24,20 @@ endef
 
 all: $(PCH) $(INCS) $(SRCS) $(EXEC)
 
-remote:
+sync:
+	$(call SSH,hg pull; hg update)
+
+remote:	sync
 	$(call SSH,make -j 15)
 
 again:
 	+@$(MAKE) clean
 	+@$(MAKE)
-r.again:
+
+r.again: sync
 	$(call SSH,make again -j 15)
 
-test:
+test: sync
 	$(call SSH,PYTHONUNBUFFERED=1 ./test.py)
 
 ${EXEC}: $(OBJS) | dirs
@@ -62,10 +66,13 @@ clean:
 		cd $$dir; \
 		$(MAKE) clean; \
 	done
+r.clean: sync
+	$(call SSH,make clean)
 
 link:
 	rm -R ${EXEC}
 	+@$(MAKE) ${EXEC}
-r.link:
+
+r.link: sync
 	$(call SSH,make link)
 

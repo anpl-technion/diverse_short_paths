@@ -11,13 +11,16 @@ import multiprocessing
 import numpy
 import subprocess
 
+DEBUG = False
 EXE = "build/bin/diverse"
-RUNS = 10
+RUNS = 2 if DEBUG else 50
 PATHS = 10
 PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
 NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
-GRAPHS = ["grid1", "grid2"]
-RADII = {"grid1": 0.2, "grid2": 0.2} #, "cubicles1": 0.01}
+GRAPHS = ["cubicles1", "cubicles2", "cubicles3"]
+
+# These were chosen based on results from the find_optimal_radius() function.
+RADII = {"grid1": 0.10, "grid2": 0.10, "cubicles1": 0.000128, "cubicles2": 0.00002, "cubicles3": 0.0258}
 
 pool = None
 
@@ -43,6 +46,43 @@ def extract_datapoint(program_output):
     return (pathsFound, shortest, longest, minDistance, meanDistance, time)
 
 
+def find_optimal_radius(graph, distMeasures, runs, tol, _min = 1e-12, _max = 10):
+    """
+    Search for the optimal radius to use on a graph w.r.t the heuristic h.
+    """
+
+    # Want min and mean distance to be large, with preference to min; should succeed in finding as many paths as possible
+    h = lambda (pathsFound, shortest, longest, minDistance, meanDistance, time): \
+        (0.8*minDistance + 0.2*meanDistance) * (float(pathsFound)/PATHS) if pathsFound > 1 else 0
+
+    step = (_max-_min)/10.0
+    if _max-_min <= tol:
+        return (_min+_max)/2.0
+    search = dict.fromkeys(numpy.arange(_min, _max, step))
+
+    for r in search:
+        data = pool.map_async(findradiusF, map(lambda _: ("r:" + distMeasures + ":" + str(r), graph), xrange(runs))).get(99999999)
+        scores = map(h, data)
+        search[r] = sum(scores)/float(len(scores))
+
+    bestr = None
+    score = float('-inf')
+    for r in search:
+        if search[r] >= score:
+            bestr = r
+            score = search[r]
+    
+    print("Radius: " + str(bestr) + "; Score: " + str(score))
+    return find_optimal_radius(graph, distMeasures, runs, tol, bestr-step if bestr-step > 0 else 1e-12, bestr+step)
+
+def findradiusF((algorithm, g)):
+
+    try:
+        return extract_datapoint(subprocess.check_output([EXE, "resources/" + g + ".graphml", str(PATHS), algorithm], universal_newlines=True))
+    except subprocess.CalledProcessError as e:
+        raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
+
+
 """
 Plots:
 
@@ -65,7 +105,7 @@ def plot1F((d1, d2, r)):
             datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/grid2.graphml", str(PATHS), algorithm], universal_newlines=True))
         except subprocess.CalledProcessError as e:
             raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
-        if datapoint[0] < PATHS:
+        if datapoint[0] <= 1:
             runs -= 1
         else:
             acc += datapoint[3]
@@ -79,7 +119,7 @@ def plot1():
     """
 
     global pool
-    X = numpy.arange(0.01, 0.5, 0.01)
+    X = numpy.arange(0.01, 0.5, 0.1 if DEBUG else 0.01)
     Y = [[], [], [], []]
     i = 0
     for d1 in PATH_DISTANCE_MEASURES:
@@ -88,12 +128,13 @@ def plot1():
             Y[i] = data
             i += 1
 
-    l1, l2, l3, l4 = matplotlib.pyplot.plot(X, Y[0], "r--", X, Y[1], "ys", X, Y[2], "g^", X, Y[3], "bo")
+    matplotlib.pyplot.clf()
+    l1, l2, l3, l4 = matplotlib.pyplot.plot(X, Y[0], ":x", X, Y[1], "--D", X, Y[2], "-.o", X, Y[3], "-^")
     matplotlib.pyplot.xlabel("Radius Factor")
     matplotlib.pyplot.ylabel("Diversity")
     matplotlib.pyplot.figlegend((l1, l2, l3, l4), ('Levenshtein, Graph Distance',
         'Levenshtein, C-Space Distance', 'Frechet, Graph Distance', 'Frechet, C-Space Distance'),
-        'upper right')
+        'upper left')
     matplotlib.pyplot.title("Comparison of Distance Measures")
     matplotlib.pyplot.savefig("plot1.png")
 
@@ -109,7 +150,7 @@ def plot2F((algorithm, g)):
         datapoint = extract_datapoint(subprocess.check_output([EXE, "resources/" + g  + ".graphml", str(PATHS), algorithm], universal_newlines=True))
     except subprocess.CalledProcessError as e:
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
-    return (datapoint[3], datapoint[4])
+    return (datapoint[3], datapoint[4], datapoint[0])
 
 def plot2():
     """
@@ -120,34 +161,43 @@ def plot2():
     Emin = []
     Emean = []
     for g in GRAPHS:
-        data = pool.map_async(plot2F, map(lambda _: ("e:f", g), xrange(RUNS))).get(99999999)
-        mins, means = zip(*data)
-        Emin.append(sum(mins)/float(RUNS))
-        Emean.append(sum(means)/float(RUNS))
+        data = plot2F(("e:f", g))
+        Emin.append(data[0])
+        Emean.append(data[1])
 
     Rmin = []
+    RminErr = []
     Rmean = []
+    RmeanErr = []
     for g in GRAPHS:
         data = pool.map_async(plot2F, map(lambda _: ("r:f:c:" + str(RADII[g]), g), xrange(RUNS))).get(99999999)
-        mins, means = zip(*data)
-        Rmin.append(sum(mins)/float(RUNS))
-        Rmean.append(sum(means)/float(RUNS))
+        mins, means, paths = zip(*data)
+        means = reduce(lambda l, e: (l + [e] if e != float('inf') else l), means, [])
+        for p in paths:
+            if p < 0.7*PATHS:
+                print("Need to decrease radius for graph " + g)
+        mins = numpy.array(mins)
+        means = numpy.array(means)
+        Rmin.append(numpy.mean(mins))
+        RminErr.append(numpy.std(mins))
+        Rmean.append(numpy.mean(means))
+        RmeanErr.append(numpy.std(means))
 
-    fig, ax = matplotlib.pyplot.subplots()
+    matplotlib.pyplot.clf()
     width = 0.35
     inner = 0.7
     ticks = numpy.arange(len(GRAPHS))
-    sty1 = ax.bar(ticks, Emean, width, color='r')
-    sty2 = ax.bar(width+ticks, Rmean, width, color='b')
-    sty3 = ax.bar(((1-inner)/2)*width+ticks, Emin, inner*width, color='y')
-    sty4 = ax.bar((1+(1-inner)/2)*width+ticks, Rmin, inner*width, color='g')
-    ax.set_xticks(ticks+width)
-    ax.set_xticklabels(GRAPHS)
-    ax.set_xlabel("Graph")
-    ax.set_ylabel("Diversity")
-    ax.legend((sty3[0], sty1[0], sty4[0], sty2[0]),
-              ('Eppstein, min', 'Eppstein, mean', 'Random Avoidance, min', 'Random Avoidance, mean'))
-    ax.set_title("Distance Between Paths")
+    sty1 = matplotlib.pyplot.bar(ticks, Emean, width, color='r')
+    sty2 = matplotlib.pyplot.bar(width+ticks, Rmean, width, color='b', yerr=RmeanErr, ecolor='k')
+    sty3 = matplotlib.pyplot.bar(((1-inner)*0.8)*width+ticks, Emin, inner*width, color='y')
+    sty4 = matplotlib.pyplot.bar((1+(1-inner)*0.8)*width+ticks, Rmin, inner*width, color='g', yerr=RminErr, ecolor='k')
+    matplotlib.pyplot.xticks(ticks+width, GRAPHS)
+    matplotlib.pyplot.xlabel("Graph")
+    matplotlib.pyplot.ylabel("Diversity (Frechet)")
+    matplotlib.pyplot.ylim([0,130])
+    matplotlib.pyplot.legend((sty3[0], sty1[0], sty4[0], sty2[0]),
+              ('Eppstein, min', 'Eppstein, mean', 'Random Avoidance, min', 'Random Avoidance, mean'), 'upper left')
+    matplotlib.pyplot.title("Diversity of Path Set")
     matplotlib.pyplot.savefig("plot2.png")
 
     return
@@ -159,11 +209,10 @@ def plot3F((algorithm, d)):
     """
     
     try:
-        data = map(lambda _: extract_datapoint(subprocess.check_output(
-            [EXE, "resources/grid2.graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))[5], xrange(RUNS))
+        return extract_datapoint(subprocess.check_output(
+            [EXE, "resources/grid2.graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))[5]
     except subprocess.CalledProcessError as e:
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
-    return sum(data)/float(RUNS)
 
 def plot3():
     """
@@ -171,14 +220,31 @@ def plot3():
     """
 
     global pool
-    X = numpy.arange(0, 3.5, 0.1)
-    E = pool.map_async(plot3F, map(lambda d: ("e:f", d), X)).get(99999999)
-    R = pool.map_async(plot3F, map(lambda d: ("r:f:c:" + str(RADII["grid2"]), d), X)).get(99999999)
+    X = numpy.arange(1e-12, 5, 2 if DEBUG else 0.1)
+    E = []
+    Eerr = []
+    R = []
+    Rerr = []
+    for d in X:
+        # We will skip Eppstein on large values because it takes way too long
+        if d < 4.5:
+            data = plot3F(("e:f", d))
+            E.append(data)
+        else:
+            E.append(float('inf'))
+        data = pool.map_async(plot3F, map(lambda _: ("r:f:c:" + str(RADII["grid2"]), d), xrange(RUNS))).get(99999999)
+        R.append(numpy.mean(data))
+        Rerr.append(numpy.std(data))
 
-    matplotlib.pyplot.subplots()
-    matplotlib.pyplot.plot(X, E, "ro", X, R, "b^")
-    matplotlib.pyplot.xlabel("Minimum Distance")
+    matplotlib.pyplot.clf()
+    R = numpy.array(R)
+    Rerr = numpy.array(Rerr)
+    l1, l2 = matplotlib.pyplot.plot(X, E, "-", X, R, "--")
+    matplotlib.pyplot.plot(X, R+Rerr, "-.", X, R-Rerr, "-.")
+    matplotlib.pyplot.xlabel("Minimum Distance Required between Paths")
     matplotlib.pyplot.ylabel("Time (s)")
+    matplotlib.pyplot.ylim([0,15])
+    matplotlib.pyplot.legend((l1, l2), ('Eppstein', 'Random Avoidance'), 'upper left')
     matplotlib.pyplot.title("Speed Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
 
@@ -193,15 +259,21 @@ def main():
     # Setup parallelization
     global pool
     pool = multiprocessing.Pool(int(multiprocessing.cpu_count()*1.2))
+
+    #print("grid1 optimal radius: " + str(find_optimal_radius("grid1", "f:c", 50, 0.00001)))
+    #print("grid2 optimal radius: " + str(find_optimal_radius("grid2", "f:c", 50, 0.00001)))
+    #print("cubicles1 optimal radius: " + str(find_optimal_radius("cubicles1", "f:c", 50, 0.00001)))
+    #print("cubicles2 optimal radius: " + str(find_optimal_radius("cubicles2", "f:c", 50, 0.00001)))
+    #print("cubicles3 optimal radius: " + str(find_optimal_radius("cubicles3", "f:c", 50, 0.00001)))
     
     # Plots
     print("Generating plot 1")
     plot1()
     print("Generating plot 2")
-    #plot2()
+    plot2()
     print("Generating plot 3")
-    #plot3()
-
+    plot3()
+    
     return
 
 
