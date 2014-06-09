@@ -267,12 +267,12 @@ def main():
     #print("cubicles3 optimal radius: " + str(find_optimal_radius("cubicles3", "f:c", 50, 0.00001)))
     
     # Plots
-    print("Generating plot 1")
-    plot1()
-    print("Generating plot 2")
-    plot2()
+    #print("Generating plot 1")
+    #plot1()
+    #print("Generating plot 2")
+    #plot2()
     print("Generating plot 3")
-    plot3()
+    #plot3()
     
     return
 
