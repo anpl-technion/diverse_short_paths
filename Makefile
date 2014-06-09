@@ -25,6 +25,7 @@ endef
 all: $(PCH) $(INCS) $(SRCS) $(EXEC)
 
 sync:
+	hg commit; hg push
 	$(call SSH,hg pull; hg update)
 
 remote:	sync
@@ -52,7 +53,7 @@ ${PCH}: $(PCHINC)
 	@echo -e "\033[1;36m[Precompiling headers]\033[0m"
 	${CXX} -x c++-header ${CXXFLAGS} ${LOCALINC} $< -o $@
 
-.PHONY: dirs clean link
+.PHONY: dirs clean link sync remote r.again r.clean r.link
 .SILENT: dirs clean link
 
 dirs:
