@@ -25,8 +25,7 @@ endef
 all: $(PCH) $(INCS) $(SRCS) $(EXEC)
 
 sync:
-	hg commit; hg push
-	$(call SSH,hg pull; hg update)
+	rsync -c -i -r * hera.cs.rice.edu:/home/cav2/repos/diverse_short_paths
 
 remote:	sync
 	$(call SSH,make -j 15)

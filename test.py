@@ -11,7 +11,7 @@ import multiprocessing
 import numpy
 import subprocess
 
-DEBUG = False
+DEBUG = True
 EXE = "build/bin/diverse"
 RUNS = 2 if DEBUG else 50
 PATHS = 10
