@@ -88,9 +88,12 @@ def plot1():
             Y[i] = data
             i += 1
 
-    matplotlib.pyplot.plot(X, Y[0], "r--", X, Y[1], "ys", X, Y[2], "g^", X, Y[3], "bo")
+    l1, l2, l3, l4 = matplotlib.pyplot.plot(X, Y[0], "r--", X, Y[1], "ys", X, Y[2], "g^", X, Y[3], "bo")
     matplotlib.pyplot.xlabel("Radius Factor")
     matplotlib.pyplot.ylabel("Diversity")
+    matplotlib.pyplot.figlegend((l1, l2, l3, l4), ('Levenshtein, Graph Distance',
+        'Levenshtein, C-Space Distance', 'Frechet, Graph Distance', 'Frechet, C-Space Distance'),
+        'upper right')
     matplotlib.pyplot.title("Comparison of Distance Measures")
     matplotlib.pyplot.savefig("plot1.png")
 
@@ -195,9 +198,9 @@ def main():
     print("Generating plot 1")
     plot1()
     print("Generating plot 2")
-    plot2()
+    #plot2()
     print("Generating plot 3")
-    plot3()
+    #plot3()
 
     return
 
