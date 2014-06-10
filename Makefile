@@ -37,9 +37,9 @@ again:
 r.again: sync
 	$(call SSH,make again -j 15)
 
-test: sync
+test: sync remote
 	$(call SSH,PYTHONUNBUFFERED=1 ./test.py)
-	$(call SSH,rsync -c -i -r * hermes:/home/cav2/repos/diverse_short_paths)
+	rsync -c -i -r hera:/home/cav2/repos/diverse_short_paths/*.png .
 
 ${EXEC}: $(OBJS) | dirs
 	@echo -e "\033[1;34m[Linking ${EXEC}]\033[0m"

@@ -3,7 +3,7 @@ generation should continue until time is up, instead of stopping when a path is 
 
 Name		Environment	Dense delta	Sparse delta	Stretch		Time
 cubicles1	cubicles.cfg	0.001		0.25		3		60 s
-cubicles2	cubicles.cfg	0.0005		0.12		2		60 s
+cubicles2	cubicles.cfg	0.0003		0.08		1.6		60 s
 cubicles3	cubicles.cfg	0.0002		0.04		1.1		60 s
 grid1		grid1.cfg	0.0004		0.06		1.5		30 s
 grid2		grid2.cfg	0.0004		0.06		1.4		30 s

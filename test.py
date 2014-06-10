@@ -11,7 +11,7 @@ import multiprocessing
 import numpy
 import subprocess
 
-DEBUG = True
+DEBUG = False
 EXE = "build/bin/diverse"
 RUNS = 2 if DEBUG else 50
 PATHS = 10
@@ -20,7 +20,7 @@ NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
 GRAPHS = ["cubicles1", "cubicles2", "cubicles3"]
 
 # These were chosen based on results from the find_optimal_radius() function.
-RADII = {"grid1": 0.10, "grid2": 0.10, "cubicles1": 0.000128, "cubicles2": 0.00002, "cubicles3": 0.0258}
+RADII = {"grid1": 0.10, "grid2": 0.10, "cubicles1": 0.0005536, "cubicles2": 0.0038368, "cubicles3": 0.0131584}
 
 pool = None
 
@@ -152,7 +152,7 @@ def plot2F((algorithm, g)):
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
     return (datapoint[3], datapoint[4], datapoint[0])
 
-def plot2():
+def plot2(runs):
     """
     Compute and plot data for Plot 2.
     """
@@ -170,12 +170,13 @@ def plot2():
     Rmean = []
     RmeanErr = []
     for g in GRAPHS:
-        data = pool.map_async(plot2F, map(lambda _: ("r:f:c:" + str(RADII[g]), g), xrange(RUNS))).get(99999999)
+        data = pool.map_async(plot2F, map(lambda _: ("r:f:c:" + str(RADII[g]), g), xrange(runs))).get(99999999)
         mins, means, paths = zip(*data)
+        mins = reduce(lambda l, e: (l + [e] if e != float('inf') else l), mins, [])
         means = reduce(lambda l, e: (l + [e] if e != float('inf') else l), means, [])
-        for p in paths:
-            if p < 0.7*PATHS:
-                print("Need to decrease radius for graph " + g)
+        # We would like an average success rate of 80% or better
+        if sum(paths) < 0.8*PATHS*runs:
+            print("Need to decrease radius for graph " + g)
         mins = numpy.array(mins)
         means = numpy.array(means)
         Rmin.append(numpy.mean(mins))
@@ -220,7 +221,7 @@ def plot3():
     """
 
     global pool
-    X = numpy.arange(1e-12, 5, 2 if DEBUG else 0.1)
+    X = numpy.arange(1e-12, 5.1, 1 if DEBUG else 0.1)
     E = []
     Eerr = []
     R = []
@@ -240,10 +241,11 @@ def plot3():
     R = numpy.array(R)
     Rerr = numpy.array(Rerr)
     l1, l2 = matplotlib.pyplot.plot(X, E, "-", X, R, "--")
-    matplotlib.pyplot.plot(X, R+Rerr, "-.", X, R-Rerr, "-.")
+    matplotlib.pyplot.plot(X, R+Rerr, "c-.", X, R-Rerr, "c-.")
     matplotlib.pyplot.xlabel("Minimum Distance Required between Paths")
     matplotlib.pyplot.ylabel("Time (s)")
-    matplotlib.pyplot.ylim([0,15])
+    matplotlib.pyplot.xlim([0,5])
+    matplotlib.pyplot.ylim([0,50])
     matplotlib.pyplot.legend((l1, l2), ('Eppstein', 'Random Avoidance'), 'upper left')
     matplotlib.pyplot.title("Speed Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
@@ -269,9 +271,9 @@ def main():
     # Plots
     #print("Generating plot 1")
     #plot1()
-    #print("Generating plot 2")
-    #plot2()
-    print("Generating plot 3")
+    print("Generating plot 2")
+    plot2(200)
+    #print("Generating plot 3")
     #plot3()
     
     return
