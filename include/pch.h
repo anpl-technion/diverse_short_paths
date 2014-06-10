@@ -18,6 +18,10 @@
 #include <string>
 #include <vector>
 
+// POSIX
+
+#include <unistd.h>
+
 // BOOST
 
 #include <boost/foreach.hpp>

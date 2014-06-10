@@ -13,16 +13,16 @@ import subprocess
 
 DEBUG = False
 EXE = "build/bin/diverse"
-RUNS = 2 if DEBUG else 50
+RUNS = 2 if DEBUG else 100
 PATHS = 10
 PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
 NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
 GRAPHS = ["cubicles1", "cubicles2", "cubicles3"]
-
-# These were chosen based on results from the find_optimal_radius() function.
-RADII = {"grid1": 0.10, "grid2": 0.10, "cubicles1": 0.0005536, "cubicles2": 0.0038368, "cubicles3": 0.0131584}
-
 pool = None
+
+# These numbers aren't magic. For each graph, I pushed the radius as high as it could go while the number
+#  of paths returned was still on average at least 80% of the number of paths requested.
+RADII = {"cubicles1": 0.002, "cubicles2": 0.013, "cubicles3": 0.012}
 
 def extract_datapoint(program_output):
     """
@@ -48,12 +48,13 @@ def extract_datapoint(program_output):
 
 def find_optimal_radius(graph, distMeasures, runs, tol, _min = 1e-12, _max = 10):
     """
-    Search for the optimal radius to use on a graph w.r.t the heuristic h.
+    Search for the optimal radius to use on a graph w.r.t the heuristic h. Not very exact because of large
+    statistical variation, but useful for ballparking a good radius.
     """
 
-    # Want min and mean distance to be large, with preference to min; should succeed in finding as many paths as possible
+    # Want min and mean distance to be large, with preference to mean; severe penalty for returning fewer paths
     h = lambda (pathsFound, shortest, longest, minDistance, meanDistance, time): \
-        (0.8*minDistance + 0.2*meanDistance) * (float(pathsFound)/PATHS) if pathsFound > 1 else 0
+        (0.8*meanDistance + 0.2*minDistance) * pow(float(pathsFound)/PATHS, 3) if pathsFound > 1 else 0
 
     step = (_max-_min)/10.0
     if _max-_min <= tol:
@@ -110,8 +111,8 @@ def plot1F((d1, d2, r)):
         else:
             acc += datapoint[3]
     if runs == 0:
-        return float("inf")
-    return acc/runs
+        return (float("inf"), 0)
+    return (acc/runs, float(datapoint[0])/PATHS)
 
 def plot1():
     """
@@ -121,18 +122,32 @@ def plot1():
     global pool
     X = numpy.arange(0.01, 0.5, 0.1 if DEBUG else 0.01)
     Y = [[], [], [], []]
+    A = [[], [], [], []]
     i = 0
     for d1 in PATH_DISTANCE_MEASURES:
         for d2 in NEIGHBORHOOD_RADIUS_MEASURES:
             data = pool.map_async(plot1F, map(lambda r: (d1, d2, r), X)).get(99999999)
-            Y[i] = data
+            Y[i], A[i] = zip(*data)
             i += 1
 
+
     matplotlib.pyplot.clf()
-    l1, l2, l3, l4 = matplotlib.pyplot.plot(X, Y[0], ":x", X, Y[1], "--D", X, Y[2], "-.o", X, Y[3], "-^")
+    for i in xrange(len(X)):
+        matplotlib.pyplot.plot(X[:-i], Y[0][:-i], "w:v", markeredgecolor='w')
+        matplotlib.pyplot.plot(X[:-i], Y[0][:-i], "b:v", alpha=A[0][-i])
+        matplotlib.pyplot.plot(X[:-i], Y[1][:-i], "w--D", markeredgecolor='w')
+        matplotlib.pyplot.plot(X[:-i], Y[1][:-i], "r--D", alpha=A[1][-i])
+        matplotlib.pyplot.plot(X[:-i], Y[2][:-i], "w-.o", markeredgecolor='w')
+        matplotlib.pyplot.plot(X[:-i], Y[2][:-i], "g-.o", alpha=A[2][-i])
+        matplotlib.pyplot.plot(X[:-i], Y[3][:-i], "w-^", markeredgecolor='w')
+        matplotlib.pyplot.plot(X[:-i], Y[3][:-i], "c-^", alpha=A[3][-i])
     matplotlib.pyplot.xlabel("Radius Factor")
     matplotlib.pyplot.ylabel("Diversity")
-    matplotlib.pyplot.figlegend((l1, l2, l3, l4), ('Levenshtein, Graph Distance',
+    l1 = matplotlib.lines.Line2D([0,1], [0,1], linestyle=":", marker='v', color='b')
+    l2 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="--", marker='D', color='r')
+    l3 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-.", marker='o', color='g')
+    l4 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-", marker='^', color='c')
+    matplotlib.pyplot.legend((l1, l2, l3, l4), ('Levenshtein, Graph Distance',
         'Levenshtein, C-Space Distance', 'Frechet, Graph Distance', 'Frechet, C-Space Distance'),
         'upper left')
     matplotlib.pyplot.title("Comparison of Distance Measures")
@@ -152,7 +167,7 @@ def plot2F((algorithm, g)):
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
     return (datapoint[3], datapoint[4], datapoint[0])
 
-def plot2(runs):
+def plot2():
     """
     Compute and plot data for Plot 2.
     """
@@ -170,13 +185,15 @@ def plot2(runs):
     Rmean = []
     RmeanErr = []
     for g in GRAPHS:
-        data = pool.map_async(plot2F, map(lambda _: ("r:f:c:" + str(RADII[g]), g), xrange(runs))).get(99999999)
+        radius = RADII[g]
+        data = pool.map_async(plot2F, map(lambda _: ("r:f:c:" + str(radius), g), xrange(RUNS))).get(99999999)
         mins, means, paths = zip(*data)
         mins = reduce(lambda l, e: (l + [e] if e != float('inf') else l), mins, [])
         means = reduce(lambda l, e: (l + [e] if e != float('inf') else l), means, [])
-        # We would like an average success rate of 80% or better
-        if sum(paths) < 0.8*PATHS*runs:
-            print("Need to decrease radius for graph " + g)
+        print(str(100*float(sum(paths))/(PATHS*RUNS)) + "% completion for graph " + g)
+        # We would like an average success rate of 75% or better
+        if sum(paths) < 0.75*PATHS*RUNS:
+            print("Consider decreasing radius for " + g)
         mins = numpy.array(mins)
         means = numpy.array(means)
         Rmin.append(numpy.mean(mins))
@@ -195,9 +212,9 @@ def plot2(runs):
     matplotlib.pyplot.xticks(ticks+width, GRAPHS)
     matplotlib.pyplot.xlabel("Graph")
     matplotlib.pyplot.ylabel("Diversity (Frechet)")
-    matplotlib.pyplot.ylim([0,130])
+    matplotlib.pyplot.ylim([0,150])
     matplotlib.pyplot.legend((sty3[0], sty1[0], sty4[0], sty2[0]),
-              ('Eppstein, min', 'Eppstein, mean', 'Random Avoidance, min', 'Random Avoidance, mean'), 'upper left')
+              ('Eppstein, min', 'Eppstein, mean', 'Random Avoidance, min', 'Random Avoidance, mean'), 'upper right')
     matplotlib.pyplot.title("Diversity of Path Set")
     matplotlib.pyplot.savefig("plot2.png")
 
@@ -233,7 +250,7 @@ def plot3():
             E.append(data)
         else:
             E.append(float('inf'))
-        data = pool.map_async(plot3F, map(lambda _: ("r:f:c:" + str(RADII["grid2"]), d), xrange(RUNS))).get(99999999)
+        data = pool.map_async(plot3F, map(lambda _: ("r:f:c:0.1", d), xrange(RUNS))).get(99999999)
         R.append(numpy.mean(data))
         Rerr.append(numpy.std(data))
 
@@ -245,7 +262,7 @@ def plot3():
     matplotlib.pyplot.xlabel("Minimum Distance Required between Paths")
     matplotlib.pyplot.ylabel("Time (s)")
     matplotlib.pyplot.xlim([0,5])
-    matplotlib.pyplot.ylim([0,50])
+    matplotlib.pyplot.ylim([0,25])
     matplotlib.pyplot.legend((l1, l2), ('Eppstein', 'Random Avoidance'), 'upper left')
     matplotlib.pyplot.title("Speed Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
@@ -264,17 +281,17 @@ def main():
 
     #print("grid1 optimal radius: " + str(find_optimal_radius("grid1", "f:c", 50, 0.00001)))
     #print("grid2 optimal radius: " + str(find_optimal_radius("grid2", "f:c", 50, 0.00001)))
-    #print("cubicles1 optimal radius: " + str(find_optimal_radius("cubicles1", "f:c", 50, 0.00001)))
-    #print("cubicles2 optimal radius: " + str(find_optimal_radius("cubicles2", "f:c", 50, 0.00001)))
-    #print("cubicles3 optimal radius: " + str(find_optimal_radius("cubicles3", "f:c", 50, 0.00001)))
+    #print("cubicles1 optimal radius: " + str(find_optimal_radius("cubicles1", "f:c", 50, 0.00001, 1e-12, 0.1)))
+    #print("cubicles2 optimal radius: " + str(find_optimal_radius("cubicles2", "f:c", 50, 0.00001, 1e-12, 0.1)))
+    #print("cubicles3 optimal radius: " + str(find_optimal_radius("cubicles3", "f:c", 50, 0.00001, 1e-12, 0.1)))
     
     # Plots
-    #print("Generating plot 1")
-    #plot1()
+    print("Generating plot 1")
+    plot1()
     print("Generating plot 2")
-    plot2(200)
-    #print("Generating plot 3")
-    #plot3()
+    plot2()
+    print("Generating plot 3")
+    plot3()
     
     return
 
