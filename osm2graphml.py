@@ -18,7 +18,10 @@ import sys
 import math
 
 def main():
+    # Read the file
     G = read_osm(sys.argv[1])
+    
+    # Save edge weights
     for e in G.edges_iter():
         edge = G.get_edge_data(*e)
         x1 = G.node[e[0]]['data'].lon
@@ -28,12 +31,20 @@ def main():
         edge['weight'] = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
         del edge['data']
         del edge['id']
+        
+    # Save node coordinates
     for n in G.nodes_iter():
         node = G.node[n]
         data = node['data']
         node['coords'] = str(data.lon)+","+str(data.lat)
         del node['data']
-    networkx.write_graphml(G, sys.argv[2])
+    
+    # Rename nodes sequentially
+    renaming = dict(zip(G.nodes_iter(), xrange(G.number_of_nodes())))
+    networkx.relabel.relabel_nodes(G, renaming, copy=False)
+    
+    # Export it
+    networkx.write_graphml(G.to_directed(), sys.argv[2])
 
 def read_osm(filename_or_stream, only_roads=True):
     """

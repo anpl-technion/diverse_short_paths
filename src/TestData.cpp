@@ -13,13 +13,13 @@ TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
 : start(0), end(1), k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance)
 {
     // Initialize the space
-    ompl::base::StateSpacePtr space(new ompl::base::SE3StateSpace());
+    ompl::base::StateSpacePtr space(new ompl::base::RealVectorStateSpace(2));
     ompl::base::SpaceInformationPtr si(new ompl::base::SpaceInformation(space));
     si->setStateValidityChecker([] (const ompl::base::State *) -> bool { return true; });
-    ompl::base::RealVectorBounds bounds(3);
+    ompl::base::RealVectorBounds bounds(2);
     bounds.setLow(-1000);
     bounds.setHigh(1000);
-    space->as<ompl::base::SE3StateSpace>()->setBounds(bounds);
+    space->as<ompl::base::RealVectorStateSpace>()->setBounds(bounds);
     si->setup();
     
     std::ifstream graphmlstream(graphFileName);
