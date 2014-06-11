@@ -25,6 +25,15 @@ public:
      * Construct graph from GraphML file.
      * @param si        our space's information
      * @param graphml   input in graphml format
+     * 
+     * @note Here are the requirements for the GraphML file:
+     *  - Eppstein code requires nodes to be named 0, 1, ... n-1
+     *  - graph is directed (for the sake of generality; any undirected graph can be represented as a directed one)
+     *  - nodes have a data key of type 'string' named 'coords' which is a comma-separated list of doubles
+     *  - edges have a data key of type 'double' named 'weight' which is the Euclidean distance between the nodes
+     *  - graph may have data keys of type 'string' named 'start', 'goal', and 'space' which are the node id's for
+     *     the start and goal states and an identifier for the state space type respectively
+     *  - start, goal, and space default to 0, 1, and SE3 when unspecified
      */
     Graph (const ompl::base::SpaceInformationPtr &si, std::istream &graphml);
     

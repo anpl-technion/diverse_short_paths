@@ -9,7 +9,6 @@
 #include "Graph.h"
 #include "Path.h"
 #include "TestData.h"
-#include "Results.h"
 
 // Constructors, destructors
 

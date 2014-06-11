@@ -77,6 +77,12 @@ public:
      */
     void saveOMPLFormat(std::ostream &out) const;
     
+    /**
+     * Write this path in format used by our osm2gephi.py script.
+     * @param out   stream to write to
+     */
+    void saveGephiFormat(std::ostream &out) const;
+    
     /** Print this path as a list of vertices and total length. */
     void print () const;
     

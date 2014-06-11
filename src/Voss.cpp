@@ -7,7 +7,6 @@
 #include "Graph.h"
 #include "Neighborhood.h"
 #include "Path.h"
-#include "Results.h"
 #include "TestData.h"
 
 // Constructors, destructors

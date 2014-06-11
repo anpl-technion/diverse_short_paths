@@ -17,8 +17,8 @@ class TestData
 {
 private:
     
-    const Vertex start;                     // Vertex to start search from
-    const Vertex end;                       // Vertex to end search at
+    Vertex start;                           // Vertex to start search from
+    Vertex end;                             // Vertex to end search at
     const std::size_t k;                    // Number of paths to try to find
     const double maxLength;                 // Maximum allowable length of a returned path
     const double minDistance;               // Minimum allowable distance between any two returned paths

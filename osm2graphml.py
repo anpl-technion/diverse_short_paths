@@ -18,33 +18,67 @@ import sys
 import math
 
 def main():
+    
+    if len(sys.argv) != 6:
+        print("./osm2graphml.py <in.osm> <start> <goal> <space> <out.graphml>")
+        return
+    
     # Read the file
     G = read_osm(sys.argv[1])
+    
+    # Save graph attributes
+    G.graph['start'] = sys.argv[2]
+    G.graph['goal'] = sys.argv[3]
+    G.graph['space'] = sys.argv[4]
+    
+    # Save node coordinates
+    minx = miny = float('inf')
+    maxx = maxy = -minx
+    for n in G.nodes_iter():
+        node = G.node[n]
+        data = node['data']
+        node['xcoord'] = data.lon
+        node['ycoord'] = data.lat
+        if data.lon < minx:
+            minx = data.lon
+        if data.lon > maxx:
+            maxx = data.lon
+        if data.lat < miny:
+            miny = data.lat
+        if data.lat > maxy:
+            maxy = data.lat
+        del node['data']
+    
+    # Recast node coordinates
+    for n in G.nodes_iter():
+        node = G.node[n]
+        node['xcoord'] = 1000*(node['xcoord']-minx)/(maxx-minx)
+        node['ycoord'] = 1000*(node['ycoord']-miny)/(maxy-miny)
     
     # Save edge weights
     for e in G.edges_iter():
         edge = G.get_edge_data(*e)
-        x1 = G.node[e[0]]['data'].lon
-        y1 = G.node[e[0]]['data'].lat
-        x2 = G.node[e[1]]['data'].lon
-        y2 = G.node[e[1]]['data'].lat
+        x1 = G.node[e[0]]['xcoord']
+        y1 = G.node[e[0]]['xcoord']
+        x2 = G.node[e[1]]['ycoord']
+        y2 = G.node[e[1]]['ycoord']
         edge['weight'] = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
         del edge['data']
         del edge['id']
-        
-    # Save node coordinates
+    
+    # Remove extraneous info
     for n in G.nodes_iter():
         node = G.node[n]
-        data = node['data']
-        node['coords'] = str(data.lon)+","+str(data.lat)
-        del node['data']
+        node['coords'] = str(node['xcoord'])+","+str(node['ycoord'])
+        del node['xcoord']
+        del node['ycoord']
     
     # Rename nodes sequentially
     renaming = dict(zip(G.nodes_iter(), xrange(G.number_of_nodes())))
     networkx.relabel.relabel_nodes(G, renaming, copy=False)
     
     # Export it
-    networkx.write_graphml(G.to_directed(), sys.argv[2])
+    networkx.write_graphml(G.to_directed(), sys.argv[5])
 
 def read_osm(filename_or_stream, only_roads=True):
     """

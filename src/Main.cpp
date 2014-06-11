@@ -9,7 +9,6 @@
 #include "Frechet.h"
 #include "Levenshtein.h"
 #include "Neighborhood.h"
-#include "Results.h"
 #include "TestData.h"
 #include "Voss.h"
 
@@ -75,6 +74,7 @@ int main (int argc, char *argv[])
         arg += 2;
     }
     const bool save = arg < argc && (std::strcmp("-s", argv[arg]) == 0);
+    const bool saveGephi = arg < argc && (std::strcmp("-g", argv[arg]) == 0);
     
     // Build graph to test on
     TestData data(graphFile, paths, maxPathLength, minPathPairwiseDistance);
@@ -112,11 +112,12 @@ int main (int argc, char *argv[])
     
     
     std::cout << "\n";
-    const Results *res = kDiverseShort->timedRun();
-    res->print();
+    kDiverseShort->timedRun();
+    kDiverseShort->print();
     if (save)
-        res->saveSet();
-    delete res;
+        kDiverseShort->saveSet();
+    else if (saveGephi)
+        kDiverseShort->saveNodes();
     delete kDiverseShort;
     delete distanceMeasure;
     

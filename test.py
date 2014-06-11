@@ -46,7 +46,7 @@ def extract_datapoint(program_output):
     return (pathsFound, shortest, longest, minDistance, meanDistance, time)
 
 
-def find_optimal_radius(graph, distMeasures, runs, tol, _min = 1e-12, _max = 10):
+def find_optimal_radius(graph, distMeasures, runs, tol, _min = 1e-12, _max = 1.0):
     """
     Search for the optimal radius to use on a graph w.r.t the heuristic h. Not very exact because of large
     statistical variation, but useful for ballparking a good radius.
@@ -147,8 +147,8 @@ def plot1():
     l2 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="--", marker='D', color='r')
     l3 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-.", marker='o', color='g')
     l4 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-", marker='^', color='c')
-    matplotlib.pyplot.legend((l1, l2, l3, l4), ('Levenshtein, Graph Distance',
-        'Levenshtein, C-Space Distance', 'Frechet, Graph Distance', 'Frechet, C-Space Distance'),
+    matplotlib.pyplot.legend((l2, l1, l4, l3), ('Levenshtein, C-Space Distance',
+        'Levenshtein, Graph Distance', 'Frechet, C-Space Distance', 'Frechet, Graph Distance'),
         'upper left')
     matplotlib.pyplot.title("Comparison of Distance Measures")
     matplotlib.pyplot.savefig("plot1.png")
@@ -221,18 +221,18 @@ def plot2():
     return
     
 
-def plot3F((algorithm, d)):
+def plot3F((g, algorithm, d)):
     """
     Generate a datapoint averaged over many runs for Plot 3 from the given distance filter and algorithm.
     """
     
     try:
         return extract_datapoint(subprocess.check_output(
-            [EXE, "resources/grid2.graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))[5]
+            [EXE, "resources/"+g+".graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))[5]
     except subprocess.CalledProcessError as e:
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
 
-def plot3():
+def plot3(graph, radius):
     """
     Compute and plot data for Plot 3.
     """

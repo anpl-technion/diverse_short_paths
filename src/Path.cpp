@@ -43,7 +43,12 @@ void Path::setDistanceFunction (std::function<PathDistanceMeasure::FunctionType>
 
 double Path::distance (const Path &p1, const Path &p2)
 {
-    if (p1.getGraph() != p2.getGraph())
+    if (p1.getGraph() == nullptr || p2.getGraph() == nullptr)
+    {
+        std::cerr << "Error: Cannot measure distance with a blank path!\n";
+        std::exit(-1);
+    }
+    else if (p1.getGraph() != p2.getGraph())
     {
         std::cerr << "Error: Cannot measure distance between paths in different graphs!\n";
         std::exit(-1);
@@ -101,6 +106,14 @@ void Path::saveOMPLFormat(std::ostream &out) const
         }
     }
     g->getSpaceInfo()->freeState(state);
+}
+
+void Path::saveGephiFormat(std::ostream &out) const
+{
+    for (std::size_t i = 0; i < size(); i++)
+    {
+        out << (*this)[i] << " ";
+    }
 }
 
 void Path::print () const

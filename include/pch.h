@@ -29,6 +29,8 @@
 #include <boost/graph/astar_search.hpp>
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/graphml.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 // OMPL
 
