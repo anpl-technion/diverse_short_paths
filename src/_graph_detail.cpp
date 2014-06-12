@@ -42,8 +42,8 @@ heuristic::heuristic (const Graph &graph, Vertex goal)
 
 double heuristic::operator() (Vertex u) const
 {
-    const ompl::base::State *goalState = boost::get(boost::vertex_prop, g, goal).getState();
-    const ompl::base::State *uState = boost::get(boost::vertex_prop, g, u).getState();
+    const ompl::base::State *goalState = g.getVertexState(goal);
+    const ompl::base::State *uState = g.getVertexState(u);
     return g.getSpaceInfo()->distance(goalState, uState);
 }
 

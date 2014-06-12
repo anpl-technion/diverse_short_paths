@@ -82,7 +82,7 @@ double Graph::getEdgeWeight (Edge e) const
 
 double Graph::getEdgeWeight (Vertex u, Vertex v) const
 {
-    // If edge does not exist, this might crash...
+    // If edge does not exist, this will crash...
     return getEdgeWeight(getEdge(u, v));
 }
 

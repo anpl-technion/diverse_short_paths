@@ -106,7 +106,8 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
         Vertex v;
         for (v = end; v != pred[v]; v = pred[v])
             pathtmp.push_back(v);
-        pathtmp.push_back(v);
+        if (v != end)
+            pathtmp.push_back(v);
         
         std::reverse(pathtmp.begin(), pathtmp.end());
         BOOST_FOREACH(Vertex v, pathtmp)

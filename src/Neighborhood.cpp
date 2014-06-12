@@ -184,9 +184,7 @@ bool Neighborhood::shouldAvoid_graph(Edge e) const
     std::tie(u, v) = graph->getVertices(e);
     
     // If either endpoint is within the radius, edge should be avoided
-    if (graph->graphDistance(u, centerU) + centerWeight < radius
-      || graph->graphDistance(u, centerV) + edgeWeight - centerWeight < radius
-      || graph->graphDistance(v, centerU) + centerWeight < radius
+    if (graph->graphDistance(centerU, u) + centerWeight < radius
       || graph->graphDistance(v, centerV) + edgeWeight - centerWeight < radius)
         return true;
     

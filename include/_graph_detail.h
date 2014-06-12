@@ -98,6 +98,8 @@ public:
      * Estimate the cost remaining to the goal.
      * @param u current location
      * @return estimated distance left
+     * @attention You should change this heuristic if the graph distance between two vertices
+     *  could be less than their C-space distance. (http://en.wikipedia.org/wiki/Admissible_heuristic)
      */
     double operator() (Vertex u) const;
 };

@@ -45,7 +45,7 @@ def main():
         edge = G.get_edge_data(*e)
         i = path_index_e(paths, e)
         if i > 0:
-            edge['color'] = rgb(63+192*i, 192*i, 255-192*i)
+            edge['color'] = rgb(63+192*i, 128*i, 255-192*i)
             edges_redraw.append(e)
         else:
             edge['color'] = rgb(180, 180, 180)

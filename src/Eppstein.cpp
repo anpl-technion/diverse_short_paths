@@ -79,12 +79,10 @@ void Eppstein::run ()
         
         // Convert it to our format
         Path path((Graph *)&testData->getGraph());
-        double length = 0;
         graehl::GraphArc *edge = nullptr;
         while (raw->notEmpty())
         {
             edge = raw->top();
-            length += edge->weight;
             path.push_back(edge->source);
             raw->pop();
         }

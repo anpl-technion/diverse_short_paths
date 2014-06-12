@@ -6,8 +6,8 @@
   <key attr.name="goal" attr.type="string" for="graph" id="d1" />
   <key attr.name="start" attr.type="string" for="graph" id="d0" />
   <graph edgedefault="directed">
-    <data key="d0">2623</data>
-    <data key="d1">318</data>
+    <data key="d0">134</data>
+    <data key="d1">1575</data>
     <data key="d2">RV2</data>
     <node id="0">
       <data key="d3">350.23910604,424.125788364</data>

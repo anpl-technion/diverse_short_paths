@@ -2,7 +2,7 @@
 
 SHELL		= /bin/bash
 CXX		= g++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++0x -march=native -O3
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++0x -O3 -march=native
 LDFLAGS		= -lompl -lboost_graph
 
 CURDIR		= /home/cav2/repos/diverse_short_paths
