@@ -19,8 +19,8 @@ import math
 
 def main():
     
-    if len(sys.argv) != 6:
-        print("./osm2graphml.py <in.osm> <start> <goal> <space> <out.graphml>")
+    if len(sys.argv) != 5:
+        print("./osm2graphml.py <in.osm> <start> <goal> <out.graphml>")
         return
     
     # Read the file
@@ -29,7 +29,7 @@ def main():
     # Save graph attributes
     G.graph['start'] = sys.argv[2]
     G.graph['goal'] = sys.argv[3]
-    G.graph['space'] = sys.argv[4]
+    G.graph['space'] = 'RV2'
     
     # Save node coordinates
     minx = miny = float('inf')
@@ -55,30 +55,35 @@ def main():
         node['xcoord'] = 1000*(node['xcoord']-minx)/(maxx-minx)
         node['ycoord'] = 1000*(node['ycoord']-miny)/(maxy-miny)
     
-    # Save edge weights
-    for e in G.edges_iter():
-        edge = G.get_edge_data(*e)
-        x1 = G.node[e[0]]['xcoord']
-        y1 = G.node[e[0]]['xcoord']
-        x2 = G.node[e[1]]['ycoord']
-        y2 = G.node[e[1]]['ycoord']
-        edge['weight'] = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
-        del edge['data']
-        del edge['id']
-    
-    # Remove extraneous info
-    for n in G.nodes_iter():
-        node = G.node[n]
-        node['coords'] = str(node['xcoord'])+","+str(node['ycoord'])
-        del node['xcoord']
-        del node['ycoord']
-    
     # Rename nodes sequentially
     renaming = dict(zip(G.nodes_iter(), xrange(G.number_of_nodes())))
     networkx.relabel.relabel_nodes(G, renaming, copy=False)
     
+    # Save edge weights
+    speed_map = {'unclassified':35, 'service':35, 'footway':5, 'primary_link':30, 'track':25, 'residential':25, 'proposed':1,
+                 'secondary_link':30, 'primary':35, 'motorway_link':70, 'cycleway':15, 'motorway':75, 'pedestrian':3, 'tertiary_link':25,
+                 'trunk':75, 'steps':1, 'trunk_link':75, 'tertiary':35, 'secondary':35}
+    for e in G.edges_iter():
+        edge = G.get_edge_data(*e)
+        x1 = G.node[e[0]]['xcoord']
+        y1 = G.node[e[0]]['ycoord']
+        x2 = G.node[e[1]]['xcoord']
+        y2 = G.node[e[1]]['ycoord']
+        speed = speed_map[edge['data'].tags['highway']]
+        edge['weight'] = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))/speed
+        del edge['data']
+        del edge['id']
+    
+    # Remove extraneous info and explicitly label them
+    for n in G.nodes_iter():
+        node = G.node[n]
+        node['coords'] = str(node['xcoord'])+","+str(node['ycoord'])
+        node['id'] = str(n)
+        del node['xcoord']
+        del node['ycoord']
+    
     # Export it
-    networkx.write_graphml(G.to_directed(), sys.argv[5])
+    networkx.write_graphml(G, sys.argv[4])
 
 def read_osm(filename_or_stream, only_roads=True):
     """
@@ -99,12 +104,15 @@ def read_osm(filename_or_stream, only_roads=True):
 
     """
     osm = OSM(filename_or_stream)
-    G = networkx.Graph()
+    G = networkx.DiGraph()
 
     for w in osm.ways.itervalues():
         if only_roads and 'highway' not in w.tags:
             continue
-        G.add_path(w.nds, id=w.id, data=w)
+        for u,v in zip(w.nds[:-1], w.nds[1:]):
+            G.add_edge(u, v, {'id':w.id, 'data':w})
+            if not ('oneway' in w.tags and w.tags['oneway'] == 'yes'):
+                G.add_edge(v, u, {'id':w.id, 'data':w})
     for n_id in G.nodes_iter():
         n = osm.nodes[n_id]
         G.node[n_id] = dict(data=n)

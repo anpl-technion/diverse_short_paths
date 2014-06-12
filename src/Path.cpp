@@ -112,7 +112,7 @@ void Path::saveGephiFormat(std::ostream &out) const
 {
     for (std::size_t i = 0; i < size(); i++)
     {
-        out << (*this)[i] << " ";
+        out << g->getVertexID((*this)[i]) << " ";
     }
 }
 

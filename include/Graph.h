@@ -18,6 +18,7 @@ private:
     
     const ompl::base::SpaceInformationPtr si;   // Information about the space the graph is embedded in
     mutable double **apsp;      // May hold precomputed pairwise distances between all vertices
+    mutable std::map<Vertex, std::string> ids;  // Maps boost vertex id to graphml id
     
 public:
     
@@ -86,10 +87,17 @@ public:
     
     /**
      * Get an edge's two vertices.
-     * @param e         edge in graph\
+     * @param e         edge in graph
      * @return tuple of source and destination vertices of \a e
      */
     std::tuple<Vertex,Vertex> getVertices (Edge e) const;
+    
+    /**
+     * Get a vertex's graphml id.
+     * @param v         vertex in graph
+     * @return integer id of \a v as labeled in the graphml file.
+     */
+    std::string getVertexID (Vertex v) const;
     
     /**
      * Apply a function to every edge in this graph.

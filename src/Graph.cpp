@@ -16,9 +16,11 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &si, std::istream &graphml)
     std::map<Vertex, std::string> coordStrings;
     std::map<Edge, double> weights;
     boost::associative_property_map<std::map<Vertex, std::string> > coords_map(coordStrings);
+    boost::associative_property_map<std::map<Vertex, std::string> > id_map(ids);
     boost::associative_property_map<std::map<Edge, double> > weight_map(weights);
     boost::dynamic_properties dyn_prop;
     dyn_prop.property("coords", coords_map);
+    dyn_prop.property("id", id_map);
     dyn_prop.property("weight", weight_map);
     boost::read_graphml(graphml, *this, dyn_prop);
     
@@ -92,6 +94,11 @@ const ompl::base::State *Graph::getVertexState (Vertex v) const
 std::tuple<Vertex,Vertex> Graph::getVertices (Edge e) const
 {
     return std::make_tuple(boost::source(e, *this), boost::target(e, *this));
+}
+
+std::string Graph::getVertexID (Vertex v) const
+{
+    return ids[v];
 }
 
 void Graph::foreachEdge (std::function<void (Edge)> applyMe) const

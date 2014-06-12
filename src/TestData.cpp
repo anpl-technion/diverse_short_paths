@@ -13,8 +13,8 @@ TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
 : k(numPaths), maxLength(maxPathLength), minDistance(minPathPairwiseDistance)
 {
     // Read in start, goal, and space information
-    start = 0;
-    end = 1;
+    std::string fake_start = "0";
+    std::string fake_end = "1";
     std::ifstream graphmlstream(graphFileName);
     boost::property_tree::ptree pt;
     boost::property_tree::xml_parser::read_xml(graphmlstream, pt);
@@ -46,9 +46,9 @@ TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
                     continue;
                 std::string key = u.second.get<std::string>("<xmlattr>.key");
                 if (key == startid)
-                    start = std::atof(u.second.data().c_str());
+                    fake_start = u.second.data();
                 else if (key == goalid)
-                    end = std::atof(u.second.data().c_str());
+                    fake_end = u.second.data();
                 else if (key == spaceid)
                     spacetag = u.second.data();
             }
@@ -85,6 +85,18 @@ TestData::TestData (const std::string &graphFileName, std::size_t numPaths,
     
     graphmlstream.seekg(std::ios_base::beg);
     graph = new Graph(si, graphmlstream);
+    
+    // Adjust start and goal values to boost indices
+    graph->foreachVertex([&] (Vertex v) -> void
+    {
+        if (graph->getVertexID(v) == fake_start)
+            start = v;
+    });
+    graph->foreachVertex([&] (Vertex v) -> void
+    {
+        if (graph->getVertexID(v) == fake_end)
+            end = v;
+    });
 }
 
 TestData::~TestData ()

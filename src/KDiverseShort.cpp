@@ -79,7 +79,6 @@ void KDiverseShort::saveNodes () const
     std::ofstream fout("paths.txt");
     for (std::size_t j = 0; j < i; j++)
     {
-        fout << testData->getStart() << " ";
         pathArray[j].saveGephiFormat(fout);
         fout << "\n";
     }

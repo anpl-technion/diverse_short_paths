@@ -91,6 +91,7 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
     const Graph &g = testData->getGraph();
     const Vertex end = testData->getEnd();
     Vertex *pred = new Vertex[g.getNumVertices()];
+    std::vector<Vertex> pathtmp;
     Path path((Graph *)&g);
     try
     {
@@ -102,10 +103,16 @@ Path Voss::getShortestPathUnderAvoidance (const std::vector<Neighborhood> &avoid
     catch (foundGoalException e)
     {
         // Trace back the shortest path
-        for (Vertex v = end; v != pred[v]; v = pred[v])
-            path.push_back(v);
+        Vertex v;
+        for (v = end; v != pred[v]; v = pred[v])
+            pathtmp.push_back(v);
+        pathtmp.push_back(v);
         
-        std::reverse(path.begin(), path.end());
+        std::reverse(pathtmp.begin(), pathtmp.end());
+        BOOST_FOREACH(Vertex v, pathtmp)
+        {
+            path.push_back(v);
+        }
     }
     
     delete [] pred;
