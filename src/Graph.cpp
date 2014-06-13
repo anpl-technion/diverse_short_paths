@@ -98,6 +98,13 @@ std::tuple<Vertex,Vertex> Graph::getVertices (Edge e) const
 
 std::string Graph::getVertexID (Vertex v) const
 {
+    if (ids[v] == "")
+    {
+        std::stringstream id;
+        id << v;
+        return id.str();
+    }
+    
     return ids[v];
 }
 

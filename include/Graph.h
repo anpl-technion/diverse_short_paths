@@ -35,6 +35,9 @@ public:
      *  - graph may have data keys of type 'string' named 'start', 'goal', and 'space' which are the node id's for
      *     the start and goal states and an identifier for the state space type respectively
      *  - start, goal, and space default to 0, 1, and SE3 when unspecified
+     *  - nodes may have a data key of type 'string' named 'id' which has the same values as the node's attriubte 'id';
+     *     this is useful because BOOST does not respect node IDs, but we may still wish to extract paths using the
+     *     original IDs for use in an external program
      */
     Graph (const ompl::base::SpaceInformationPtr &si, std::istream &graphml);
     
