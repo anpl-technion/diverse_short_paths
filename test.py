@@ -232,12 +232,13 @@ def plot3F((g, algorithm, d)):
     except subprocess.CalledProcessError as e:
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
 
-def plot3(graph, radius):
+def plot3():
     """
     Compute and plot data for Plot 3.
     """
 
     global pool
+    g = "grid2"
     X = numpy.arange(1e-12, 5.1, 1 if DEBUG else 0.1)
     E = []
     Eerr = []
@@ -246,11 +247,11 @@ def plot3(graph, radius):
     for d in X:
         # We will skip Eppstein on large values because it takes way too long
         if d < 4.5:
-            data = plot3F(("e:f", d))
+            data = plot3F((g, "e:f", d))
             E.append(data)
         else:
             E.append(float('inf'))
-        data = pool.map_async(plot3F, map(lambda _: ("r:f:c:0.1", d), xrange(RUNS))).get(99999999)
+        data = pool.map_async(plot3F, map(lambda _: (g, "r:f:c:0.1", d), xrange(RUNS))).get(99999999)
         R.append(numpy.mean(data))
         Rerr.append(numpy.std(data))
 
