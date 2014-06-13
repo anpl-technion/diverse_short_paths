@@ -7,4 +7,5 @@ cubicles2	cubicles.cfg	0.0004		0.10		2.0		60 s
 cubicles3	cubicles.cfg	0.0002		0.04		1.1		60 s
 grid1		grid1.cfg	0.0004		0.06		1.5		30 s
 grid2		grid2.cfg	0.0004		0.06		1.4		30 s
+office		office.cfg	0.0009		0.07		1.1		60 s
 
