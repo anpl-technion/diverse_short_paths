@@ -46,6 +46,14 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &si, std::istream &graphml)
         si->getStateSpace()->enforceBounds(state);
         boost::put(boost::vertex_prop, *this, v, state);
     });
+    
+    /*std::cout << "Num vertices: " << getNumVertices() << "\nNum edges: " << boost::num_edges(*this) << "\n";
+    double deg = 0;
+    foreachVertex([&] (Vertex v) -> void
+    {
+        deg += boost::out_degree(v, *this);
+    });
+    std::cout << "Avg degree: " << deg/getNumVertices() << "\n";*/
 }
 
 Graph::~Graph ()

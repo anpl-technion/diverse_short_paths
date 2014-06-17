@@ -34,7 +34,6 @@ $b\ge1$; ball radius $\rho>0$.
 \State $S\gets\varnothing$
 \While{$\left\vert{S}\right\vert<k\textbf{ and }U\textbf{ not empty}$}
     \State $(p,A)\gets U.dequeue()$
-    \State $S\gets S\cup\left\{p\right\}$
     \For{$i\gets 1, b$}
         \State $\mathbf{c}\gets \Call{SampleUniform}{p}$\Comment{Returns a point $\mathbf{c}$ along $p$}
         \State $A'\gets A\cup\left\{\mathbf{x}\in \mathcal{C}:d_1(\mathbf{x},\mathbf{c})<\rho\right\}$
@@ -42,29 +41,16 @@ $b\ge1$; ball radius $\rho>0$.
         \State $p'\gets \Call{ShortestPath}{G'=(V,E'),s,g}$
         \If{$p'\textbf{ not empty}$}
             \State $U.enqueue((p',A'))$
+            \If{$\Call{Filter}{p'}$}
+                \State $S\gets S\cup\left\{p\right\}$
+                \If{$\left\vert{S}\right\vert=k$}
+                    \State $\textbf{break}$
+                \EndIf
+            \EndIf
         \EndIf
     \EndFor
 \EndWhile
 \State \textbf{return }$S$
 \end{algorithmic}
-
-\begin{algorithm}
-\caption{Path Set Diversity}
-\small \textbf
-\\\hangindent=20pt\textbf{Diversity}$(S)$
-\\*\textbf{input:} A finite subset $S\subset \mathcal{P}$, where $\mathcal{P}$\
-is the space of paths in $\mathcal{C}$, having distance metric\
-$d_2:\mathcal{P}\times\mathcal{P}\to\mathbb{R}$.
-\\*\textbf{output:} The diversity of the paths in $S$.
-\begin{algorithmic}[1]
-\State $\delta\gets \infty$
-\ForAll{$p_1\in S$}
-    \ForAll{$p_2\in S\setminus\left\{p_1\right\}$}
-        \State $\delta\gets min(\delta,d_2(p_1,p_2))$
-    \EndFor
-\EndFor
-\State \textbf{return }$\delta$
-\end{algorithmic}
-\end{algorithm}
 
 \end{document}

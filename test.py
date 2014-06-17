@@ -10,6 +10,7 @@ import matplotlib.pyplot
 import multiprocessing
 import numpy
 import subprocess
+import sys
 
 DEBUG = False
 EXE = "build/bin/diverse"
@@ -211,10 +212,10 @@ def plot2():
     sty4 = matplotlib.pyplot.bar((1+(1-inner)*0.8)*width+ticks, Rmin, inner*width, color='g', yerr=RminErr, ecolor='k')
     matplotlib.pyplot.xticks(ticks+width, GRAPHS)
     matplotlib.pyplot.xlabel("Graph")
-    matplotlib.pyplot.ylabel("Diversity (Frechet)")
+    matplotlib.pyplot.ylabel("Frechet distance")
     matplotlib.pyplot.ylim([0,150])
     matplotlib.pyplot.legend((sty3[0], sty1[0], sty4[0], sty2[0]),
-              ('Eppstein, min', 'Eppstein, mean', 'Random Avoidance, min', 'Random Avoidance, mean'), 'upper right')
+              ('Eppstein, diversity', 'Eppstein, mean distance', 'Random Avoidance, diversity', 'Random Avoidance, mean distance'), 'upper right')
     matplotlib.pyplot.title("Diversity of Path Set")
     matplotlib.pyplot.savefig("plot2.png")
 
@@ -227,8 +228,9 @@ def plot3F((g, algorithm, d)):
     """
     
     try:
-        return extract_datapoint(subprocess.check_output(
-            [EXE, "resources/"+g+".graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))[5]
+        d = extract_datapoint(subprocess.check_output(
+            [EXE, "resources/"+g+".graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))
+        return (d[5], d[0]/float(PATHS))
     except subprocess.CalledProcessError as e:
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
 
@@ -239,32 +241,43 @@ def plot3():
 
     global pool
     g = "grid2"
-    X = numpy.arange(1e-12, 5.1, 1 if DEBUG else 0.1)
+    X = numpy.arange(1e-12, 8.1, 1 if DEBUG else 0.1)
     E = []
     Eerr = []
     R = []
     Rerr = []
+    A = []
     for d in X:
         # We will skip Eppstein on large values because it takes way too long
         if d < 4.5:
             data = plot3F((g, "e:f", d))
-            E.append(data)
+            E.append(data[0])
         else:
             E.append(float('inf'))
         data = pool.map_async(plot3F, map(lambda _: (g, "r:f:c:0.1", d), xrange(RUNS))).get(99999999)
-        R.append(numpy.mean(data))
-        Rerr.append(numpy.std(data))
+        r, a = zip(*data)
+        R.append(numpy.mean(r))
+        Rerr.append(numpy.std(r))
+        A.append(numpy.mean(a))
 
     matplotlib.pyplot.clf()
+    matplotlib.pyplot.plot(X, E, "b-")
     R = numpy.array(R)
     Rerr = numpy.array(Rerr)
-    l1, l2 = matplotlib.pyplot.plot(X, E, "-", X, R, "--")
-    matplotlib.pyplot.plot(X, R+Rerr, "c-.", X, R-Rerr, "c-.")
-    matplotlib.pyplot.xlabel("Minimum Distance Required between Paths")
+    for i in xrange(len(X)):
+        matplotlib.pyplot.plot(X[:-i], R[:-i], "w--")
+        matplotlib.pyplot.plot(X[:-i], R[:-i], "g--", alpha=A[-i])
+        matplotlib.pyplot.plot(X[:-i], (R+Rerr)[:-i], "w-.")
+        matplotlib.pyplot.plot(X[:-i], (R+Rerr)[:-i], "c-.", alpha=A[-i])
+        matplotlib.pyplot.plot(X[:-i], (R-Rerr)[:-i], "w-.")
+        matplotlib.pyplot.plot(X[:-i], (R-Rerr)[:-i], "c-.", alpha=A[-i])
+    matplotlib.pyplot.xlabel("Minimum Diversity Required")
     matplotlib.pyplot.ylabel("Time (s)")
-    matplotlib.pyplot.xlim([0,5])
     matplotlib.pyplot.ylim([0,25])
-    matplotlib.pyplot.legend((l1, l2), ('Eppstein', 'Random Avoidance'), 'upper left')
+    l1 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-", color='b')
+    l2 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="--", color='g')
+    l3 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-.", color='c')
+    matplotlib.pyplot.legend((l1, l2, l3), ('Eppstein', 'Random Avoidance', 'R.A. +/- s.d.'), 'upper left')
     matplotlib.pyplot.title("Speed Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
 
@@ -287,12 +300,16 @@ def main():
     #print("cubicles3 optimal radius: " + str(find_optimal_radius("cubicles3", "f:c", 50, 0.00001, 1e-12, 0.1)))
     
     # Plots
-    print("Generating plot 1")
-    plot1()
-    print("Generating plot 2")
-    plot2()
-    print("Generating plot 3")
-    plot3()
+    if len(sys.argv) > 1:
+        plots = sys.argv[1:]
+    else:
+        plots = ['1', '2', '3']
+    for p in plots:
+        print("Generating plot " + p)
+        if 'plot'+p in globals():
+            globals()['plot'+p]()
+        else:
+            print("No such plot!")
     
     return
 

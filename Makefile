@@ -38,7 +38,7 @@ r.again: sync
 	$(call SSH,make again -j 15)
 
 test: sync remote
-	$(call SSH,PYTHONUNBUFFERED=1 ./test.py)
+	$(call SSH,PYTHONUNBUFFERED=1 ./test.py ${PLOTS})
 	rsync -c -i -r hera:/home/cav2/repos/diverse_short_paths/*.png .
 
 ${EXEC}: $(OBJS) | dirs
