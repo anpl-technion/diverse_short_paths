@@ -1,26 +1,40 @@
 
+A Heuristic Approach to Finding Diverse Short Paths
+Caleb Voss
 
-TODO: PROBLEM AND MOTIVATION
+ABSTRACT
+
+TODO
+
+
+INTRODUCTION
+
+TODO
+
+
+RELATED WORK
+
+TODO
 
 
 DEFINITIONS
 
 Consider a weighted, directed graph G = (V,E) embedded in a space C via the mapping psi : V -> C, with the edge weight function w : E -> R. Let d : C x C -> R be the distance metric used in C. Let d_sp : V x V -> R be defined as distance in G in the usual sense, i.e., d_sp(u,v) is the length of the shortest path from u to v. Note that d_sp is not a metric because G is directed. We would like to extend this definition to virtual vertices along the edges as well. For an edge e=(u,v) in E and t in (0,1), we imagine the virtual vertex e(t) to be a hypothetical point along e, such that, were the edge (u,e(t)) to exist, w(u,e(t)) = t*w(e). For convenience, we additionally use the notation e(0)=u, e(1)=v. Now let
-    S = { e(t) | e in E, t in [0,1] }
+        S = { e(t) | e in E, t in [0,1] }
 be the set of all vertices and virtual vertices. We define an extended graph distance function, d_g : S x S -> R, as
-    d_g(e1(t),e2(s)) = (1-t)*w(e1) + d_sp(v,w) + s*w(e2)
+        d_g(e1(t),e2(s)) = (1-t)*w(e1) + d_sp(v,w) + s*w(e2)
 for t,s in [0,1], e1=(u,v), e2=(w,z) in E. We also define an extended mapping psi_hat : S -> C as
-    psi_hat(e(t)) = psi(u) + t*psi(v)
+        psi_hat(e(t)) = psi(u) + t*psi(v)
 for t in [0,1], e=(u,v) in E. In an abuse of notation, by psi_hat(U) for U c= S we mean { psi_hat(u) | u in U }. Now we may define a second distance function on S with respect to C, d_c : S x S -> R, as
-    d_c(s1,s2) = d(psi_hat(s1),psi_hat(s2)).
+        d_c(s1,s2) = d(psi_hat(s1),psi_hat(s2)).
 We refer to d_g as graph distance and d_c as C-space distance. For a path p, length_g(p) indicates the sum of the edge weights comprising p, while length_c(p) indicates the sum of the C-space length of each edge. In some applications, the edge weights are set so that length_g(p) = length_c(p), but this need not be true.
 
 For a set of paths, P, we define the diversity of P with respect to a path distance metric d_p as
-    min(d_p(p1,p2), over all p1,p2 in P && p1!=p2).
-In this paper, we will consider two path distance metrics: weighted Levenshtein edit distance, and discrete Frechet distance evaluated at the vertices. ... more detail about these metrics ... For brevity, we refer to these two metrics as Levenshtein distance and Frechet distance, respectively, and the corresponding diversity measures as Levenshtein diversity and Frechet diversity.
+        min(d_p(p1,p2), over all p1,p2 in P && p1!=p2).
+In this paper, we will consider two path distance metrics: weighted Levenshtein edit distance, and discrete Frechet distance evaluated at the vertices. ... more detail about these metrics ... . For brevity, we refer to these two metrics as Levenshtein distance and Frechet distance, respectively, and the corresponding diversity measures as Levenshtein diversity and Frechet diversity.
 
 The mean path distance in P with respect to a path distance metric d_p is defined as
-    (1/|P|)*sum(min(d_p(p1,p2), over all p2 in P && p1!=p2), over all p1 in P).
+        (1/|P|)*sum(min(d_p(p1,p2), over all p2 in P && p1!=p2), over all p1 in P).
 Similarly we will use the terminology mean Levenshtein distance and mean Frechet distance to refer to the mean path distance with respect to Levenshtein distance and Frechet distance respectively.
 
 TODO: Fill in defintions of Levenshtein and Frechet.
@@ -33,28 +47,29 @@ A. Sampling from a Path
 An important part of our algorithm is to choose a random location along a path at which to center a ball. We cannot merely select a vertex uniformly from the path's edge endpoints because they are not guaranteed to be distributed uniformly along the path. Morever, we are able to measure distance not just between actual vertices, but also the virtual vertices. Thus we can center the ball anywhere along the path.
 
 Suppose a sequence of edges ee = {e1,e2,...} defines a path through G. Let p = { e_i(t) | e_i in ee, t in [0,1] }. We would like to sample a point from p with probability corresponding to the edge weights. That is, the probability of sampling a point along e_i is proportional to the fraction of the total path length that e_i accounts for. The process is straightforward: Select the edge e_i with probability
-w(e_i)/sum(w(e_j), for e_j in ee),
+        w(e_i)/sum(w(e_j), for e_j in ee),
 and sample t uniformly from [0,1].
 
-In applications where an edge's weight is C-space distance between its endpoints, when sampled points are mapped into C-space by psi_hat, they will be uniformly distributed along psi_hat(p) according to C-space distance. If this C-space uniformity is desirable in an application that sets its edge weights differently, it is not difficult to alter the sampling method to use a d_c(u,v)/length_c(p) as the probability of selecting edge e=(u,v) to accomplish this.
+In applications where an edge's weight is C-space distance between its endpoints, when sampled points are mapped into C-space by psi_hat, they will be uniformly distributed along psi_hat(p) according to C-space distance. If this C-space uniformity is desirable in an application that sets its edge weights differently, it is not difficult to alter the sampling method to use d_c(u,v)/length_c(p) as the probability of selecting edge e=(u,v) to accomplish this.
 
 B. Graph Modification
 
 Since we want short paths which satisfy the same query from vertex s to vertex g, but which are different from one another, we develop a method to modify the graph, G=(V,E), on which the query is performed to create a new graph G'=(V,E') c G such that the shortest path, p', from s to g in G' is different than the shortest path, p, from s to g in G. Then, both p and p' are valid paths from s to g in G. Furthermore, though p' is not the shortest in G, it is the shortest subject to a constraint, namely that it not include the edges in E\E'.
 
 To create G', we use the sampling method detailed above to sample a point c in p. For some distance function delta : S x S -> R, and some radius rho > 0, we then let
-E' = { e | e in E, delta(c,e(t)) >= rho forall t in [0,1] }.
+        E' = { e | e in E, delta(c,e(t)) >= rho forall t in [0,1] }.
 That is, E' is the subset of E containing only the edges which are entirely outside of the open ball of radius rho centered at c, with respect to the distance function delta. In this paper we explore the possibilities of delta = d_g and delta = d_c. Remember that d_g is only symmetric if G is effectively undirected. For the sake of scalability, rather than use a constant rho which may be difficult to select, we will use the function rho(r) = r*length(p) for a constant r in (0,1]. If delta = d_g, it is appropriate to use length(p) = length_g(p); if delta = d_c, to use length(p) = length_c(p) so that the value of rho is comparable. We may restrict r to (0,1/2] if delta is symmetric. Intuitively, the larger the value of r, the farther p', the shortest path from s to g in G'=(V,E'), must deviate from p because a larger collection of edges in and near p are removed. It is possible that no path from s to g exists in G', in which case a shortest path query will return an empty path.
 
 C. Random Avoidance
 
-We present an algorithm to heuristically search for a collection of paths all satisfying the same query in a graph, but which seeks to improve the robustness of the path set against failures in the graph. It does so by exploring diverse regions of the space while still favoring shorter paths. A shortest path search is performed on variants of the original graph designed to encourage deviation from known paths. The psuedocode is given in ... algorithm ....
+We present an algorithm to heuristically search for a collection of paths all satisfying the same query in a graph, but which seeks to improve the robustness of the path set against failures in the graph. It does so by exploring diverse regions of the space while still favoring shorter paths. A shortest path search is performed on variants of the original graph designed to encourage deviation from known paths. The psuedocode is given in ... algorithm ... , and an example iteration is illustrated in ... figure ... .
 
-The process begins by finding the shortest path through the unmodified graph, G, from the start to the goal vertices. This path is added to the result set, and the path together with G are added to a queue of reference solutions. We enter a loop that repeatedly removes the next reference path and graph from the queue as p and G. We use them in the graph modification method described above b times independently to produce b new path-graph pairs, (p1,G1),...,(p_b,G_b) for a constant integer b called the branching factor. Empty paths, which indicate failure of the shortest path query, are thrown out. Each of the remaining paths is considered for addition to the result set subject to some filtering criteria. This filtration is application specific. It may trivially accept any path, or it may reject a path that is too close to a previously accepted path, or it may reject a path that is too long, etc. Regardless of whether it is accepted, the path-graph pair is added to the reference queue. The loop repeats until the reference queue is empty or the result set is large enough, at which time the set is returned.
+The process begins by finding the shortest path through the unmodified graph, G, from the start to the goal vertices. This path is added to the result set, and the path together with G are added to a queue of reference solutions. We enter a loop that repeatedly removes the next reference path and graph from the queue as p and G. We use them in the graph modification method described above b times independently to spawn b new path-graph pairs, (p1,G1), ... ,(p_b,G_b) for a constant integer b called the branching factor. Empty paths, which indicate failure of the shortest path query, are thrown out. Each of the remaining paths is considered for addition to the result set subject to some filtering criteria. This filtration is application specific. It may trivially accept any path, or it may reject a path that is too close to a previously accepted path, or it may reject a path that is too long, etc. Regardless of whether it is accepted, the path-graph pair is added to the reference queue. The loop repeats until the reference queue is empty or the result set is large enough, at which time the set is returned.
 
-D. Our Implementation
+D. Notes on Implementation
 
--uses A*, special edge weight map to remove need to build entirely new graphs, etc.
+At each step, the random avoidance algorithm spawns b new graphs. These graphs, especially at first, may all be very similar, with just a few edges different. It is not efficient to copy the entire graph each time, save for a few modifications, when much of the information can be reused in place. Our implementation of the algorithm avoids the need to make a new graph for each step. It is faster to alter the edge weights. One can simulate the removal of an edge by giving it infinite weight. However, it is not possible to modify the edge weight data structure because each graph requires a different set of modifications. In addition to the static edge-to-weight mapping, we use a function backed by this mapping to determine the weight on the fly. This function utilizes the list of open balls already being avoided in the old graph plus the ball to be avoided in the new graph. When an edge is looked up during the shortest path search, the function checks it against the avoided balls, returning infinite weight if it intersects any, and its ordinary weight otherwise. Thus, all the spawned graphs reference the same shared vertex and edge data. It is only the list of avoided balls that is unique to each graph. The cost of extra edge weight lookup time is far outweighed by the time and memory saved in graph creation.
+
 
 EVALUATION
 
@@ -70,20 +85,41 @@ We designed our algorithm to deviate from known paths by avoiding balls of radiu
 
 3) Finally, we compare the relative speed of our algorithm and Eppstein's k shortest paths when we apply a constraint to filter the paths to achieve a minimum diversity. We use the same "grid" environment used before and measure the execution time of both algorithms for a range of minimum diversity requirements on a ... computer specs ... machine.
 
-RESULTS
+
+RESULTS AND APPLICATION
+
+A. Performance
 
 ... plot ... shows the parameter sweep of the radius factor for the four different combinations of Levenshtein or Frechet diversity and graph distance or C-space distance. Observe that the diversity in all four cases responds well to an increase in the radius factor. When the algorithm avoids larger regions, the returned paths are naturally farther apart. However, we expect using larger radii risks covering too much of the graph too quickly so that fewer paths than requested can be returned; we see a corresponding increase in the failure rate on the plot for higher values of the radius factor. Note that the graph distance variant consistently requires a larger radius to achieve the same diversity as the C-space variant regardless of diversity measure; this too is expected because in this experiment, d_c(s1,s2) <= d_g(s1,s2) due to our edge weights and the triangle inequality.
+
+... figure ... shows two path sets, one generated by our algorithm and one generated by Eppstein's algorithm with filtering so that the two sets have the same Levenshtein diversity. Intuitively, our path set looks much more diverse, but this is not reflected in the diversity measure. By visual examination, our path set exhibits ... number ... distinct homotopy classes, whcih Eppstein's set exhibits only ... number ... . Turning to ... figure ... , however, which illustrates the same procedure but uses Frechet diversity, we see that two sets are much more similar. In fact, the homotopy classes present in each number ... and ... , respectively. Therefore, we will use Frechet diversity in subsequent tests because we believe it to more faithfully capture the concept of diversity.
 
 ... table ... gives statistics about the three graphs based on the "cubicles" environment. Each one is more dense than the last, having more nodes embedded in the same area, but the average degree remains approximately the same. We choose a fixed radius factor for each graph to be the highest value which still yields an average of 8 out of the 10 paths requested. Looking at the bars for Eppstein's algorithm in ... plot ... we see very predictable behavior: the k shortest paths in a denser graph are much more similar to each other than those in a sparser graph, so diversity and mean path distance decrease with an increase in density. Compare this to our algorithm which does not exhibit the same consistent decrease in diversity. In fact, the values are higher for the second sparsest graph than for the sparsest graph. We note that the diversity, which is the minimum distance among the paths, is near to the mean distance for the k shortest paths, but much lower than the mean distance for the paths returned by our algorithm. This suggests that the paths from our algorithm are typically much farther apart than the nearest of them. We also observe that as the density of the graph increases, the standard deviation over all the trials tightens. Thus, our algorithm performs more consistently with denser graphs. Finally, regardless of the density, our algorithm significantly outperforms the k shortest paths.
 
 Now we compare the execution time of our algorithm with that of Eppstein's. On the problem of k shortest paths, Eppstein's algorithm executes extremely quickly, but it produces poor results if we are looking for a diverse path set. We wonder how fast Eppstein's algorithm performs if we modify it to throw out all paths which are too close to the paths already found. That is, for some diversity threshold, we greedily only keep a path if it would not decrease the diversity below this threshold. Returning to the "grid" environment, we fix the radius factor at 0.1, to yield a moderate diversity naturally, but one which is still significantly higher than that of the k shortest paths, and, most importantly for this comparison, to successfully yield most of the 10 paths we request even with a strict diversity requirement imposed. Shown in ... plot ... are the execution times for our algorithm and Eppstein's, both with filtering implemented to meet a minimum diversity requirement. We find that there is an exponential increase in the time required for Eppstein's algorithm to yield the requisite paths, which becomes unmangeable for even modest diversity requirements. Our algorithm, on the other hand only exhibits a small increase in execution time and not until much higher diversities, coinciding with a decrease in the number of paths successfully found by our algorithm.
 
+TODO: Homotopy images.
+
+B. Scope of Applications
+
+We have seen our algorithm applied to graphs in some basic motion planning problems, like the collision-free geometric navigation of a robot through an environment in three-dimensional space. ... figure ... shows a much more elaborate example of this application in an office floor plan. The robot must move from one end of the building to the other. However, at any given time, some of the doors throughout the office may be closed or furniture may have been unexpectedly moved. Our algorithm is able to provide a rich set of alternative paths which take different courses through the building and around the obstacles, greatly improving the robot's chances of finding a way to its destination despite unexpected changes in the environment.
+
+As another example of one of the many variations of this problem for which this algorithm is useful, we downloaded a graph of the streets in downtown Houston from OpenStreetMap. Included is information about one-way streets and speed limits. By setting the edge weights to be equal to the C-space length of the edge divided by the speed limit of the road, a shortest path query will return the route through the city which can be driven in the least amount of time, not the one which covers the shortest distance. When Eppstein's algorithm is applied to this graph, shown in ... figure ..., the amount of time multiple paths spend utilizing the same roads is high, so unforseen obstacles like accidents and construction, which cause wide areas of congestion, can affect too many of the paths simultaneously. Our algorithm, however, was able to find alternative routes through very different parts of the city, none of which would take longer to drive than ... number ... times the shortest path. An important feature of our algorithm is that it does not require paths to be completely disjoint from one another. As such, there is some overlap in the result set, which allows the vehicle to change routes mid-journey as more information is received about new obstacles.
+
+TODO: More applications...?
+
+TODO: Check licensing for OpenStreetMap data, record longest path length found.
 TODO: Make node count differences between cubicles graphs more consistent.
+TODO: Run the algorithm on the office environment to get pictures.
 
 
-TODO: CONCLUSION AND FUTURE WORK
+CONCLUSION AND FUTURE WORK
+
+TODO
+TODO: Talk about different filtering criteria and modularity of the algorithm.
 
 
-(this snippet is probably useful somewhere) [[
-If the edge weights correspond to the distance between the endpoints, i.e. w((u,v)) = d(psi(u),psi(v)), and if the graph is effectively undirected, as is the case for this experiment and for many applications, graph distance and C-space distance are attempting to capture the same information, but graph distance is forced to follow topology of the graph. In other applications where there is not this correspondence between the two measures, there may be applicaiton-specific reasons to choose one over the other.
-]]
+REFERENCES
+
+TODO
+
