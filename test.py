@@ -138,22 +138,28 @@ def plot1():
         matplotlib.pyplot.plot(X[:-i], Y[0][:-i], "b:v", alpha=A[0][-i])
         matplotlib.pyplot.plot(X[:-i], Y[1][:-i], "w--D", markeredgecolor='w')
         matplotlib.pyplot.plot(X[:-i], Y[1][:-i], "r--D", alpha=A[1][-i])
+    matplotlib.pyplot.xlabel("Radius Factor")
+    matplotlib.pyplot.ylabel("Levenshtein Diversity")
+    l1 = matplotlib.lines.Line2D([0,1], [0,1], linestyle=":", marker='v', color='b')
+    l2 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="--", marker='D', color='r')
+    matplotlib.pyplot.legend((l2, l1), ('C-Space Distance', 'Graph Distance'), 'upper left')
+    matplotlib.pyplot.title("Comparison of Distance Measures")
+    matplotlib.pyplot.savefig("plot1a.png")
+
+    matplotlib.pyplot.clf()
+    for i in xrange(len(X)):
         matplotlib.pyplot.plot(X[:-i], Y[2][:-i], "w-.o", markeredgecolor='w')
         matplotlib.pyplot.plot(X[:-i], Y[2][:-i], "g-.o", alpha=A[2][-i])
         matplotlib.pyplot.plot(X[:-i], Y[3][:-i], "w-^", markeredgecolor='w')
         matplotlib.pyplot.plot(X[:-i], Y[3][:-i], "c-^", alpha=A[3][-i])
     matplotlib.pyplot.xlabel("Radius Factor")
-    matplotlib.pyplot.ylabel("Diversity")
-    l1 = matplotlib.lines.Line2D([0,1], [0,1], linestyle=":", marker='v', color='b')
-    l2 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="--", marker='D', color='r')
+    matplotlib.pyplot.ylabel("Frechet Diversity")
     l3 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-.", marker='o', color='g')
     l4 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-", marker='^', color='c')
-    matplotlib.pyplot.legend((l2, l1, l4, l3), ('Levenshtein, C-Space Distance',
-        'Levenshtein, Graph Distance', 'Frechet, C-Space Distance', 'Frechet, Graph Distance'),
-        'upper left')
+    matplotlib.pyplot.legend((l4, l3), ('C-Space Distance', 'Graph Distance'), 'upper left')
     matplotlib.pyplot.title("Comparison of Distance Measures")
-    matplotlib.pyplot.savefig("plot1.png")
-
+    matplotlib.pyplot.savefig("plot1b.png")
+    
     return
 
 

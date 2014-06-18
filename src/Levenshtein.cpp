@@ -33,9 +33,9 @@ double Levenshtein::distance (const Path &path1, const Path &path2)
     // Boundary conditions in the array
     DYN(0,0) = DIST(0,0);
     for (std::size_t i = 1; i < rowLength; i++)
-        DYN(i,0) = DYN(i-1,0) + DIST(i,0);
+        DYN(i,0) = DYN(i-1,0) + DIST1(i-1,i) + DIST(i,0);
     for (std::size_t j = 1; j < colLength; j++)
-        DYN(0,j) = DYN(0,j-1) + DIST(0,j);
+        DYN(0,j) = DYN(0,j-1) + DIST2(j-1,j) + DIST(0,j);
     
     // Fill the array
     for (std::size_t i = 1; i < rowLength; i++)
@@ -43,10 +43,8 @@ double Levenshtein::distance (const Path &path1, const Path &path2)
         for (std::size_t j = 1; j < colLength; j++)
         {
             const double xform = DYN(i-1,j-1) + DIST(i,j);
-            const double del = DYN(i-1,j) + DIST1(i-1,i) + DIST1(i,i+1) - DIST1(i-1,i+1);
-            const double ins = DYN(i,j-1) + DIST2(j-1,j) + DIST2(j,j+1) - DIST2(j-1,j+1);
-//             const double del = DYN(i-1,j) + DIST(i,j-1) + DIST(i,j+1) - DIST2(j-1,j+1);
-//             const double ins = DYN(i,j-1) + DIST(i-1,j) + DIST(i+1,j) - DIST1(i-1,i+1);
+            const double del = DYN(i-1,j) + DIST1(i-1,i) + DIST(i,j);
+            const double ins = DYN(i,j-1) + DIST2(j-1,j) + DIST(i,j);
             DYN(i,j) = std::min(xform, std::min(ins, del));
         }
     }
