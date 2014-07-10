@@ -80,6 +80,21 @@ public:
     static void destroySharedResources ();
     
     /**
+     * Compute distance between two virtual vertices according to whatever measure
+     * the neighborhood is using.
+     * @param s1    first state
+     * @param u1    source of edge1
+     * @param v1    target of edge1
+     * @param t1    time along edge1
+     * @param s2    second state
+     * @param u2    source of edge2
+     * @param v2    target of edge2
+     * @param t2    time along edge2
+     */
+    static double distance (const ompl::base::State *s1, const Vertex &u1, const Vertex &v1, const double t1,
+                            const ompl::base::State *s2, const Vertex &u2, const Vertex &v2, const double t2);
+
+    /**
      * Get center state of the region.
      * @return our \a center
      */
@@ -133,6 +148,36 @@ private:
      */
     bool isInside (const ompl::base::State *s) const;
     
+    /**
+     * Compute C-space distance between states.
+     * @param s1    first state
+     * @param s2    second state
+     */
+    static double cdistance (const ompl::base::State *s1, const ompl::base::State *s2);
+    
+    /**
+     * Compute graph distance between virtual vertices.
+     * @param u1    source of edge1
+     * @param v1    target of edge1
+     * @param t1    time along edge1
+     * @param u2    source of edge2
+     * @param v2    target of edge2
+     * @param t2    time along edge2
+     */
+    static double gdistance (const Vertex &u1, const Vertex &v1, const double t1,
+                      const Vertex &u2, const Vertex &v2, const double t2);
+    
+    /**
+     * Find weight of virtual edge.
+     * @param u1    source of edge1
+     * @param v1    target of edge1
+     * @param t1    time along edge1
+     * @param u2    source of edge2
+     * @param v2    target of edge2
+     * @param t2    time along edge2
+     */
+    static double w_hat (const Vertex &u1, const Vertex &v1, const double t1,
+                  const Vertex &u2, const Vertex &v2, const double t2);
 };
 
 #endif

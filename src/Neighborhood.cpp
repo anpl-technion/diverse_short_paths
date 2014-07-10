@@ -65,6 +65,21 @@ void Neighborhood::destroySharedResources ()
     method = UNKNOWN;
 }
 
+double Neighborhood::distance (const ompl::base::State *s1, const Vertex &u1, const Vertex &v1, const double t1,
+                 const ompl::base::State *s2, const Vertex &u2, const Vertex &v2, const double t2)
+{
+    switch (method)
+    {
+    case CSPACE:
+        return cdistance(s1, s2);
+    case GRAPH:
+        return gdistance(u1, v1, t1, u2, v2, t2);
+    default:
+        std::cerr << "Error: Call constructSharedResources() first!\n";
+        std::exit(-1);
+    }
+}
+
 // Public methods
 
 const ompl::base::State *Neighborhood::getCenter () const
@@ -136,13 +151,13 @@ bool Neighborhood::shouldAvoid_cspace (Edge e) const
     // Populate more states
     graph->midpoint(left, mid, midleft);
     graph->midpoint(right, mid, midright);
-    double h = si->distance(left, mid);
-    double left_dist = si->distance(midleft, center);
-    double right_dist = si->distance(midright, center);
+    double h = cdistance(left, mid);
+    double left_dist = cdistance(midleft, center);
+    double right_dist = cdistance(midright, center);
     
     // Until we find we are inside the neighborhood...
-    while ((left_dist = si->distance(midleft, center)) >= radius
-      && (right_dist = si->distance(midright, center)) >= radius)
+    while ((left_dist = cdistance(midleft, center)) >= radius
+      && (right_dist = cdistance(midright, center)) >= radius)
     {
         // Choose the closer interval
         if (left_dist < right_dist)
@@ -184,8 +199,8 @@ bool Neighborhood::shouldAvoid_graph(Edge e) const
     std::tie(u, v) = graph->getVertices(e);
     
     // If either endpoint is within the radius, edge should be avoided
-    if (graph->graphDistance(centerU, u) + centerWeight < radius
-      || graph->graphDistance(v, centerV) + edgeWeight - centerWeight < radius)
+    if (gdistance(centerU, centerV, centerWeight/edgeWeight, u, v, 0) < radius ||
+        gdistance(centerU, centerV, centerWeight/edgeWeight, u, v, 1) < radius)
         return true;
     
     return false;
@@ -194,6 +209,60 @@ bool Neighborhood::shouldAvoid_graph(Edge e) const
 bool Neighborhood::isInside (const ompl::base::State *s) const
 {
     return graph->getSpaceInfo()->distance(s, center) < radius;
+}
+
+// Private static methods
+
+double Neighborhood::cdistance (const ompl::base::State *s1, const ompl::base::State *s2)
+{
+    return graph->getSpaceInfo()->distance(s1, s2);
+}
+
+double Neighborhood::gdistance (const Vertex &u1, const Vertex &v1, const double t1,
+                                const Vertex &u2, const Vertex &v2, const double t2)
+{
+    const double a = w_hat(u1, v1, t1, u2, v2, t2);
+    const double b = w_hat(u1, v1, t1, u1, v1, 1);
+    const double c = w_hat(u2, v2, 0, u2, v2, t2);
+    const double d = w_hat(u1, v1, t1, u1, v1, 0);
+    const double e = w_hat(u2, v2, 1, u2, v2, t2);
+    return std::min(a,
+           std::min(b + graph->graphDistance(v1, u2) + c,
+           std::min(b + graph->graphDistance(v1, v2) + e,
+           std::min(d + graph->graphDistance(u1, u2) + c,
+                    d + graph->graphDistance(u1, v2) + e))));
+}
+
+double Neighborhood::w_hat (const Vertex &u1, const Vertex &v1, const double t1,
+                            const Vertex &u2, const Vertex &v2, const double t2)
+{
+    if (u1 == u2 && v1 == v2)
+    {
+        if (t1 >= t2)
+            return (t1-t2) * graph->getEdgeWeight(u1, v1);
+        else
+            return (t2-t1) * graph->getEdgeWeight(v1, u1);
+    }
+    else if (u1 == v2 && v1 == u2)
+    {
+        return w_hat(u1, v1, t1, u1, v1, 1-t2);
+    }
+    else if (t1 == 0)
+    {
+        if (t2 == 0)
+            return graph->getEdgeWeight(u1, u2);
+        if (t2 == 1)
+            return graph->getEdgeWeight(u1, v2);
+    }
+    else if (t1 == 1)
+    {
+        if (t2 == 0)
+            return graph->getEdgeWeight(v1, u2);
+        if (t2 == 1)
+            return graph->getEdgeWeight(v1, v2);
+    }
+    
+    return std::numeric_limits<double>::infinity();
 }
 
 // Static members

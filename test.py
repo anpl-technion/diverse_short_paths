@@ -221,7 +221,7 @@ def plot2():
     matplotlib.pyplot.ylabel("Frechet distance")
     matplotlib.pyplot.ylim([0,150])
     matplotlib.pyplot.legend((sty3[0], sty1[0], sty4[0], sty2[0]),
-              ('Eppstein, diversity', 'Eppstein, mean distance', 'Random Avoidance, diversity', 'Random Avoidance, mean distance'), 'upper right')
+              ('Eppstein diversity', 'Eppstein Robust diversity', 'Voss diversity', 'Voss Robust diversity'), 'upper right')
     matplotlib.pyplot.title("Diversity of Path Set")
     matplotlib.pyplot.savefig("plot2.png")
 
@@ -283,7 +283,7 @@ def plot3():
     l1 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-", color='b')
     l2 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="--", color='g')
     l3 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-.", color='c')
-    matplotlib.pyplot.legend((l1, l2, l3), ('Eppstein', 'Random Avoidance', 'R.A. +/- s.d.'), 'upper left')
+    matplotlib.pyplot.legend((l1, l2, l3), ('Eppstein', 'Voss', 'Voss +/- s.d.'), 'upper left')
     matplotlib.pyplot.title("Speed Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
 

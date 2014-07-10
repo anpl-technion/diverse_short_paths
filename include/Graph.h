@@ -76,8 +76,8 @@ public:
      * Get the length of an edge, specified by its vertices.
      * @param u first vertex in graph
      * @param v second vertex in graph
-     * @return length (i.e. weight) of the edge that connects \a u to \a v
-     * @warning Return value undefined if no such edge exists (may even crash?).
+     * @return length (i.e. weight) of the edge that connects \a u to \a v, or if there
+     * is no such edge, 0 if \a u == \a v and infinity otherwise.
      */
     double getEdgeWeight (Vertex u, Vertex v) const;
     

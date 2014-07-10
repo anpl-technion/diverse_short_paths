@@ -63,7 +63,7 @@ void Voss::run ()
         {
             std::vector<Neighborhood> avoid = alreadyAvoiding;
             ompl::base::State *sample = g.getSpaceInfo()->allocState();
-            Edge sampledEdge = referencePath.sampleUniform(sample);
+            Edge sampledEdge = referencePath.sampleUniform(sample, radius);
             avoid.push_back(Neighborhood(sample, sampledEdge, radius));
             
             // Get the shortest path under these constraints

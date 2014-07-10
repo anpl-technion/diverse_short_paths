@@ -105,11 +105,12 @@ public:
     void push_back (const Vertex &v);
     
     /**
-     * Uniformly sample a state along the path.
+     * Uniformly sample a state along the path avoiding some margin.
      * @param sample[out]   allocated state to put sample in
+     * @param r             margin at the start and end of the path to avoid
      * @return edge sampled state lies in
      */
-    Edge sampleUniform (ompl::base::State *sample) const;
+    Edge sampleUniform (ompl::base::State *sample, const double r) const;
     
     /**
      * Get the weight of each edge, in order.

@@ -3,13 +3,13 @@ generation should continue until time is up, instead of stopping when a path is 
 
 PARAMETERS
 
-Name        Environment     Dense delta Sparse delta    Stretch		Time
-cubicles1   cubicles.cfg    0.001       0.25            3.0     60 s
-cubicles2   cubicles.cfg    0.0004      0.10            2.0     60 s
-cubicles3   cubicles.cfg    0.0002      0.04            1.1     60 s
-grid1       grid1.cfg       0.0004      0.06            1.5     30 s
-grid2       grid2.cfg       0.0004      0.06            1.4     30 s
-office      office.cfg      0.0009      0.07            1.1     60 s
+Name        Environment     Dense delta Sparse delta    Stretch     Time
+cubicles1   cubicles.cfg    0.001       0.25            3.0         60 s
+cubicles2   cubicles.cfg    0.0004      0.10            2.0         60 s
+cubicles3   cubicles.cfg    0.0002      0.04            1.1         60 s
+grid1       grid1.cfg       0.0004      0.06            1.5         30 s
+grid2       grid2.cfg       0.0004      0.06            1.4         30 s
+office      office.cfg      0.0009      0.07            1.1         60 s
 
 
 STATS
@@ -19,3 +19,4 @@ cubicles1   103     414     4.01942
 cubicles2   242     1180    4.87603
 cubicles3   1533    7120    4.64449
 
+.0003 .08 1.8

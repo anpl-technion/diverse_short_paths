@@ -5,6 +5,9 @@
 #include "Path.h"
 
 #include "Graph.h"
+#include "Neighborhood.h"
+
+#define TOOMANYTRIES 50
 
 // Constructors, destructors
 
@@ -145,22 +148,35 @@ void Path::push_back (const Vertex &v)
             + g->getEdgeWeight((*this)[size()-2], (*this)[size()-1]));
 }
 
-Edge Path::sampleUniform (ompl::base::State *sample) const
+Edge Path::sampleUniform (ompl::base::State *sample, const double r) const
 {
-    // Sample between [0,length]
-    double par = getLength() * ((double)rand() / (double)RAND_MAX);
-    
-    // Find vertices to interpolate between
-    std::size_t i = 0;
-    while (!(parametrization[i] <= par && par <= parametrization[i+1]))
+    // Reject if too close to goal
+    const Vertex start = front();
+    const Vertex goal = back();
+    const ompl::base::State *startState = g->getVertexState(start);
+    const ompl::base::State *goalState = g->getVertexState(goal);
+    std::size_t i;
+    double par;
+    std::size_t count = 0;
+    do
     {
-        i++;
+        // Sample between [r,length] to stay away from start
+        par = r + (getLength() - r) * ((double)rand() / (double)RAND_MAX);
+        
+        // Find vertices to interpolate between
+        i = 0;
+        while (!(parametrization[i] <= par && par <= parametrization[i+1]))
+            i++;
+        
+        par = (par-parametrization[i]) / getLength();
+        
+        // Interpolate
+        g->getSpaceInfo()->getStateSpace()->interpolate(g->getVertexState((*this)[i]), g->getVertexState((*this)[i+1]), par, sample);
     }
+    while (count++ < TOOMANYTRIES &&
+        (Neighborhood::distance(sample, (*this)[i], (*this)[i+1], par, goalState, goal, goal, 0) < r ||
+         Neighborhood::distance(sample, (*this)[i], (*this)[i+1], par, startState, start, start, 0) < r));
     
-    par = (par-parametrization[i]) / getLength();
-    
-    // Interpolate
-    g->getSpaceInfo()->getStateSpace()->interpolate(g->getVertexState((*this)[i]), g->getVertexState((*this)[i+1]), par, sample);
     return g->getEdge((*this)[i], (*this)[i+1]);
 }
 

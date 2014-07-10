@@ -47,13 +47,13 @@ Graph::Graph (const ompl::base::SpaceInformationPtr &si, std::istream &graphml)
         boost::put(boost::vertex_prop, *this, v, state);
     });
     
-    /*std::cout << "Num vertices: " << getNumVertices() << "\nNum edges: " << boost::num_edges(*this) << "\n";
+    std::cout << "Num vertices: " << getNumVertices() << "\nNum edges: " << boost::num_edges(*this) << "\n";
     double deg = 0;
     foreachVertex([&] (Vertex v) -> void
     {
         deg += boost::out_degree(v, *this);
     });
-    std::cout << "Avg degree: " << deg/getNumVertices() << "\n";*/
+    std::cout << "Avg degree: " << deg/getNumVertices() << "\n";
 }
 
 Graph::~Graph ()
@@ -90,8 +90,12 @@ double Graph::getEdgeWeight (Edge e) const
 
 double Graph::getEdgeWeight (Vertex u, Vertex v) const
 {
-    // If edge does not exist, this will crash...
-    return getEdgeWeight(getEdge(u, v));
+    if (u == v)
+        return 0;
+    std::pair<Edge, bool> res = boost::edge(u, v, *this);
+    if (res.second)
+        return getEdgeWeight(res.first);
+    return std::numeric_limits<double>::infinity();
 }
 
 const ompl::base::State *Graph::getVertexState (Vertex v) const
