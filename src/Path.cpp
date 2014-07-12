@@ -7,7 +7,7 @@
 #include "Graph.h"
 #include "Neighborhood.h"
 
-#define TOOMANYTRIES 50
+#define TOOMANYTRIES 15
 
 // Constructors, destructors
 
