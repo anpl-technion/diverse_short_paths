@@ -14,7 +14,7 @@ import sys
 
 DEBUG = False
 EXE = "build/bin/diverse"
-RUNS = 2 if DEBUG else 100
+RUNS = 2 if DEBUG else 200
 PATHS = 10
 PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
 NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
@@ -260,7 +260,7 @@ def plot3():
             E.append(data[0])
         else:
             E.append(float('inf'))
-        data = pool.map_async(plot3F, map(lambda _: (g, "r:f:c:0.1", d), xrange(RUNS))).get(99999999)
+        data = pool.map_async(plot3F, map(lambda _: (g, "r:f:c:0.15", d), xrange(RUNS))).get(99999999)
         r, a = zip(*data)
         R.append(numpy.mean(r))
         Rerr.append(numpy.std(r))
