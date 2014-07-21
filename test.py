@@ -306,7 +306,7 @@ def plot3():
     axTime.set_xlabel("Minimum Diversity Required")
     matplotlib.pyplot.xlim([0,8])
     matplotlib.pyplot.legend((l1, l2, l3, l4), ('Eppstein time', 'Voss time', 'Eppstein max length', 'Voss max length'), 'upper left')
-    matplotlib.pyplot.title("Speed Comparison of Algorithms")
+    matplotlib.pyplot.title("Speed and Length Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
 
     return
