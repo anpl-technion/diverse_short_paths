@@ -222,7 +222,7 @@ def plot2():
     matplotlib.pyplot.ylabel("Frechet distance")
     matplotlib.pyplot.ylim([0,150])
     matplotlib.pyplot.legend((sty3[0], sty1[0], sty4[0], sty2[0]),
-              ('Eppstein diversity', 'Eppstein Robust diversity', 'Voss diversity', 'Voss Robust diversity'), 'upper right')
+              ('Eppstein diversity', 'Eppstein robust diversity', 'Voss diversity', 'Voss robust diversity'), 'upper right')
     matplotlib.pyplot.title("Diversity of Path Set")
     matplotlib.pyplot.savefig("plot2.png")
 
@@ -258,7 +258,7 @@ def plot3():
     S = []
     for d in X:
         # We will skip Eppstein on large values because it takes way too long
-        if d < 5:
+        if d < 5.1:
             data = plot3F((g, "e:f", d))
             E.append(data[0])
             EL.append(data[2])
