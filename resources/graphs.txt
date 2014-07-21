@@ -18,5 +18,4 @@ Name        Nodes   Edges   Avg. Degree
 cubicles1   103     414     4.01942
 cubicles2   242     1180    4.87603
 cubicles3   1533    7120    4.64449
-
-.0003 .08 1.8
+grid2       485     2994    6.1732
