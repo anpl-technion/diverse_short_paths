@@ -9,12 +9,13 @@ matplotlib.use('Agg')
 import matplotlib.pyplot
 import multiprocessing
 import numpy
+import pylab
 import subprocess
 import sys
 
 DEBUG = False
 EXE = "build/bin/diverse"
-RUNS = 2 if DEBUG else 200
+RUNS = 8 if DEBUG else 200
 PATHS = 10
 PATH_DISTANCE_MEASURES = ["levenshtein", "frechet"]
 NEIGHBORHOOD_RADIUS_MEASURES = ["graph", "cspace"]
@@ -236,7 +237,7 @@ def plot3F((g, algorithm, d)):
     try:
         d = extract_datapoint(subprocess.check_output(
             [EXE, "resources/"+g+".graphml", str(PATHS), algorithm, "-d", str(d)], universal_newlines=True))
-        return (d[5], d[0]/float(PATHS))
+        return (d[5], d[0]/float(PATHS), d[2]/d[1])
     except subprocess.CalledProcessError as e:
         raise Exception("subprocess.CalledProcessError: exit status " + str(e.returncode) + "\nCalled: " + ' '.join(e.cmd) + "\nReturned: " + e.output)
 
@@ -250,40 +251,61 @@ def plot3():
     X = numpy.arange(1e-12, 8.1, 1 if DEBUG else 0.1)
     E = []
     Eerr = []
-    R = []
-    Rerr = []
-    A = []
+    EL = []
+    V = []
+    Verr = []
+    VL = []
+    S = []
     for d in X:
         # We will skip Eppstein on large values because it takes way too long
-        if d < 4.5:
+        if d < 5:
             data = plot3F((g, "e:f", d))
             E.append(data[0])
+            EL.append(data[2])
         else:
             E.append(float('inf'))
+            EL.append(float('inf'))
         data = pool.map_async(plot3F, map(lambda _: (g, "r:f:c:0.15", d), xrange(RUNS))).get(99999999)
-        r, a = zip(*data)
-        R.append(numpy.mean(r))
-        Rerr.append(numpy.std(r))
-        A.append(numpy.mean(a))
+        v, suc, vl = zip(*data)
+        VL.append(max(vl))
+        V.append(numpy.mean(v))
+        Verr.append(numpy.std(v))
+        S.append(numpy.mean(suc))
 
     matplotlib.pyplot.clf()
-    matplotlib.pyplot.plot(X, E, "b-")
-    R = numpy.array(R)
-    Rerr = numpy.array(Rerr)
-    for i in xrange(len(X)):
-        matplotlib.pyplot.plot(X[:-i], R[:-i], "w--")
-        matplotlib.pyplot.plot(X[:-i], R[:-i], "g--", alpha=A[-i])
-        matplotlib.pyplot.plot(X[:-i], (R+Rerr)[:-i], "w-.")
-        matplotlib.pyplot.plot(X[:-i], (R+Rerr)[:-i], "c-.", alpha=A[-i])
-        matplotlib.pyplot.plot(X[:-i], (R-Rerr)[:-i], "w-.")
-        matplotlib.pyplot.plot(X[:-i], (R-Rerr)[:-i], "c-.", alpha=A[-i])
-    matplotlib.pyplot.xlabel("Minimum Diversity Required")
-    matplotlib.pyplot.ylabel("Time (s)")
-    matplotlib.pyplot.ylim([0,25])
-    l1 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-", color='b')
-    l2 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="--", color='g')
-    l3 = matplotlib.lines.Line2D([0,1], [0,1], linestyle="-.", color='c')
-    matplotlib.pyplot.legend((l1, l2, l3), ('Eppstein', 'Voss', 'Voss +/- s.d.'), 'upper left')
+    axTime = matplotlib.pyplot.subplots()[1]
+    axLength = axTime.twinx()
+    
+    l1, = axTime.plot(X, E, "b-")
+    
+    V = numpy.array(V)
+    Verr = numpy.array(Verr)
+    l2, = axTime.plot(X, V, "g--")
+    axTime.plot(X, V+Verr, "c-.")
+    axTime.plot(X, V-Verr, "c-.")
+    
+    i80 = map(lambda x: x < 0.8, S).index(True)
+    i50 = map(lambda x: x < 0.5, S).index(True)
+    axTime.annotate("< 0.8*k paths returned", xy=(X[i80],V[i80]), xytext=(4,4), arrowprops=dict(arrowstyle='->'))
+    axTime.annotate("< 0.5*k paths returned", xy=(X[i50],V[i50]), xytext=(5.2,7), arrowprops=dict(arrowstyle='->'))
+    
+    ELi = EL.index(float('inf'))
+    ELfit = pylab.poly1d(pylab.polyfit(X[:ELi], EL[:ELi], 1))(X)
+    l3, = axLength.plot(X, EL, "m.")
+    axLength.plot(X, ELfit, "m")
+    
+    VLfit = pylab.poly1d(pylab.polyfit(X, VL, 1))(X)
+    l4, = axLength.plot(X, VL, "r+")
+    axLength.plot(X, VLfit, "r")
+    
+    axTime.set_ylabel("Time (s)")
+    axTime.set_ylim([0,25])
+    axLength.set_ylabel("Length")
+    axLength.set_ylim([0,7])
+    
+    axTime.set_xlabel("Minimum Diversity Required")
+    matplotlib.pyplot.xlim([0,8])
+    matplotlib.pyplot.legend((l1, l2, l3, l4), ('Eppstein time', 'Voss time', 'Eppstein max length', 'Voss max length'), 'upper left')
     matplotlib.pyplot.title("Speed Comparison of Algorithms")
     matplotlib.pyplot.savefig("plot3.png")
 
