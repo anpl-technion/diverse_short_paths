@@ -164,6 +164,7 @@ def plot1():
     axFail.set_ylim([0,120])
     axFail.set_ylabel("% Paths Returned")
     
+    axDiv.set_xlabel("Radius Factor")
     matplotlib.pyplot.legend((l2, l1), ('C-space Distance', 'Graph Distance'), 'upper left')
     matplotlib.pyplot.savefig("plot1b.png")
     
@@ -324,12 +325,6 @@ def main():
     # Setup parallelization
     global pool
     pool = multiprocessing.Pool(int(multiprocessing.cpu_count()*1.2))
-
-    #print("grid1 optimal radius: " + str(find_optimal_radius("grid1", "f:c", 50, 0.00001)))
-    #print("grid2 optimal radius: " + str(find_optimal_radius("grid2", "f:c", 50, 0.00001)))
-    #print("cubicles1 optimal radius: " + str(find_optimal_radius("cubicles1", "f:c", 50, 0.00001, 1e-12, 0.1)))
-    #print("cubicles2 optimal radius: " + str(find_optimal_radius("cubicles2", "f:c", 50, 0.00001, 1e-12, 0.1)))
-    #print("cubicles3 optimal radius: " + str(find_optimal_radius("cubicles3", "f:c", 50, 0.00001, 1e-12, 0.1)))
     
     # Plots
     if len(sys.argv) > 1:
