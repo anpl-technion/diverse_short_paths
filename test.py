@@ -13,7 +13,7 @@ import pylab
 import subprocess
 import sys
 
-DEBUG = False
+DEBUG = True
 EXE = "build/bin/diverse"
 RUNS = 8 if DEBUG else 200
 PATHS = 10
@@ -259,7 +259,6 @@ def plot3():
     Eerr = []
     EL = []
     V = []
-    Verr = []
     VL = []
     S = []
     for d in X:
@@ -275,25 +274,16 @@ def plot3():
         v, suc, vl = zip(*data)
         VL.append(max(vl))
         V.append(numpy.mean(v))
-        Verr.append(numpy.std(v))
         S.append(numpy.mean(suc))
 
     matplotlib.pyplot.clf()
     axTime = matplotlib.pyplot.subplots()[1]
     axLength = axTime.twinx()
     
-    l1, = axTime.plot(X, E, "b-")
+    l1, = axTime.plot(X, E, "b-.")
     
     V = numpy.array(V)
-    Verr = numpy.array(Verr)
     l2, = axTime.plot(X, V, "g--")
-    axTime.plot(X, V+Verr, "c-.")
-    axTime.plot(X, V-Verr, "c-.")
-    
-    i80 = map(lambda x: x < 0.8, S).index(True)
-    i50 = map(lambda x: x < 0.5, S).index(True)
-    axTime.annotate("< 0.8*k paths returned", xy=(X[i80],V[i80]), xytext=(4,4), arrowprops=dict(arrowstyle='->'))
-    axTime.annotate("< 0.5*k paths returned", xy=(X[i50],V[i50]), xytext=(5.2,7), arrowprops=dict(arrowstyle='->'))
     
     ELi = EL.index(float('inf'))
     ELfit = pylab.poly1d(pylab.polyfit(X[:ELi], EL[:ELi], 1))(X)
