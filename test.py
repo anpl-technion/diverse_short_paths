@@ -263,7 +263,7 @@ def plot3():
     S = []
     for d in X:
         # We will skip Eppstein on large values because it takes way too long
-        if DEBUG and d < 4:
+        if DEBUG and d >= 4:
             d = 5.1
         if d < 5.1:
             data = plot3F((g, "e:f", d))
