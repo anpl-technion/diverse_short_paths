@@ -45,6 +45,7 @@
 class Eppstein;
 class Frechet;
 class Graph;
+class Hausdorff;
 class KDiverseShort;
 class Levenshtein;
 class Neighborhood;

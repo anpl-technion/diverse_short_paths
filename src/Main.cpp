@@ -7,6 +7,7 @@
 
 #include "Eppstein.h"
 #include "Frechet.h"
+#include "Hausdorff.h"
 #include "Levenshtein.h"
 #include "Neighborhood.h"
 #include "TestData.h"
@@ -23,10 +24,10 @@ void usage ()
     std::cerr << "    <paths> is the number of paths to find\n";
     std::cerr << "    <algorithm> is of the form <name>:<pathDistance>[:<neighborhoodDistance>:<neighborhoodRadius>]\n";
     std::cerr << "        <name> is 'eppstein' or 'randomavoidance'\n";
-    std::cerr << "        <pathDistance> is 'levenshtein' or 'frechet'\n";
+    std::cerr << "        <pathDistance> is 'levenshtein', 'frechet', or 'hausdorff'\n";
     std::cerr << "        <neighborhoodDistance> is 'cspace' or 'graph'; it is required by 'randomavoidance'\n";
     std::cerr << "        <neighborhoodRadius> is a float in (0,1); it is required by 'randomavoidance'\n";
-    std::cerr << "      * algorithm specifications may be abbreviated using e,r,l,f,c,g\n";
+    std::cerr << "      * algorithm specifications may be abbreviated using e,r,l,f,h,c,g\n";
     std::cerr << "    <maxLength>,<minDistance> are floats specifying constraints on returned paths\n";
     std::cerr << "    -s flag enables saving the path set in a file called paths.txt\n\n";
     std::cerr << "Example: diverse resources/grid2.graphml 10 e:l -d 5.7\n";
@@ -85,6 +86,8 @@ int main (int argc, char *argv[])
         distanceMeasure = new Frechet();
     else if (strcasecmp(pathDistance, "l") == 0 || strcasecmp(pathDistance, "levenshtein") == 0)
         distanceMeasure = new Levenshtein();
+    else if (strcasecmp(pathDistance, "h") == 0 || strcasecmp(pathDistance, "hausdorff") == 0)
+        distanceMeasure = new Hausdorff();
     else
     {
         std::cout << "Error: Unknown distance measure '" << pathDistance << "'\n";
