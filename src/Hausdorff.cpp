@@ -8,10 +8,10 @@
 #include "Path.h"
 
 // Some convenient macros
-#define DYN(I,J)    (distarray[I+J*rowLength])
+#define DYN(I,J)    (distarray[(I)+(J)*rowLength])
 #define DIST(a,b)   (si->distance(a, b))
 #define MINDIST(s1,e1,s2,e2) \
-  std::min(std::min(DIST(s1,s2), DIST(s1,e2)), std::min(DIST(e1,s2), DIST(e1,e2)));
+  std::min(std::min(DIST(s1,s2), DIST(s1,e2)), std::min(DIST(e1,s2), DIST(e1,e2)))
 
 // Public methods
 
@@ -31,16 +31,16 @@ double Hausdorff::distance (const Path &path1, const Path &path2)
 
   // Initialize the min records.
   for (std::size_t i = 0; i < rowLength-1; i++)
-    DYN(i,colLength-1) = 0;
+    DYN(i,colLength-1) = std::numeric_limits<double>::infinity();
   for (std::size_t j = 0; j < colLength-1; j++)
-    DYN(rowLength-1,j) = 0;
+    DYN(rowLength-1,j) = std::numeric_limits<double>::infinity();
 
   // Fill in the distance matrix.
   for (std::size_t i = 0; i < rowLength-1; i++)
   {
     for (std::size_t j = 0; j < colLength-1; j++)
     {
-      DYN(i,j) = MINDIST(states1[i], states1[i+1], states2[i], states2[i+1]);
+      DYN(i,j) = MINDIST(states1[i], states1[i+1], states2[j], states2[j+1]);
 
       // Update the min records.
       DYN(i,colLength-1) = std::min(DYN(i,colLength-1), DYN(i,j));
@@ -54,6 +54,9 @@ double Hausdorff::distance (const Path &path1, const Path &path2)
     max = std::max(max, DYN(i,colLength-1));
   for (std::size_t j = 0; j < colLength-1; j++)
     max = std::max(max, DYN(rowLength-1,j));
+
+  delete [] distarray;
+
   return max;
 }
 
