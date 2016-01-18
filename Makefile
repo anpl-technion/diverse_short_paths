@@ -3,7 +3,7 @@
 SHELL		= /bin/bash
 CXX		= g++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++0x -O3 -march=native
-LDFLAGS		= -lompl -lboost_graph
+LDFLAGS		= -L/home/cav2/repos/ompl/build/AtlasRelease/lib -lompl -lboost_graph
 
 CURDIR		= /home/cav2/repos/diverse_short_paths
 PROG		= diverse
@@ -13,7 +13,7 @@ INCDIR		= include
 PCHINC		= $(INCDIR)/pch.h
 DIRS		= build/bin build/$(SRCDIR)
 INCS		= $(wildcard $(INCDIR)/*.h) $(wildcard $(INCDIR)/**/*.h)
-CXXFLAGS	+= -I$(INCDIR)
+CXXFLAGS	+= -I$(INCDIR) -I/home/cav2/repos/ompl/src
 PCH		= $(PCHINC).pch
 SRCS		= $(shell echo $(wildcard $(SRCDIR)/*.cpp) | tr " " "\n" | sort | tr "\n" " ")
 OBJS    	= $(subst $(SRCDIR)/,build/$(SRCDIR)/,$(SRCS:.cpp=.o))
