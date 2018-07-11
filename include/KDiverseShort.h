@@ -64,6 +64,16 @@ public:
     
     /** Print a summary of these results. */
     void print () const;
+
+    /** Get a pointer to paths */
+    inline Path* getSolutionPaths() {
+        return pathArray;
+    };
+
+    inline std::size_t numPathsFound () {
+        return i;
+    }
+
     
     /**
      * Get the length of the shortest of our paths.

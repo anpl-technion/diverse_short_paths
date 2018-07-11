@@ -1,0 +1,6 @@
+^build
+^include/pch.h.pch
+
+syntax: glob
+*~
+

@@ -76,6 +76,8 @@ public:
      * @param out   stream to write to
      */
     void saveOMPLFormat(std::ostream &out) const;
+
+    ompl::base::SpaceInformationPtr getSpaceInformationPtr();
     
     /**
      * Write this path in format used by our osm2gephi.py script.

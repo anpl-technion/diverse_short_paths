@@ -25,6 +25,9 @@ private:
     const Graph *graph;                     // Graph to search in
     
 public:
+
+    TestData (const std::stringstream &string_stream, std::size_t numPaths,
+                    double maxPathLength, double minPathPairwiseDistance);
     
     /**
      * Construct data set.

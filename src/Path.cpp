@@ -111,6 +111,12 @@ void Path::saveOMPLFormat(std::ostream &out) const
     g->getSpaceInfo()->freeState(state);
 }
 
+ompl::base::SpaceInformationPtr Path::getSpaceInformationPtr() {
+    ompl::base::SpaceInformationPtr si = g->getSpaceInfo();
+
+    return si;
+}
+
 void Path::saveGephiFormat(std::ostream &out) const
 {
     for (std::size_t i = 0; i < size(); i++)
